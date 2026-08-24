@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="profesional-seguro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toolyo — Wireframe Navegable</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== Variables del tema profesional-seguro ===== */
+    :root {
+      --ps-primary-50: #EEF4FF;
+      --ps-primary-100: #D9E6FF;
+      --ps-primary-200: #B3D1FF;
+      --ps-primary-300: #80B3FF;
+      --ps-primary-400: #4D94FF;
+      --ps-primary-500: #1A75FF;
+      --ps-primary-600: #005CE6;
+      --ps-primary-700: #0047B3;
+      --ps-primary-800: #003380;
+      --ps-primary-900: #00204D;
+      --ps-neutral-0: #FFFFFF;
+      --ps-neutral-50: #F8F9FA;
+      --ps-neutral-100: #F1F3F5;
+      --ps-neutral-200: #E9ECEF;
+      --ps-neutral-300: #DEE2E6;
+      --ps-neutral-400: #CED4DA;
+      --ps-neutral-500: #ADB5BD;
+      --ps-neutral-600: #868E96;
+      --ps-neutral-700: #495057;
+      --ps-neutral-800: #343A40;
+      --ps-neutral-900: #212529;
+      --ps-success-50: #EBFBEE;
+      --ps-success-500: #2B8A3E;
+      --ps-warning-50: #FFF9DB;
+      --ps-warning-500: #F08C00;
+      --ps-danger-50: #FFF5F5;
+      --ps-danger-500: #C92A2A;
+      --ps-info-500: var(--ps-primary-500);
+      --ps-surface-0: #FFFFFF;
+      --ps-surface-overlay: rgba(33,37,41,0.48);
+      --ps-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --ps-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+      --ps-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.03);
+      --ps-shadow-focus: 0 0 0 3px var(--ps-primary-200);
+      --ps-font-sans: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      --ps-space-1: 4px;
+      --ps-space-2: 8px;
+      --ps-space-3: 12px;
+      --ps-space-4: 16px;
+      --ps-space-5: 20px;
+      --ps-space-6: 24px;
+      --ps-space-8: 32px;
+      --ps-space-10: 40px;
+      --ps-space-12: 48px;
+      --ps-radius-sm: 4px;
+      --ps-radius-md: 6px;
+      --ps-radius-lg: 8px;
+      --ps-radius-xl: 12px;
+      --ps-radius-full: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-family: var(--ps-font-sans); color: var(--ps-neutral-700); background: var(--ps-neutral-50); }
+    body { min-height: 100vh; }
+    a { color: var(--ps-primary-500); text-decoration: none; cursor: pointer; }
+    a:hover { color: var(--ps-primary-600); }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ===== Utilidades wireframe ===== */
+    .wf-img { background: var(--ps-neutral-200); border: 2px dashed var(--ps-neutral-300); display: flex; align-items: center; justify-content: center; color: var(--ps-neutral-500); font-size: 12px; border-radius: var(--ps-radius-md); }
+    .wf-avatar { width: 40px; height: 40px; border-radius: var(--ps-radius-full); background: var(--ps-neutral-200); border: 2px dashed var(--ps-neutral-300); display: flex; align-items: center; justify-content: center; color: var(--ps-neutral-500); font-size: 10px; }
+    .wf-placeholder { background: var(--ps-neutral-100); border: 1px dashed var(--ps-neutral-300); border-radius: var(--ps-radius-md); padding: var(--ps-space-4); color: var(--ps-neutral-500); font-size: 14px; text-align: center; }
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: var(--ps-space-1); }
+    .gap-2 { gap: var(--ps-space-2); }
+    .gap-3 { gap: var(--ps-space-3); }
+    .gap-4 { gap: var(--ps-space-4); }
+    .gap-5 { gap: var(--ps-space-5); }
+    .gap-6 { gap: var(--ps-space-6); }
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+    .text-xs { font-size: 12px; }
+    .text-sm { font-size: 14px; }
+    .text-base { font-size: 16px; }
+    .text-lg { font-size: 18px; font-weight: 500; }
+    .text-xl { font-size: 20px; font-weight: 600; }
+    .text-2xl { font-size: 24px; font-weight: 600; }
+    .text-3xl { font-size: 30px; font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .text-neutral-600 { color: var(--ps-neutral-600); }
+    .text-neutral-500 { color: var(--ps-neutral-500); }
+    .text-primary { color: var(--ps-primary-500); }
+    .text-success { color: var(--ps-success-500); }
+    .text-warning { color: var(--ps-warning-500); }
+    .text-danger { color: var(--ps-danger-500); }
+    .mt-2 { margin-top: var(--ps-space-2); }
+    .mt-3 { margin-top: var(--ps-space-3); }
+    .mt-4 { margin-top: var(--ps-space-4); }
+    .mt-6 { margin-top: var(--ps-space-6); }
+    .mb-2 { margin-bottom: var(--ps-space-2); }
+    .mb-3 { margin-bottom: var(--ps-space-3); }
+    .mb-4 { margin-bottom: var(--ps-space-4); }
+    .mb-6 { margin-bottom: var(--ps-space-6); }
+    .p-4 { padding: var(--ps-space-4); }
+    .p-5 { padding: var(--ps-space-5); }
+    .p-6 { padding: var(--ps-space-6); }
+    .px-4 { padding-left: var(--ps-space-4); padding-right: var(--ps-space-4); }
+    .py-2 { padding-top: var(--ps-space-2); padding-bottom: var(--ps-space-2); }
+    .py-3 { padding-top: var(--ps-space-3); padding-bottom: var(--ps-space-3); }
+    .rounded-md { border-radius: var(--ps-radius-md); }
+    .rounded-lg { border-radius: var(--ps-radius-lg); }
+    .rounded-xl { border-radius: var(--ps-radius-xl); }
+    .shadow-md { box-shadow: var(--ps-shadow-md); }
+    .shadow-lg { box-shadow: var(--ps-shadow-lg); }
+    .border { border: 1px solid var(--ps-neutral-200); }
+    .border-b { border-bottom: 1px solid var(--ps-neutral-200); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ps-space-4); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ps-space-4); }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ps-space-4); }
+
+    /* ===== Layout ===== */
+    .topbar { height: 64px; background: var(--ps-surface-0); border-bottom: 1px solid var(--ps-neutral-200); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--ps-space-6); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .topbar .logo { font-size: 22px; font-weight: 700; color: var(--ps-primary-500); letter-spacing: -0.5px; }
+    .topbar .nav-links { display: flex; gap: var(--ps-space-5); align-items: center; }
+    .topbar .nav-links a { color: var(--ps-neutral-700); font-size: 14px; font-weight: 500; }
+    .topbar .nav-links a:hover { color: var(--ps-primary-600); }
+
+    .layout { display: flex; padding-top: 64px; min-height: 100vh; }
+    .sidebar { width: 256px; background: var(--ps-neutral-0); border-right: 1px solid var(--ps-neutral-200); padding: var(--ps-space-4); position: fixed; top: 64px; bottom: 0; left: 0; overflow-y: auto; }
+    .sidebar-item { display: flex; align-items: center; gap: var(--ps-space-3); height: 44px; padding: 0 var(--ps-space-4); border-radius: var(--ps-radius-md); color: var(--ps-neutral-600); font-size: 14px; cursor: pointer; margin-bottom: 2px; }
+    .sidebar-item:hover { background: var(--ps-primary-50); color: var(--ps-primary-600); }
+    .sidebar-item.active { background: var(--ps-primary-50); color: var(--ps-primary-700); border-left: 3px solid var(--ps-primary-500); }
+    .sidebar-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ps-neutral-500); font-weight: 600; margin: var(--ps-space-4) 0 var(--ps-space-2) var(--ps-space-4); }
+
+    .main-content { flex: 1; margin-left: 0; padding: var(--ps-space-6); max-width: 1200px; margin-right: auto; margin-left: auto; }
+    .layout.with-sidebar .main-content { margin-left: 256px; }
+
+    /* ===== Botones ===== */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--ps-space-2); border: none; border-radius: var(--ps-radius-md); font-weight: 500; font-size: 14px; transition: background 150ms ease-in-out, transform 50ms; }
+    .btn:active { transform: translateY(1px); }
+    .btn-sm { height: 32px; padding: 0 var(--ps-space-3); font-size: 13px; }
+    .btn-md { height: 40px; padding: 0 var(--ps-space-4); font-size: 14px; }
+    .btn-lg { height: 48px; padding: 0 var(--ps-space-6); font-size: 16px; }
+    .btn-primary { background: var(--ps-primary-500); color: #fff; box-shadow: var(--ps-shadow-sm); }
+    .btn-primary:hover { background: var(--ps-primary-600); }
+    .btn-secondary { background: #fff; color: var(--ps-primary-500); border: 1.5px solid var(--ps-primary-500); }
+    .btn-secondary:hover { background: var(--ps-primary-50); }
+    .btn-ghost { background: transparent; color: var(--ps-neutral-700); }
+    .btn-ghost:hover { background: var(--ps-neutral-100); }
+    .btn-danger { background: var(--ps-danger-500); color: #fff; }
+    .btn-danger:hover { background: #b02020; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ===== Inputs ===== */
+    .input { height: 40px; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-neutral-300); border-radius: var(--ps-radius-sm); background: var(--ps-surface-0); font-size: 14px; color: var(--ps-neutral-800); width: 100%; }
+    .input:focus { outline: none; border-color: var(--ps-primary-500); box-shadow: var(--ps-shadow-focus); }
+    .label { display: block; font-size: 13px; font-weight: 500; color: var(--ps-neutral-700); margin-bottom: var(--ps-space-1); }
+    .textarea { min-height: 100px; padding: var(--ps-space-3); border: 1px solid var(--ps-neutral-300); border-radius: var(--ps-radius-sm); background: var(--ps-surface-0); font-size: 14px; width: 100%; resize: vertical; }
+
+    /* ===== Cards ===== */
+    .card { background: var(--ps-surface-0); border: 1px solid var(--ps-neutral-200); border-radius: var(--ps-radius-lg); box-shadow: var(--ps-shadow-md); padding: var(--ps-space-5); }
+    .card-header { padding-bottom: var(--ps-space-4); border-bottom: 1px solid var(--ps-neutral-100); margin-bottom: var(--ps-space-4); font-size: 18px; font-weight: 600; color: var(--ps-neutral-800); }
+
+    /* ===== Badges ===== */
+    .badge { display: inline-flex; align-items: center; padding: var(--ps-space-1) var(--ps-space-2); border-radius: var(--ps-radius-full); font-size: 11px; font-weight: 600; }
+    .badge-default { background: var(--ps-neutral-100); color: var(--ps-neutral-700); }
+    .badge-primary { background: var(--ps-primary-50); color: var(--ps-primary-700); }
+    .badge-success { background: var(--ps-success-50); color: var(--ps-success-500); }
+    .badge-warning { background: var(--ps-warning-50); color: var(--ps-warning-500); }
+    .badge-danger { background: var(--ps-danger-50); color: var(--ps-danger-500); }
+
+    /* ===== Tablas ===== */
+    .table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .table thead th { background: var(--ps-neutral-50); color: var(--ps-neutral-700); font-weight: 600; text-align: left; padding: var(--ps-space-3) var(--ps-space-4); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .table tbody td { padding: var(--ps-space-3) var(--ps-space-4); border-top: 1px solid var(--ps-neutral-200); }
+    .table tbody tr:hover { background: var(--ps-primary-50); }
+
+    /* ===== Modales ===== */
+    .modal-backdrop { position: fixed; inset: 0; background: var(--ps-surface-overlay); backdrop-filter: blur(2px); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    .modal { background: var(--ps-surface-0); border-radius: var(--ps-radius-lg); box-shadow: var(--ps-shadow-lg); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: var(--ps-space-5); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 20px; font-weight: 600; color: var(--ps-neutral-800); }
+    .modal-body { padding: 0 var(--ps-space-5) var(--ps-space-5); }
+    .modal-footer { padding: var(--ps-space-4) var(--ps-space-5); display: flex; justify-content: flex-end; gap: var(--ps-space-3); border-top: 1px solid var(--ps-neutral-100); }
+
+    /* ===== Screen system ===== */
+    .screen { display: none; animation: fadeIn 250ms ease-out; }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== Componentes específicos ===== */
+    .search-bar { display: flex; gap: var(--ps-space-2); background: var(--ps-surface-0); border: 1px solid var(--ps-neutral-300); border-radius: var(--ps-radius-lg); padding: var(--ps-space-2) var(--ps-space-3); align-items: center; max-width: 600px; width: 100%; }
+    .search-bar input { border: none; background: transparent; flex: 1; outline: none; font-size: 14px; }
+
+    .product-card { background: var(--ps-surface-0); border: 1px solid var(--ps-neutral-200); border-radius: var(--ps-radius-lg); overflow: hidden; box-shadow: var(--ps-shadow-sm); transition: box-shadow 150ms; cursor: pointer; }
+    .product-card:hover { box-shadow: var(--ps-shadow-md); }
+    .product-card .img-wrap { height: 160px; background: var(--ps-neutral-100); border-bottom: 1px solid var(--ps-neutral-200); display: flex; align-items: center; justify-content: center; color: var(--ps-neutral-400); font-size: 12px; }
+    .product-card .info { padding: var(--ps-space-3) var(--ps-space-4); }
+    .product-card .title { font-weight: 600; color: var(--ps-neutral-800); font-size: 15px; margin-bottom: 2px; }
+    .product-card .meta { font-size: 13px; color: var(--ps-neutral-600); }
+    .product-card .price { font-weight: 700; color: var(--ps-neutral-800); font-size: 16px; margin-top: var(--ps-space-2); }
+
+    .category-pill { display: inline-flex; flex-direction: column; align-items: center; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-surface-0); border: 1px solid var(--ps-neutral-200); border-radius: var(--ps-radius-lg); cursor: pointer; min-width: 90px; }
+    .category-pill:hover { border-color: var(--ps-primary-300); background: var(--ps-primary-50); }
+    .category-pill .icon { width: 32px; height: 32px; background: var(--ps-neutral-100); border-radius: var(--ps-radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+    .step-indicator { display: flex; align-items: center; gap: var(--ps-space-2); margin-bottom: var(--ps-space-6); }
+    .step { width: 32px; height: 32px; border-radius: var(--ps-radius-full); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; background: var(--ps-neutral-200); color: var(--ps-neutral-600); }
+    .step.active { background: var(--ps-primary-500); color: #fff; }
+    .step.done { background: var(--ps-success-500); color: #fff; }
+    .step-line { flex: 1; height: 2px; background: var(--ps-neutral-200); }
+    .step-line.done { background: var(--ps-success-500); }
+
+    .chat-bubble { max-width: 70%; padding: var(--ps-space-3) var(--ps-space-4); border-radius: var(--ps-radius-lg); font-size: 14px; margin-bottom: var(--ps-space-3); }
+    .chat-bubble.me { background: var(--ps-primary-500); color: #fff; margin-left: auto; border-bottom-right-radius: var(--ps-radius-sm); }
+    .chat-bubble.them { background: var(--ps-neutral-100); color: var(--ps-neutral-700); border-bottom-left-radius: var(--ps-radius-sm); }
+
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px; }
+    .calendar-grid .day-label { color: var(--ps-neutral-500); font-weight: 600; font-size: 11px; padding: var(--ps-space-2); }
+    .calendar-grid .day { padding: var(--ps-space-2); border-radius: var(--ps-radius-sm); cursor: pointer; color: var(--ps-neutral-700); }
+    .calendar-grid .day:hover { background: var(--ps-primary-50); }
+    .calendar-grid .day.selected { background: var(--ps-primary-500); color: #fff; }
+    .calendar-grid .day.disabled { color: var(--ps-neutral-400); cursor: not-allowed; }
+    .calendar-grid .day.range { background: var(--ps-primary-100); }
+
+    .toast { position: fixed; bottom: var(--ps-space-6); right: var(--ps-space-6); background: var(--ps-neutral-800); color: #fff; padding: var(--ps-space-3) var(--ps-space-5); border-radius: var(--ps-radius-md); box-shadow: var(--ps-shadow-lg); font-size: 14px; z-index: 300; animation: slideUp 200ms ease-out; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .review-stars { color: var(--ps-warning-500); font-size: 14px; letter-spacing: 1px; }
+
+    /* ===== Responsive helpers ===== */
+    @media (max-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(3, 1fr); }
+      .sidebar { display: none; }
+      .layout.with-sidebar .main-content { margin-left: 0; }
+    }
+    @media (max-width: 768px) {
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .topbar { padding: 0 var(--ps-space-4); }
+      .topbar .nav-links { display: none; }
+      .main-content { padding: var(--ps-space-4); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar" id="topbar">
+  <div class="flex items-center gap-4">
+    <a onclick="go('landing')" class="logo" style="cursor:pointer">🔷 Toolyo</a>
+    <div class="search-bar" id="global-search" style="display:none">
+      <span>🔍</span>
+      <input type="text" placeholder="¿Qué necesitas?" id="searchInput" onkeydown="if(event.key==='Enter'){go('resultados')}" />
+    </div>
+  </div>
+  <nav class="nav-links" id="nav-public">
+    <a onclick="go('explorar')">Explorar</a>
+    <a onclick="go('crear-listing-1')">Publicar</a>
+    <a onclick="go('ayuda')">Ayuda</a>
+    <button class="btn btn-secondary btn-md" onclick="go('login')">Iniciar sesión</button>
+    <button class="btn btn-primary btn-md" onclick="go('registro')">Registrarse</button>
+  </nav>
+  <nav class="nav-links hidden" id="nav-auth">
+    <a onclick="go('explorar')">Explorar</a>
+    <a onclick="go('crear-listing-1')">Publicar</a>
+    <a onclick="go('mensajes')">Mensajes <span class="badge badge-primary">3</span></a>
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="go('dashboard')">
+      <div class="wf-avatar" style="width:36px;height:36px">YO</div>
+      <span style="font-size:14px;font-weight:600;color:var(--ps-neutral-800)">María</span>
+    </div>
+  </nav>
+</header>
+
+<!-- ===== SIDEBAR (Dashboard) ===== -->
+<aside class="sidebar hidden" id="sidebar">
+  <div class="sidebar-section">Arrendador</div>
+  <div class="sidebar-item active" onclick="go('dashboard')" data-nav="dashboard">📊 Dashboard</div>
+  <div class="sidebar-item" onclick="go('mis-listings')" data-nav="mis-listings">📋 Mis anuncios</div>
+  <div class="sidebar-item" onclick="go('crear-listing-1')" data-nav="crear-listing-1">➕ Nuevo anuncio</div>
+  <div class="sidebar-item" onclick="go('reservas')" data-nav="reservas">📦 Reservas <span class="badge badge-primary" style="margin-left:auto">2</span></div>
+  <div class="sidebar-item" onclick="go('calendario')" data-nav="calendario">📅 Calendario</div>
+  <div class="sidebar-item" onclick="go('mensajes')" data-nav="mensajes">💬 Mensajes <span class="badge badge-primary" style="margin-left:auto">3</span></div>
+  <div class="sidebar-item" onclick="go('ingresos')" data-nav="ingresos">💶 Ingresos</div>
+
+  <div class="sidebar-section">Cuenta</div>
+  <div class="sidebar-item" onclick="go('perfil')" data-nav="perfil">👤 Mi perfil</div>
+  <div class="sidebar-item" onclick="go('ajustes')" data-nav="ajustes">⚙️ Ajustes</div>
+  <div class="sidebar-item" onclick="go('ayuda')" data-nav="ayuda">🆘 Ayuda</div>
+  <div class="sidebar-item" onclick="logout()" style="color:var(--ps-danger-500)">🚪 Cerrar sesión</div>
+
+  <div class="sidebar-section hidden" id="admin-nav">Admin</div>
+  <div class="sidebar-item hidden" onclick="go('admin')" data-nav="admin" id="admin-link">🔒 Panel admin</div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="layout" id="layout">
+  <main class="main-content" id="main">
+
+    <!-- ==================== LANDING ==================== -->
+    <section class="screen active" id="landing">
+      <div style="text-align:center;padding:80px 20px 60px;background:linear-gradient(180deg,var(--ps-primary-50) 0%,var(--ps-neutral-50) 100%)">
+        <h1 class="text-3xl" style="color:var(--ps-primary-900);margin-bottom:12px">Alquila en lugar de comprar</h1>
+        <p class="text-lg" style="color:var(--ps-neutral-600);max-width:500px;margin:0 auto 32px">Accede a miles de productos cerca de ti. Desde herramientas hasta equipos de fiesta.</p>
+        <div style="display:flex;gap:8px;justify-content:center;max-width:600px;margin:0 auto">
+          <input class="input" style="max-width:280px" placeholder="¿Qué necesitas?" />
+          <input class="input" style="max-width:200px" placeholder="¿Dónde?" />
+          <button class="btn btn-primary btn-lg" onclick="go('resultados')">Buscar</button>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <h2 class="text-xl mb-4">Categorías populares</h2>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">🔧</div><span style="font-size:12px;font-weight:500">Herramientas</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">🚲</div><span style="font-size:12px;font-weight:500">Bicis</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">⛺</div><span style="font-size:12px;font-weight:500">Camping</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">🎉</div><span style="font-size:12px;font-weight:500">Fiesta</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">📷</div><span style="font-size:12px;font-weight:500">Fotos</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">🚗</div><span style="font-size:12px;font-weight:500">Remolques</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">🏄</div><span style="font-size:12px;font-weight:500">Deportes</span></div>
+          <div class="category-pill" onclick="go('resultados')"><div class="icon">🎮</div><span style="font-size:12px;font-weight:500">Consolas</span></div>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <h2 class="text-xl mb-4">Populares cerca de ti</h2>
+        <div class="grid-4">
+          <div class="product-card" onclick="go('detalle')">
+            <div class="img-wrap">[IMG 260×160]<br/>Taladro percutor</div>
+            <div class="info">
+              <div class="title">Taladro Bosch Professional</div>
+              <div class="meta">⭐ 4.8 · 23 reviews · 📍 2.3 km</div>
+              <div class="price">18 €/día</div>
+            </div>
+          </div>
+          <div class="product-card" onclick="go('detalle')">
+            <div class="img-wrap">[IMG 260×160]<br/>Remolque carga</div>
+            <div class="info">
+              <div class="title">Remolque 750 kg</div>
+              <div class="meta">⭐ 4.6 · 8 reviews · 📍 4.1 km</div>
+              <div class="price">35 €/día</div>
+            </div>
+          </div>
+          <div class="product-card" onclick="go('detalle')">
+            <div class="img-wrap">[IMG 260×160]<br/>Tienda campaña</div>
+            <div class="info">
+              <div class="title">Tienda de campaña 4p</div>
+              <div class="meta">⭐ 5.0 · 12 reviews · 📍 1.5 km</div>
+              <div class="price">22 €/día</div>
+            </div>
+          </div>
+          <div class="product-card" onclick="go('detalle')">
+            <div class="img-wrap">[IMG 260×160]<br/>Equipo sonido</div>
+            <div class="info">
+              <div class="title">Altavoz JBL PartyBox 310</div>
+              <div class="meta">⭐ 4.9 · 31 reviews · 📍 3.2 km</div>
+              <div class="price">40 €/día</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6" style="background:var(--ps-neutral-0);border-top:1px solid var(--ps-neutral-200)">
+        <h2 class="text-xl mb-4" style="text-align:center">¿Cómo funciona?</h2>
+        <div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;text-align:center">
+          <div><div style="width:48px;height:48px;background:var(--ps-primary-500);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto 12px">1</div><div class="font-semibold">Busca</div><div class="text-sm text-neutral-600">Encuentra lo que necesitas cerca de ti</div></div>
+          <div><div style="width:48px;height:48px;background:var(--ps-primary-500);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto 12px">2</div><div class="font-semibold">Reserva</div><div class="text-sm text-neutral-600">Elige fechas y contacta al arrendador</div></div>
+          <div><div style="width:48px;height:48px;background:var(--ps-primary-500);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto 12px">3</div><div class="font-semibold">Recoge</div><div class="text-sm text-neutral-600">Recoge el producto y disfrútalo</div></div>
+          <div><div style="width:48px;height:48px;background:var(--ps-primary-500);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto 12px">4</div><div class="font-semibold">Devuelve</div><div class="text-sm text-neutral-600">Devuélvelo en la fecha acordada</div></div>
+        </div>
+      </div>
+
+      <footer style="padding:40px 24px;text-align:center;color:var(--ps-neutral-500);font-size:13px;border-top:1px solid var(--ps-neutral-200)">
+        <div style="margin-bottom:12px">
+          <a onclick="go('ayuda')">Ayuda</a> · <a onclick="go('ayuda')">Sobre nosotros</a> · <a>Términos</a> · <a>Privacidad</a>
+        </div>
+        © 2025 Toolyo — Alquiler P2P en España
+      </footer>
+    </section>
+
+    <!-- ==================== EXPLORAR ==================== -->
+    <section class="screen" id="explorar">
+      <h1 class="text-2xl mb-4">Explorar</h1>
+      <div class="card mb-6">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:200px">
+            <label class="label">¿Qué buscas?</label>
+            <input class="input" placeholder="Taladro, bici, tienda..." />
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label class="label">Ubicación</label>
+            <input class="input" placeholder="Ciudad o código postal" />
+          </div>
+          <div style="min-width:140px">
+            <label class="label">Desde</label>
+            <input class="input" type="date" />
+          </div>
+          <div style="min-width:140px">
+            <label class="label">Hasta</label>
+            <input class="input" type="date" />
+          </div>
+          <button class="btn btn-primary btn-md" style="min-width:120px" onclick="go('resultados')">Buscar</button>
+        </div>
+      </div>
+      <h2 class="text-lg mb-3">Explora por categoría</h2>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🔧</div><span style="font-size:12px">Herramientas</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🚲</div><span style="font-size:12px">Bicis</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">⛺</div><span style="font-size:12px">Camping</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🎉</div><span style="font-size:12px">Fiesta</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">📷</div><span style="font-size:12px">Fotografía</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🚗</div><span style="font-size:12px">Remolques</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🏄</div><span style="font-size:12px">Deportes</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🎮</div><span style="font-size:12px">Consolas</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">🌳</div><span style="font-size:12px">Jardín</span></div>
+        <div class="category-pill" onclick="go('resultados')"><div class="icon">👶</div><span style="font-size:12px">Bebés</span></div>
+      </div>
+    </section>
+
+    <!-- ==================== RESULTADOS ==================== -->
+    <section class="screen" id="resultados">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl">Resultados en Madrid</h1>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm">🗺️ Mapa</button>
+          <select class="input" style="width:auto;min-width:140px;font-size:13px">
+            <option>Ordenar por: Relevancia</option>
+            <option>Más cercano</option>
+            <option>Precio ↑</option>
+            <option>Precio ↓</option>
+            <option>Mejor valorado</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-4 mb-4" style="flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Filtros ▼</button>
+        <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Precio ▼</button>
+        <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Distancia ▼</button>
+        <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Categoría ▼</button>
+        <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Fechas ▼</button>
+        <label class="flex items-center gap-2 text-sm" style="cursor:pointer"><input type="checkbox" /> Solo verificados</label>
+      </div>
+      <div class="grid-4">
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Taladro Bosch</div><div class="info"><div class="title">Taladro Bosch Professional</div><div class="meta">⭐ 4.8 · 23 reviews · 2.3 km</div><div class="price">18 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Remolque 750kg</div><div class="info"><div class="title">Remolque 750 kg</div><div class="meta">⭐ 4.6 · 8 reviews · 4.1 km</div><div class="price">35 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Tienda 4p</div><div class="info"><div class="title">Tienda campaña 4p</div><div class="meta">⭐ 5.0 · 12 reviews · 1.5 km</div><div class="price">22 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Altavoz JBL</div><div class="info"><div class="title">JBL PartyBox 310</div><div class="meta">⭐ 4.9 · 31 reviews · 3.2 km</div><div class="price">40 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Amoladora</div><div class="info"><div class="title">Amoladora angular 125mm</div><div class="meta">⭐ 4.5 · 6 reviews · 5.0 km</div><div class="price">12 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Kite surf</div><div class="info"><div class="title">Kite completo 12m²</div><div class="meta">⭐ 4.9 · 4 reviews · 8.2 km</div><div class="price">55 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Proyector</div><div class="info"><div class="title">Proyector Full HD 3500lm</div><div class="meta">⭐ 4.7 · 15 reviews · 2.8 km</div><div class="price">28 €/día</div></div></div>
+        <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]<br/>Cámara Sony</div><div class="info"><div class="title">Sony A7III + 24-70mm</div><div class="meta">⭐ 5.0 · 9 reviews · 3.5 km</div><div class="price">65 €/día</div></div></div>
+      </div>
+      <div style="text-align:center;margin-top:32px">
+        <button class="btn btn-secondary btn-md">Cargar más resultados</button>
+      </div>
+    </section>
+
+    <!-- ==================== DETALLE ==================== -->
+    <section class="screen" id="detalle">
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="flex:2;min-width:320px">
+          <div class="wf-img" style="height:360px;border-radius:var(--ps-radius-lg);margin-bottom:12px;font-size:14px">[IMAGEN PRINCIPAL 800×360]<br/>Galería del producto</div>
+          <div style="display:flex;gap:8px">
+            <div class="wf-img" style="width:80px;height:80px;font-size:10px">thumb</div>
+            <div class="wf-img" style="width:80px;height:80px;font-size:10px">thumb</div>
+            <div class="wf-img" style="width:80px;height:80px;font-size:10px">thumb</div>
+            <div class="wf-img" style="width:80px;height:80px;font-size:10px">thumb</div>
+          </div>
+          <div class="mt-6">
+            <h1 class="text-2xl" style="display:flex;justify-content:space-between;align-items:center">Taladro Bosch Professional <span style="cursor:pointer;font-size:24px">♡</span></h1>
+            <div class="flex items-center gap-3 mt-2 text-sm">
+              <span class="review-stars">⭐⭐⭐⭐⭐</span> <span>4.8 (23 reviews)</span> <span>·</span> <span>📍 A 2.3 km</span> <span>·</span> <span class="badge badge-primary">Muy popular</span>
+            </div>
+            <p class="mt-4" style="line-height:1.6">Taladro percutor Bosch Professional GSB 18V-55 en perfecto estado. Incluye 2 baterías de 4Ah, cargador rápido y maletín. Ideal para bricolaje y trabajos profesionales ligeros. Entrego limpio y funcionando al 100%.</p>
+            <div class="mt-4"><strong>Características:</strong> 18V, 55 Nm, 2 baterías incluidas, maletín.</div>
+          </div>
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-3">📅 Disponibilidad</h3>
+            <div class="card" style="max-width:380px">
+              <div class="flex justify-between items-center mb-2"><strong>Junio 2025</strong></div>
+              <div class="calendar-grid">
+                <div class="day-label">L</div><div class="day-label">M</div><div class="day-label">X</div><div class="day-label">J</div><div class="day-label">V</div><div class="day-label">S</div><div class="day-label">D</div>
+                <div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day">1</div>
+                <div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day selected">6</div><div class="day selected">7</div><div class="day">8</div>
+                <div class="day">9</div><div class="day disabled">10</div><div class="day disabled">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div>
+                <div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div>
+              </div>
+              <div class="mt-3 text-xs text-neutral-500">Selecciona fecha de recogida y devolución</div>
+            </div>
+          </div>
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-3">💰 Precios</h3>
+            <div class="grid-2" style="max-width:400px">
+              <div class="card" style="padding:16px"><div class="text-sm text-neutral-600">1 día</div><div class="text-xl font-bold">18 €/día</div></div>
+              <div class="card" style="padding:16px"><div class="text-sm text-neutral-600">3 días</div><div class="text-xl font-bold">15 €/día</div></div>
+              <div class="card" style="padding:16px"><div class="text-sm text-neutral-600">7 días</div><div class="text-xl font-bold">12 €/día</div></div>
+              <div class="card" style="padding:16px"><div class="text-sm text-neutral-600">+7 días</div><div class="text-xl font-bold">A consultar</div></div>
+            </div>
+          </div>
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-3">💬 Reviews (23)</h3>
+            <div class="card mb-3">
+              <div class="flex items-center gap-2 mb-2"><div class="wf-avatar" style="width:32px;height:32px">JL</div><span class="font-semibold text-sm">Juan L.</span><span class="review-stars">⭐⭐⭐⭐⭐</span></div>
+              <div class="text-sm">Todo perfecto, el taladro estaba impecable y María fue muy puntual en la entrega.</div>
+            </div>
+            <div class="card mb-3">
+              <div class="flex items-center gap-2 mb-2"><div class="wf-avatar" style="width:32px;height:32px">AR</div><span class="font-semibold text-sm">Ana R.</span><span class="review-stars">⭐⭐⭐⭐⭐</span></div>
+              <div class="text-sm">Gran experiencia. Repetiré sin duda.</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">Ver todas las reviews</button>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px">
+          <div class="card sticky" style="position:sticky;top:80px">
+            <div class="card-header" style="font-size:18px">Reserva</div>
+            <div class="mb-3"><label class="label">Recogida</label><input class="input" type="date" value="2025-06-06" /></div>
+            <div class="mb-3"><label class="label">Devolución</label><input class="input" type="date" value="2025-06-07" /></div>
+            <div style="border-top:1px solid var(--ps-neutral-100);padding-top:12px;margin-bottom:12px">
+              <div class="flex justify-between text-sm mb-1"><span>2 días × 18 €</span><span>36 €</span></div>
+              <div class="flex justify-between text-sm mb-1"><span>Comisión Toolyo</span><span>5 €</span></div>
+              <div class="flex justify-between text-sm mb-1"><span>Seguro (opcional)</span><span>3 €</span></div>
+              <div class="flex justify-between font-bold text-base mt-2" style="border-top:1px solid var(--ps-neutral-100);padding-top:8px"><span>Total</span><span>44 €</span></div>
+            </div>
+            <button class="btn btn-primary btn-lg w-full mb-2" onclick="if(!isLoggedIn){go('login')}else{go('checkout')}">Reservar ahora</button>
+            <button class="btn btn-secondary btn-md w-full mb-3" onclick="if(!isLoggedIn){go('login')}else{go('chat')}">💬 Contactar</button>
+            <div class="text-xs text-neutral-500" style="text-align:center">No se te cobrará todavía</div>
+          </div>
+          <div class="card mt-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="wf-avatar">MR</div>
+              <div>
+                <div class="font-semibold text-sm">María Rodríguez</div>
+                <div class="text-xs text-neutral-500">⭐ 5.0 · Respuesta &lt;1h · 16 alquileres</div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm w-full" style="border:1px solid var(--ps-neutral-300)" onclick="go('perfil-arrendador')">Ver perfil</button>
+              <button class="btn btn-ghost btn-sm w-full" style="border:1px solid var(--ps-neutral-300)" onclick="if(!isLoggedIn){go('login')}else{go('chat')}">Mensaje</button>
+            </div>
+            <div class="mt-3 flex items-center gap-2 text-xs">
+              <span class="badge badge-success">Verificado</span>
+              <span class="badge badge-primary">Fast responder</span>
+            </div>
+          </div>
+          <div class="card mt-4" style="background:var(--ps-primary-50);border-color:var(--ps-primary-200)">
+            <div class="flex items-center gap-2 text-sm" style="color:var(--ps-primary-700)">
+              <span>🛡️</span><strong>Seguro incluido</strong>
+            </div>
+            <div class="text-xs mt-1" style="color:var(--ps-primary-700)">Este alquiler cuenta con cobertura sin franquicia porque el arrendador está verificado.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CHECKOUT ==================== -->
+    <section class="screen" id="checkout">
+      <h1 class="text-2xl mb-6">Confirmar reserva</h1>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="flex:2;min-width:320px">
+          <div class="card mb-4">
+            <div class="card-header">Detalles del alquiler</div>
+            <div class="flex gap-4 mb-4">
+              <div class="wf-img" style="width:100px;height:80px;font-size:10px">IMG</div>
+              <div>
+                <div class="font-semibold">Taladro Bosch Professional</div>
+                <div class="text-sm text-neutral-600">⭐ 4.8 · 23 reviews · Madrid</div>
+              </div>
+            </div>
+            <div class="grid-2" style="gap:12px">
+              <div><label class="label">Recogida</label><input class="input" type="date" value="2025-06-06" /></div>
+              <div><label class="label">Devolución</label><input class="input" type="date" value="2025-06-07" /></div>
+            </div>
+            <div class="mt-3"><label class="label">Mensaje para el arrendador (opcional)</label><textarea class="textarea" placeholder="Hola María, necesito el taladro para..."></textarea></div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-header">Método de pago</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label class="flex items-center gap-3 p-3 rounded-md border" style="cursor:pointer;background:var(--ps-primary-50);border-color:var(--ps-primary-500)">
+                <input type="radio" name="pay" checked />
+                <span>💳 Tarjeta terminada en 4242</span>
+              </label>
+              <label class="flex items-center gap-3 p-3 rounded-md border" style="cursor:pointer">
+                <input type="radio" name="pay" />
+                <span>📱 Bizum</span>
+              </label>
+              <label class="flex items-center gap-3 p-3 rounded-md border" style="cursor:pointer">
+                <input type="radio" name="pay" />
+                <span>➕ Añadir nuevo método</span>
+              </label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Política de cancelación</div>
+            <div class="text-sm" style="line-height:1.6">
+              <strong>Flexible:</strong> Reembolso del 100% si cancelas hasta 24h antes de la recogida.<br/>
+              <strong>Seguro:</strong> Cubierto sin franquicia para daños accidentales.
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px">
+          <div class="card sticky" style="position:sticky;top:80px">
+            <div class="card-header">Resumen</div>
+            <div class="flex justify-between text-sm mb-2"><span>2 días × 18 €</span><span>36 €</span></div>
+            <div class="flex justify-between text-sm mb-2"><span>Comisión Toolyo</span><span>5 €</span></div>
+            <div class="flex justify-between text-sm mb-2"><span>Seguro (on-demand)</span><span>3 €</span></div>
+            <div class="flex justify-between font-bold text-lg mt-3" style="border-top:1px solid var(--ps-neutral-100);padding-top:12px"><span>Total</span><span>44 €</span></div>
+            <button class="btn btn-primary btn-lg w-full mt-4" onclick="go('confirmacion')">Confirmar y pagar</button>
+            <div class="text-xs text-neutral-500 mt-2" style="text-align:center">El cargo será una preautorización. Se capturará al confirmar la entrega.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CONFIRMACION ==================== -->
+    <section class="screen" id="confirmacion">
+      <div style="max-width:560px;margin:40px auto;text-align:center">
+        <div style="width:80px;height:80px;background:var(--ps-success-50);color:var(--ps-success-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 24px">✓</div>
+        <h1 class="text-3xl mb-2">¡Reserva confirmada!</h1>
+        <p class="text-neutral-600 mb-6">Hemos enviado los detalles a tu email. María tiene 24h para aprobar la solicitud.</p>
+        <div class="card text-left mb-6">
+          <div class="card-header">Detalles de la reserva</div>
+          <div class="flex gap-4 mb-3"><div class="wf-img" style="width:80px;height:60px;font-size:10px">IMG</div><div><div class="font-semibold">Taladro Bosch Professional</div><div class="text-sm text-neutral-600">Madrid · 2 días</div></div></div>
+          <div class="grid-2" style="gap:8px;font-size:14px">
+            <div><span class="text-neutral-500">Recogida:</span> <span class="font-semibold">Vie, 6 jun — 10:00</span></div>
+            <div><span class="text-neutral-500">Devolución:</span> <span class="font-semibold">Sáb, 7 jun — 10:00</span></div>
+            <div><span class="text-neutral-500">Total:</span> <span class="font-semibold">44 €</span></div>
+            <div><span class="text-neutral-500">Estado:</span> <span class="badge badge-warning">Pendiente de aprobación</span></div>
+          </div>
+        </div>
+        <div class="flex gap-3 justify-center">
+          <button class="btn btn-primary btn-md" onclick="go('chat')">💬 Chatear con María</button>
+          <button class="btn btn-secondary btn-md" onclick="go('dashboard')">Ir al dashboard</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== LOGIN ==================== -->
+    <section class="screen" id="login">
+      <div style="max-width:420px;margin:60px auto">
+        <div class="card">
+          <div style="text-align:center;margin-bottom:24px">
+            <div class="logo" style="font-size:28px;margin-bottom:8px">🔷 Toolyo</div>
+            <h1 class="text-xl">Iniciar sesión</h1>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label class="label">Email</label>
+              <input class="input" type="email" placeholder="tu@email.com" />
+            </div>
+            <div>
+              <label class="label">Contraseña</label>
+              <input class="input" type="password" placeholder="••••••••" />
+            </div>
+            <div class="flex justify-between text-sm">
+              <label class="flex items-center gap-2"><input type="checkbox" /> Recuérdame</label>
+              <a>¿Olvidaste tu contraseña?</a>
+            </div>
+            <button class="btn btn-primary btn-lg w-full" onclick="login()">Iniciar sesión</button>
+            <div style="text-align:center;color:var(--ps-neutral-500);font-size:13px">o continúa con</div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-md w-full" style="border:1px solid var(--ps-neutral-300)">🔍 Google</button>
+              <button class="btn btn-ghost btn-md w-full" style="border:1px solid var(--ps-neutral-300)">🍎 Apple</button>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:20px;font-size:14px">
+            ¿No tienes cuenta? <a onclick="go('registro')">Regístrate</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== REGISTRO ==================== -->
+    <section class="screen" id="registro">
+      <div style="max-width:420px;margin:40px auto">
+        <div class="card">
+          <div style="text-align:center;margin-bottom:24px">
+            <div class="logo" style="font-size:28px;margin-bottom:8px">🔷 Toolyo</div>
+            <h1 class="text-xl">Crear cuenta</h1>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="grid-2" style="gap:12px">
+              <div><label class="label">Nombre</label><input class="input" placeholder="María" /></div>
+              <div><label class="label">Apellidos</label><input class="input" placeholder="Rodríguez" /></div>
+            </div>
+            <div><label class="label">Email</label><input class="input" type="email" placeholder="tu@email.com" /></div>
+            <div><label class="label">Teléfono</label><input class="input" type="tel" placeholder="+34 600 000 000" /></div>
+            <div><label class="label">Contraseña</label><input class="input" type="password" placeholder="Mín. 8 caracteres" /></div>
+            <label class="flex items-start gap-2 text-sm" style="cursor:pointer"><input type="checkbox" /> Acepto los <a>Términos y Condiciones</a> y la <a>Política de Privacidad</a></label>
+            <button class="btn btn-primary btn-lg w-full" onclick="go('onboarding')">Crear cuenta</button>
+            <div style="text-align:center;color:var(--ps-neutral-500);font-size:13px">o regístrate con</div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-md w-full" style="border:1px solid var(--ps-neutral-300)">🔍 Google</button>
+              <button class="btn btn-ghost btn-md w-full" style="border:1px solid var(--ps-neutral-300)">🍎 Apple</button>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:20px;font-size:14px">
+            ¿Ya tienes cuenta? <a onclick="go('login')">Inicia sesión</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ONBOARDING ==================== -->
+    <section class="screen" id="onboarding">
+      <div style="max-width:560px;margin:40px auto">
+        <div class="card">
+          <div style="text-align:center;margin-bottom:24px">
+            <h1 class="text-2xl">Verifica tu cuenta</h1>
+            <p class="text-sm text-neutral-600">Completa estos pasos para publicar y alquilar sin límites</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="flex items-center gap-4 p-4 rounded-lg border" style="background:var(--ps-success-50);border-color:var(--ps-success-500)">
+              <div style="width:32px;height:32px;background:var(--ps-success-500);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">✓</div>
+              <div class="flex-1"><div class="font-semibold">Verificar email</div><div class="text-sm text-neutral-600">Hemos enviado un código a tu@email.com</div></div>
+              <span class="badge badge-success">Completado</span>
+            </div>
+            <div class="flex items-center gap-4 p-4 rounded-lg border" style="background:var(--ps-primary-50);border-color:var(--ps-primary-500)">
+              <div style="width:32px;height:32px;background:var(--ps-primary-500);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">2</div>
+              <div class="flex-1"><div class="font-semibold">Verificar teléfono</div><div class="text-sm text-neutral-600">Introduce el código SMS</div></div>
+              <button class="btn btn-primary btn-sm">Verificar</button>
+            </div>
+            <div class="flex items-center gap-4 p-4 rounded-lg border">
+              <div style="width:32px;height:32px;background:var(--ps-neutral-200);color:var(--ps-neutral-600);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">3</div>
+              <div class="flex-1"><div class="font-semibold">Verificación de identidad (opcional)</div><div class="text-sm text-neutral-600">DNI/NIE + selfie para badge Verificado</div></div>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('KYC iniciado')">Iniciar</button>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:24px">
+            <button class="btn btn-primary btn-lg" onclick="login()">Ir al dashboard</button>
+            <div class="mt-2"><a class="text-sm" onclick="go('landing')">Saltar por ahora →</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <section class="screen" id="dashboard">
+      <h1 class="text-2xl mb-6">Dashboard</h1>
+      <div class="grid-4 mb-6">
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Ingresos este mes</div><div class="text-2xl font-bold text-primary mt-1">320 €</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Reservas activas</div><div class="text-2xl font-bold mt-1">2</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Mensajes sin leer</div><div class="text-2xl font-bold mt-1">3</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Vistas listings</div><div class="text-2xl font-bold mt-1">1.240</div></div>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="flex:2;min-width:300px">
+          <div class="card mb-4">
+            <div class="card-header">Próximas reservas</div>
+            <table class="table">
+              <thead><tr><th>Producto</th><th>Cliente</th><th>Fechas</th><th>Estado</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Taladro Bosch</td><td>Juan L.</td><td>6-7 jun</td><td><span class="badge badge-warning">Pendiente</span></td><td><button class="btn btn-primary btn-sm" onclick="go('reservas')">Gestionar</button></td></tr>
+                <tr><td>Remolque 750kg</td><td>Ana R.</td><td>10-12 jun</td><td><span class="badge badge-success">Aprobada</span></td><td><button class="btn btn-ghost btn-sm" onclick="go('reservas')">Ver</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header">Mis anuncios</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="flex items-center gap-3 p-3 rounded-md border">
+                <div class="wf-img" style="width:60px;height:48px;font-size:10px">IMG</div>
+                <div class="flex-1"><div class="font-semibold text-sm">Taladro Bosch Professional</div><div class="text-xs text-neutral-500">18 €/día · 23 reviews</div></div>
+                <span class="badge badge-success">Publicado</span>
+                <button class="btn btn-ghost btn-sm" onclick="go('mis-listings')">Editar</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-md border">
+                <div class="wf-img" style="width:60px;height:48px;font-size:10px">IMG</div>
+                <div class="flex-1"><div class="font-semibold text-sm">Remolque 750 kg</div><div class="text-xs text-neutral-500">35 €/día · 8 reviews</div></div>
+                <span class="badge badge-success">Publicado</span>
+                <button class="btn btn-ghost btn-sm" onclick="go('mis-listings')">Editar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div class="card mb-4">
+            <div class="card-header">Calendario</div>
+            <div class="calendar-grid">
+              <div class="day-label">L</div><div class="day-label">M</div><div class="day-label">X</div><div class="day-label">J</div><div class="day-label">V</div><div class="day-label">S</div><div class="day-label">D</div>
+              <div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day">1</div>
+              <div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day range">6</div><div class="day range">7</div><div class="day">8</div>
+              <div class="day">9</div><div class="day range">10</div><div class="day range">11</div><div class="day range">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div>
+            </div>
+            <div class="mt-3 flex gap-2 text-xs">
+              <span class="flex items-center gap-1"><span style="width:10px;height:10px;background:var(--ps-primary-500);border-radius:2px;display:inline-block"></span> Ocupado</span>
+              <span class="flex items-center gap-1"><span style="width:10px;height:10px;background:var(--ps-primary-100);border-radius:2px;display:inline-block"></span> Reserva</span>
+            </div>
+            <button class="btn btn-secondary btn-sm w-full mt-3" onclick="go('calendario')">Ver calendario completo</button>
+          </div>
+          <div class="card">
+            <div class="card-header">Acceso rápido</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-ghost btn-md w-full justify-between" style="justify-content:space-between" onclick="go('crear-listing-1')">➕ Nuevo anuncio →</button>
+              <button class="btn btn-ghost btn-md w-full justify-between" style="justify-content:space-between" onclick="go('ingresos')">💶 Ver ingresos →</button>
+              <button class="btn btn-ghost btn-md w-full justify-between" style="justify-content:space-between" onclick="go('mensajes')">💬 Mensajes →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MIS LISTINGS ==================== -->
+    <section class="screen" id="mis-listings">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl">Mis anuncios</h1>
+        <button class="btn btn-primary btn-md" onclick="go('crear-listing-1')">➕ Nuevo anuncio</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card flex items-center gap-4" style="flex-direction:row">
+          <div class="wf-img" style="width:100px;height:80px;font-size:10px">IMG</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2"><span class="font-semibold">Taladro Bosch Professional</span><span class="badge badge-success">Publicado</span></div>
+            <div class="text-sm text-neutral-600 mt-1">18 €/día · 23 reviews · ⭐ 4.8 · 156 vistas esta semana</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Editar</button>
+            <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Pausar</button>
+            <button class="btn btn-danger btn-sm">Eliminar</button>
+          </div>
+        </div>
+        <div class="card flex items-center gap-4" style="flex-direction:row">
+          <div class="wf-img" style="width:100px;height:80px;font-size:10px">IMG</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2"><span class="font-semibold">Remolque 750 kg</span><span class="badge badge-success">Publicado</span></div>
+            <div class="text-sm text-neutral-600 mt-1">35 €/día · 8 reviews · ⭐ 4.6 · 89 vistas esta semana</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Editar</button>
+            <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Pausar</button>
+            <button class="btn btn-danger btn-sm">Eliminar</button>
+          </div>
+        </div>
+        <div class="card flex items-center gap-4" style="flex-direction:row">
+          <div class="wf-img" style="width:100px;height:80px;font-size:10px">IMG</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2"><span class="font-semibold">Tienda de campaña 4p</span><span class="badge badge-warning">En revisión</span></div>
+            <div class="text-sm text-neutral-600 mt-1">22 €/día · 0 reviews · En revisión por el equipo Toolyo</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" style="border:1px solid var(--ps-neutral-300)">Editar</button>
+            <button class="btn btn-danger btn-sm" disabled>Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CREAR LISTING PASO 1 ==================== -->
+    <section class="screen" id="crear-listing-1">
+      <div style="max-width:720px;margin:0 auto">
+        <h1 class="text-2xl mb-2">Publicar un producto</h1>
+        <div class="step-indicator">
+          <div class="step active">1</div><div class="step-line"></div>
+          <div class="step">2</div><div class="step-line"></div>
+          <div class="step">3</div><div class="step-line"></div>
+          <div class="step">4</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Paso 1: Selecciona la categoría</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label class="label">Categoría principal</label>
+            <select class="input mb-3">
+              <option>Selecciona una categoría...</option>
+              <option>Herramientas y Bricolaje</option>
+              <option>Jardín y Exterior</option>
+              <option>Vehículos y Remolques</option>
+              <option>Electrónica y Multimedia</option>
+              <option>Deportes y Ocio</option>
+              <option>Fiestas y Eventos</option>
+              <option>Hogar y Limpieza</option>
+              <option>Bebés y Niños</option>
+            </select>
+            <label class="label">Subcategoría</label>
+            <select class="input mb-3">
+              <option>Selecciona subcategoría...</option>
+              <option>Taladros</option>
+              <option>Amoladoras</option>
+              <option>Sierras</option>
+              <option>Compresores</option>
+              <option>Andamios</option>
+            </select>
+          </div>
+          <div class="flex justify-between mt-6">
+            <button class="btn btn-ghost btn-md" onclick="go('dashboard')">Cancelar</button>
+            <button class="btn btn-primary btn-md" onclick="go('crear-listing-2')">Continuar →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CREAR LISTING PASO 2 ==================== -->
+    <section class="screen" id="crear-listing-2">
+      <div style="max-width:720px;margin:0 auto">
+        <h1 class="text-2xl mb-2">Publicar un producto</h1>
+        <div class="step-indicator">
+          <div class="step done">✓</div><div class="step-line done"></div>
+          <div class="step active">2</div><div class="step-line"></div>
+          <div class="step">3</div><div class="step-line"></div>
+          <div class="step">4</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Paso 2: Fotos y descripción</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label class="label">Fotos del producto</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div class="wf-img" style="width:100px;height:100px;font-size:10px">IMG 1</div>
+                <div class="wf-img" style="width:100px;height:100px;font-size:10px">IMG 2</div>
+                <div class="wf-img" style="width:100px;height:100px;font-size:10px">IMG 3</div>
+                <button class="wf-img" style="width:100px;height:100px;font-size:24px;color:var(--ps-neutral-400)">+</button>
+              </div>
+              <div class="text-xs text-neutral-500 mt-1">Máximo 10 fotos. Arrastra para ordenar.</div>
+            </div>
+            <div><label class="label">Título</label><input class="input" placeholder="Ej: Taladro Bosch Professional 18V" maxlength="80" /></div>
+            <div><label class="label">Descripción</label><textarea class="textarea" placeholder="Describe el estado, accesorios incluidos, usos recomendados..."></textarea></div>
+          </div>
+          <div class="flex justify-between mt-6">
+            <button class="btn btn-ghost btn-md" onclick="go('crear-listing-1')">← Atrás</button>
+            <button class="btn btn-primary btn-md" onclick="go('crear-listing-3')">Continuar →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CREAR LISTING PASO 3 ==================== -->
+    <section class="screen" id="crear-listing-3">
+      <div style="max-width:720px;margin:0 auto">
+        <h1 class="text-2xl mb-2">Publicar un producto</h1>
+        <div class="step-indicator">
+          <div class="step done">✓</div><div class="step-line done"></div>
+          <div class="step done">✓</div><div class="step-line done"></div>
+          <div class="step active">3</div><div class="step-line"></div>
+          <div class="step">4</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Paso 3: Precios y disponibilidad</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="grid-2" style="gap:16px">
+              <div><label class="label">Precio por 1 día</label><input class="input" type="number" placeholder="18" /></div>
+              <div><label class="label">Precio por 3 días (/día)</label><input class="input" type="number" placeholder="15" /></div>
+              <div><label class="label">Precio por 7 días (/día)</label><input class="input" type="number" placeholder="12" /></div>
+              <div><label class="label">Mínimo de días</label><input class="input" type="number" value="1" min="1" /></div>
+            </div>
+            <div><label class="label">Política de cancelación</label>
+              <select class="input">
+                <option>Flexible (reembolso 100% hasta 24h antes)</option>
+                <option>Moderada (reembolso 50% hasta 48h antes)</option>
+                <option>Estricta (sin reembolso)</option>
+              </select>
+            </div>
+            <div><label class="label">Depósito de garantía (opcional)</label><input class="input" type="number" placeholder="0 €" /></div>
+          </div>
+          <div class="flex justify-between mt-6">
+            <button class="btn btn-ghost btn-md" onclick="go('crear-listing-2')">← Atrás</button>
+            <button class="btn btn-primary btn-md" onclick="go('crear-listing-4')">Continuar →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CREAR LISTING PASO 4 ==================== -->
+    <section class="screen" id="crear-listing-4">
+      <div style="max-width:720px;margin:0 auto">
+        <h1 class="text-2xl mb-2">Publicar un producto</h1>
+        <div class="step-indicator">
+          <div class="step done">✓</div><div class="step-line done"></div>
+          <div class="step done">✓</div><div class="step-line done"></div>
+          <div class="step done">✓</div><div class="step-line done"></div>
+          <div class="step active">4</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Paso 4: Ubicación y publicación</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label class="label">Ubicación de recogida</label>
+              <input class="input mb-2" placeholder="Dirección completa" />
+              <div class="wf-img" style="height:200px;font-size:14px">[MAP INTERACTIVO]<br/>Selecciona ubicación exacta</div>
+            </div>
+            <div><label class="label">Instrucciones de recogida (opcional)</label><textarea class="textarea" placeholder="Ej: Timbra al 3ºB. También puedo acercarme a la estación."></textarea></div>
+            <div class="p-4 rounded-lg border" style="background:var(--ps-primary-50);border-color:var(--ps-primary-200)">
+              <div class="font-semibold text-sm" style="color:var(--ps-primary-700)">📋 Previsualización</div>
+              <div class="text-xs mt-1" style="color:var(--ps-primary-700)">Revisa cómo se verá tu anuncio antes de publicar.</div>
+              <button class="btn btn-secondary btn-sm mt-2" onclick="showToast('Abriendo previsualización...')">Ver previsualización</button>
+            </div>
+          </div>
+          <div class="flex justify-between mt-6">
+            <button class="btn btn-ghost btn-md" onclick="go('crear-listing-3')">← Atrás</button>
+            <button class="btn btn-primary btn-lg" onclick="showToast('Anuncio enviado a revisión'); go('mis-listings')">Publicar anuncio</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CALENDARIO ==================== -->
+    <section class="screen" id="calendario">
+      <h1 class="text-2xl mb-4">Calendario de reservas</h1>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="flex:2;min-width:300px">
+          <div class="card">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl">Junio 2025</h2>
+              <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm">◀</button>
+                <button class="btn btn-ghost btn-sm">▶</button>
+              </div>
+            </div>
+            <div class="calendar-grid" style="gap:6px">
+              <div class="day-label">L</div><div class="day-label">M</div><div class="day-label">X</div><div class="day-label">J</div><div class="day-label">V</div><div class="day-label">S</div><div class="day-label">D</div>
+              <div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day disabled"></div><div class="day">1</div>
+              <div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day range">6</div><div class="day range">7</div><div class="day">8</div>
+              <div class="day">9</div><div class="day range">10</div><div class="day range">11</div><div class="day range">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div>
+              <div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div>
+              <div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div>
+              <div class="day">30</div>
+            </div>
+            <div class="mt-4 flex gap-3 text-xs">
+              <span class="flex items-center gap-1"><span style="width:12px;height:12px;background:var(--ps-primary-500);border-radius:2px;display:inline-block"></span> Ocupado</span>
+              <span class="flex items-center gap-1"><span style="width:12px;height:12px;background:var(--ps-primary-100);border-radius:2px;display:inline-block"></span> Reserva aprobada</span>
+              <span class="flex items-center gap-1"><span style="width:12px;height:12px;background:var(--ps-warning-50);border:1px solid var(--ps-warning-500);border-radius:2px;display:inline-block"></span> Pendiente</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div class="card mb-4">
+            <div class="card-header">Eventos del mes</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="p-3 rounded-md border" style="border-left:3px solid var(--ps-primary-500)">
+                <div class="font-semibold text-sm">Taladro Bosch — Juan L.</div>
+                <div class="text-xs text-neutral-500">6-7 jun · <span class="badge badge-warning">Pendiente</span></div>
+              </div>
+              <div class="p-3 rounded-md border" style="border-left:3px solid var(--ps-primary-500)">
+                <div class="font-semibold text-sm">Remolque 750kg — Ana R.</div>
+                <div class="text-xs text-neutral-500">10-12 jun · <span class="badge badge-success">Aprobada</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Bloquear fechas</div>
+            <div class="text-sm text-neutral-600 mb-3">Selecciona fechas para marcarlas como no disponibles manualmente.</div>
+            <button class="btn btn-secondary btn-sm w-full" onclick="showToast('Modo bloqueo activado')">Bloquear fechas</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MENSAJES ==================== -->
+    <section class="screen" id="mensajes">
+      <h1 class="text-2xl mb-4">Mensajes</h1>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;min-height:500px">
+          <div style="width:300px;border-right:1px solid var(--ps-neutral-200);padding:16px 0">
+            <div class="p-3" style="border-bottom:1px solid var(--ps-neutral-100);font-weight:600">Conversaciones</div>
+            <div class="flex items-center gap-3 p-3" style="cursor:pointer;background:var(--ps-primary-50);border-left:3px solid var(--ps-primary-500)" onclick="go('chat')">
+              <div class="wf-avatar">JL</div>
+              <div class="flex-1"><div class="font-semibold text-sm">Juan L.</div><div class="text-xs text-neutral-500 truncate">¿Tienes brocas de 10mm?</div></div>
+              <div class="text-xs text-neutral-400">10m</div>
+            </div>
+            <div class="flex items-center gap-3 p-3" style="cursor:pointer" onclick="go('chat')">
+              <div class="wf-avatar">AR</div>
+              <div class="flex-1"><div class="font-semibold text-sm">Ana R.</div><div class="text-xs text-neutral-500 truncate">Perfecto, nos vemos el viernes</div></div>
+              <div class="text-xs text-neutral-400">2h</div>
+            </div>
+            <div class="flex items-center gap-3 p-3" style="cursor:pointer" onclick="go('chat')">
+              <div class="wf-avatar">CM</div>
+              <div class="flex-1"><div class="font-semibold text-sm">Carlos M.</div><div class="text-xs text-neutral-500 truncate">Gracias por todo</div></div>
+              <div class="text-xs text-neutral-400">1d</div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--ps-neutral-400);padding:40px">
+            <div style="font-size:48px;margin-bottom:12px">💬</div>
+            <div class="text-sm">Selecciona una conversación para ver los mensajes</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CHAT ==================== -->
+    <section class="screen" id="chat">
+      <h1 class="text-2xl mb-4">Chat</h1>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;min-height:500px">
+          <div style="width:260px;border-right:1px solid var(--ps-neutral-200);padding:16px 0" class="hidden md:block">
+            <div class="p-3" style="border-bottom:1px solid var(--ps-neutral-100);font-weight:600">Conversaciones</div>
+            <div class="flex items-center gap-3 p-3" style="cursor:pointer;background:var(--ps-primary-50)" onclick="go('chat')">
+              <div class="wf-avatar">JL</div>
+              <div><div class="font-semibold text-sm">Juan L.</div><div class="text-xs text-neutral-500">Taladro Bosch</div></div>
+            </div>
+            <div class="flex items-center gap-3 p-3" style="cursor:pointer" onclick="go('chat')">
+              <div class="wf-avatar">AR</div>
+              <div><div class="font-semibold text-sm">Ana R.</div><div class="text-xs text-neutral-500">Remolque 750kg</div></div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column">
+            <div style="padding:16px;border-bottom:1px solid var(--ps-neutral-200);display:flex;align-items:center;gap:12px">
+              <div class="wf-avatar">JL</div>
+              <div><div class="font-semibold">Juan L.</div><div class="text-xs text-neutral-500">Sobre: Taladro Bosch Professional</div></div>
+            </div>
+            <div style="flex:1;padding:20px;overflow-y:auto;background:var(--ps-neutral-50)">
+              <div class="chat-bubble them">Hola María, ¿está disponible el taladro para este finde?</div>
+              <div class="chat-bubble me">¡Hola Juan! Sí, está libre. ¿Qué días necesitas?</div>
+              <div class="chat-bubble them">Del viernes 6 al sábado 7. ¿Tienes brocas de 10mm?</div>
+              <div class="chat-bubble me">Sí, incluyo un set de brocas estándar. Te lo confirmo en la reserva.</div>
+              <div class="chat-bubble them">Genial, voy a reservar entonces 👍</div>
+            </div>
+            <div style="padding:12px;border-top:1px solid var(--ps-neutral-200);display:flex;gap:8px;background:#fff">
+              <button class="btn btn-ghost btn-sm">📎</button>
+              <input class="input" placeholder="Escribe un mensaje..." style="flex:1" />
+              <button class="btn btn-primary btn-sm" onclick="showToast('Mensaje enviado')">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== RESERVAS ==================== -->
+    <section class="screen" id="reservas">
+      <h1 class="text-2xl mb-4">Reservas</h1>
+      <div class="flex gap-2 mb-4">
+        <button class="btn btn-primary btn-sm">Todas</button>
+        <button class="btn btn-ghost btn-sm">Pendientes</button>
+        <button class="btn btn-ghost btn-sm">Aprobadas</button>
+        <button class="btn btn-ghost btn-sm">En curso</button>
+        <button class="btn btn-ghost btn-sm">Completadas</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="table">
+          <thead><tr><th>Producto</th><th>Arrendatario</th><th>Fechas</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Taladro Bosch</td><td>Juan L.</td><td>6-7 jun</td><td>44 €</td>
+              <td><span class="badge badge-warning">Solicitada</span></td>
+              <td><button class="btn btn-primary btn-sm" onclick="showToast('Reserva aprobada')">Aprobar</button> <button class="btn btn-danger btn-sm" onclick="showToast('Reserva rechazada')">Rechazar</button></td>
+            </tr>
+            <tr>
+              <td>Remolque 750kg</td><td>Ana R.</td><td>10-12 jun</td><td>105 €</td>
+              <td><span class="badge badge-success">Aprobada</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="go('chat')">Chat</button></td>
+            </tr>
+            <tr>
+              <td>Altavoz JBL</td><td>Carlos M.</td><td>14 jun</td><td>40 €</td>
+              <td><span class="badge badge-primary">Completada</span></td>
+              <td><button class="btn btn-ghost btn-sm">Dejar review</button></td>
+            </tr>
+            <tr>
+              <td>Tienda 4p</td><td>Laura S.</td><td>20-22 jun</td><td>66 €</td>
+              <td><span class="badge badge-warning">Pendiente de pago</span></td>
+              <td><button class="btn btn-ghost btn-sm">Ver</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== INGRESOS ==================== -->
+    <section class="screen" id="ingresos">
+      <h1 class="text-2xl mb-4">Ingresos</h1>
+      <div class="grid-3 mb-6">
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Ingresos totales</div><div class="text-2xl font-bold text-primary mt-1">2.450 €</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Este mes</div><div class="text-2xl font-bold mt-1">320 €</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Pendiente de pago</div><div class="text-2xl font-bold mt-1">85 €</div></div>
+      </div>
+      <div class="card mb-6">
+        <div class="card-header">Evolución mensual</div>
+        <div class="wf-img" style="height:240px;font-size:14px">[GRÁFICO DE BARRAS]<br/>Ingresos mensuales (Ene-Jun 2025)</div>
+      </div>
+      <div class="card">
+        <div class="card-header">Historial de transacciones</div>
+        <table class="table">
+          <thead><tr><th>Fecha</th><th>Concepto</th><th>Importe</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>01/06/2025</td><td>Alquiler Taladro — Juan L.</td><td>+31 €</td><td><span class="badge badge-success">Pagado</span></td></tr>
+            <tr><td>28/05/2025</td><td>Alquiler Altavoz — Carlos M.</td><td>+35 €</td><td><span class="badge badge-success">Pagado</span></td></tr>
+            <tr><td>15/05/2025</td><td>Alquiler Remolque — Ana R.</td><td>+98 €</td><td><span class="badge badge-success">Pagado</span></td></tr>
+            <tr><td>10/06/2025</td><td>Alquiler Remolque — Ana R.</td><td>+84 €</td><td><span class="badge badge-warning">Pendiente</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== AJUSTES ==================== -->
+    <section class="screen" id="ajustes">
+      <h1 class="text-2xl mb-4">Ajustes</h1>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <div class="card mb-4">
+            <div class="card-header">Datos personales</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="grid-2" style="gap:12px"><div><label class="label">Nombre</label><input class="input" value="María" /></div><div><label class="label">Apellidos</label><input class="input" value="Rodríguez" /></div></div>
+              <div><label class="label">Email</label><input class="input" value="maria@email.com" /></div>
+              <div><label class="label">Teléfono</label><input class="input" value="+34 600 123 456" /></div>
+              <div><label class="label">Bio</label><textarea class="textarea">Apasionada del bricolaje y el jardín. Siempre dispuesta a ayudar.</textarea></div>
+              <button class="btn btn-primary btn-md" onclick="showToast('Perfil actualizado')">Guardar cambios</button>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-header">Métodos de pago</div>
+            <div class="flex items-center gap-3 p-3 rounded-md border mb-2">
+              <span>💳</span><span class="flex-1 text-sm">Visa terminada en 4242</span><span class="badge badge-success">Principal</span>
+            </div>
+            <button class="btn btn-secondary btn-sm">+ Añadir método</button>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px">
+          <div class="card mb-4">
+            <div class="card-header">Notificaciones</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <label class="flex items-center justify-between text-sm"><span>Nuevas reservas</span><input type="checkbox" checked /></label>
+              <label class="flex items-center justify-between text-sm"><span>Mensajes nuevos</span><input type="checkbox" checked /></label>
+              <label class="flex items-center justify-between text-sm"><span>Recordatorios</span><input type="checkbox" checked /></label>
+              <label class="flex items-center justify-between text-sm"><span>Promociones</span><input type="checkbox" /></label>
+              <label class="flex items-center justify-between text-sm"><span>Email</span><input type="checkbox" checked /></label>
+              <label class="flex items-center justify-between text-sm"><span>Push</span><input type="checkbox" checked /></label>
+              <label class="flex items-center justify-between text-sm"><span>SMS</span><input type="checkbox" /></label>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-header">Cuenta bancaria (payouts)</div>
+            <div class="text-sm text-neutral-600 mb-3">Recibe tus ingresos por transferencia bancaria.</div>
+            <button class="btn btn-secondary btn-sm">Configurar cuenta</button>
+          </div>
+          <div class="card" style="border-color:var(--ps-danger-500)">
+            <div class="card-header" style="color:var(--ps-danger-500)">Zona peligrosa</div>
+            <button class="btn btn-danger btn-sm w-full" onclick="showToast('Función no disponible en wireframe')">Eliminar cuenta</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PERFIL ==================== -->
+    <section class="screen" id="perfil">
+      <div style="max-width:720px;margin:0 auto">
+        <div class="card mb-4" style="text-align:center;padding:40px">
+          <div class="wf-avatar" style="width:80px;height:80px;font-size:18px;margin:0 auto 16px">MR</div>
+          <h1 class="text-2xl">María Rodríguez</h1>
+          <div class="flex items-center justify-center gap-2 mt-2">
+            <span class="review-stars">⭐⭐⭐⭐⭐</span><span class="text-sm">5.0 · 16 alquileres</span>
+          </div>
+          <div class="flex items-center justify-center gap-2 mt-3">
+            <span class="badge badge-success">Verificado</span>
+            <span class="badge badge-primary">Superarrendador</span>
+            <span class="badge badge-primary">Fast responder</span>
+          </div>
+          <div class="mt-4 text-sm text-neutral-600" style="max-width:400px;margin:0 auto">Apasionada del bricolaje y el jardín. Siempre dispuesta a ayudar.</div>
+          <div class="mt-4"><button class="btn btn-secondary btn-md" onclick="go('ajustes')">Editar perfil</button></div>
+        </div>
+        <h2 class="text-xl mb-3">Mis anuncios</h2>
+        <div class="grid-3">
+          <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]</div><div class="info"><div class="title">Taladro Bosch</div><div class="meta">18 €/día · ⭐ 4.8</div></div></div>
+          <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]</div><div class="info"><div class="title">Remolque 750kg</div><div class="meta">35 €/día · ⭐ 4.6</div></div></div>
+        </div>
+        <h2 class="text-xl mb-3 mt-6">Reviews recibidas</h2>
+        <div class="card mb-3">
+          <div class="flex items-center gap-2 mb-2"><span class="review-stars">⭐⭐⭐⭐⭐</span><span class="text-sm text-neutral-500">Juan L. · Taladro Bosch</span></div>
+          <div class="text-sm">Todo perfecto, muy amable y puntual.</div>
+        </div>
+        <div class="card mb-3">
+          <div class="flex items-center gap-2 mb-2"><span class="review-stars">⭐⭐⭐⭐⭐</span><span class="text-sm text-neutral-500">Ana R. · Remolque 750kg</span></div>
+          <div class="text-sm">Excelente experiencia, el remolque estaba impecable.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PERFIL ARRENDADOR ==================== -->
+    <section class="screen" id="perfil-arrendador">
+      <div style="max-width:720px;margin:0 auto">
+        <div class="card mb-4" style="text-align:center;padding:40px">
+          <div class="wf-avatar" style="width:80px;height:80px;font-size:18px;margin:0 auto 16px">MR</div>
+          <h1 class="text-2xl">María Rodríguez</h1>
+          <div class="flex items-center justify-center gap-2 mt-2">
+            <span class="review-stars">⭐⭐⭐⭐⭐</span><span class="text-sm">5.0 · 16 alquileres · Respuesta &lt;1h</span>
+          </div>
+          <div class="flex items-center justify-center gap-2 mt-3">
+            <span class="badge badge-success">Verificado</span>
+            <span class="badge badge-primary">Fast responder</span>
+          </div>
+          <div class="mt-4 text-sm text-neutral-600" style="max-width:400px;margin:0 auto">Apasionada del bricolaje y el jardín. Siempre dispuesta a ayudar.</div>
+          <div class="mt-4">
+            <button class="btn btn-primary btn-md" onclick="go('chat')">Contactar</button>
+          </div>
+        </div>
+        <h2 class="text-xl mb-3">Anuncios de María</h2>
+        <div class="grid-3">
+          <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]</div><div class="info"><div class="title">Taladro Bosch</div><div class="meta">18 €/día · ⭐ 4.8</div></div></div>
+          <div class="product-card" onclick="go('detalle')"><div class="img-wrap">[IMG]</div><div class="info"><div class="title">Remolque 750kg</div><div class="meta">35 €/día · ⭐ 4.6</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ADMIN ==================== -->
+    <section class="screen" id="admin">
+      <h1 class="text-2xl mb-4">Panel de Administración</h1>
+      <div class="grid-4 mb-6">
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Usuarios</div><div class="text-2xl font-bold text-primary mt-1">1.240</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Listings</div><div class="text-2xl font-bold mt-1">3.860</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Reservas/mes</div><div class="text-2xl font-bold mt-1">420</div></div>
+        <div class="card" style="text-align:center"><div class="text-sm text-neutral-600">Ingresos comisiones</div><div class="text-2xl font-bold mt-1">8.450 €</div></div>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="flex:1;min-width:320px">
+          <div class="card mb-4">
+            <div class="card-header">Listings en revisión</div>
+            <table class="table">
+              <thead><tr><th>Producto</th><th>Usuario</th><th>Fecha</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Tienda campaña 4p</td><td>Luis G.</td><td>Hoy</td><td><button class="btn btn-primary btn-sm">Revisar</button></td></tr>
+                <tr><td>Proyector Epson</td><td>Elena P.</td><td>Ayer</td><td><button class="btn btn-primary btn-sm">Revisar</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header">Verificaciones KYC pendientes</div>
+            <table class="table">
+              <thead><tr><th>Usuario</th><th>Documento</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Pedro S.</td><td>DNI</td><td><button class="btn btn-primary btn-sm">Revisar</button></td></tr>
+                <tr><td>Carmen D.</td><td>NIE</td><td><button class="btn btn-primary btn-sm">Revisar</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="flex:1;min-width:320px">
+          <div class="card mb-4">
+            <div class="card-header">Disputas abiertas</div>
+            <div class="p-3 rounded-md border mb-2">
+              <div class="font-semibold text-sm">Daño en altavoz JBL</div>
+              <div class="text-xs text-neutral-500">Carlos M. vs María R. · Abierta hace 2 días</div>
+              <button class="btn btn-primary btn-sm mt-2">Mediar</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Usuarios recientes</div>
+            <table class="table">
+              <thead><tr><th>Usuario</th><th>Registro</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>Juan L.</td><td>Hoy</td><td><span class="badge badge-success">Activo</span></td></tr>
+                <tr><td>Ana R.</td><td>Ayer</td><td><span class="badge badge-success">Activo</span></td></tr>
+                <tr><td>Luis G.</td><td>Hace 3 días</td><td><span class="badge badge-warning">Pendiente KYC</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== AYUDA ==================== -->
+    <section class="screen" id="ayuda">
+      <div style="max-width:800px;margin:0 auto">
+        <h1 class="text-2xl mb-2">Centro de Ayuda</h1>
+        <p class="text-neutral-600 mb-6">Encuentra respuestas a las preguntas más frecuentes</p>
+        <div class="search-bar mb-6" style="max-width:100%"><span>🔍</span><input type="text" placeholder="Buscar en ayuda..." /></div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="cursor:pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <div class="font-semibold">¿Cómo funciona el alquiler?</div>
+            <div class="text-sm text-neutral-600 mt-1">Busca un producto, selecciona las fechas, contacta al arrendador y reserva.</div>
+          </div>
+          <div class="card" style="cursor:pointer">
+            <div class="font-semibold">¿Qué pasa si daño un producto?</div>
+            <div class="text-sm text-neutral-600 mt-1">Si ambas partes están verificadas, el seguro de Toolyo cubre daños accidentales.</div>
+          </div>
+          <div class="card" style="cursor:pointer">
+            <div class="font-semibold">¿Cómo me pagan mis alquileres?</div>
+            <div class="text-sm text-neutral-600 mt-1">Recibes el pago en tu cuenta bancaria configurada, menos la comisión de Toolyo.</div>
+          </div>
+          <div class="card" style="cursor:pointer">
+            <div class="font-semibold">¿Puedo cancelar una reserva?</div>
+            <div class="text-sm text-neutral-600 mt-1">Sí, según la política de cancelación del arrendador: Flexible, Moderada o Estricta.</div>
+          </div>
+          <div class="card" style="cursor:pointer">
+            <div class="font-semibold">¿Cómo verifico mi identidad?</div>
+            <div class="text-sm text-neutral-600 mt-1">Desde tu perfil, inicia el proceso KYC subiendo tu DNI/NIE y una selfie.</div>
+          </div>
+        </div>
+        <div class="card mt-6" style="text-align:center">
+          <div class="font-semibold mb-2">¿No encuentras lo que buscas?</div>
+          <button class="btn btn-primary btn-md">Contactar soporte</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ===== Estado global =====
+  let isLoggedIn = false;
+  let isAdmin = false;
+  let currentScreen = 'landing';
+
+  // ===== Navegación =====
+  function go(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(screenId);
+    if (target) target.classList.add('active');
+    currentScreen = screenId;
+    window.scrollTo(0, 0);
+
+    // Topbar
+    const publicNav = document.getElementById('nav-public');
+    const authNav = document.getElementById('nav-auth');
+    const globalSearch = document.getElementById('global-search');
+    if (isLoggedIn) {
+      publicNav.classList.add('hidden');
+      authNav.classList.remove('hidden');
+      globalSearch.style.display = 'flex';
+    } else {
+      publicNav.classList.remove('hidden');
+      authNav.classList.add('hidden');
+      globalSearch.style.display = 'none';
+    }
+
+    // Sidebar (solo en pantallas de dashboard/arrendador)
+    const sidebar = document.getElementById('sidebar');
+    const layout = document.getElementById('layout');
+    const dashboardScreens = ['dashboard','mis-listings','crear-listing-1','crear-listing-2','crear-listing-3','crear-listing-4','calendario','mensajes','chat','reservas','ingresos','ajustes','perfil','admin'];
+    if (isLoggedIn && dashboardScreens.includes(screenId)) {
+      sidebar.classList.remove('hidden');
+      layout.classList.add('with-sidebar');
+    } else {
+      sidebar.classList.add('hidden');
+      layout.classList.remove('with-sidebar');
+    }
+
+    // Admin link
+    const adminNav = document.getElementById('admin-nav');
+    const adminLink = document.getElementById('admin-link');
+    if (isAdmin && isLoggedIn) {
+      adminNav.classList.remove('hidden');
+      adminLink.classList.remove('hidden');
+    } else {
+      adminNav.classList.add('hidden');
+      adminLink.classList.add('hidden');
+    }
+
+    // Sidebar active state
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    const activeItem = document.querySelector('.sidebar-item[data-nav="' + screenId + '"]');
+    if (activeItem) activeItem.classList.add('active');
+  }
+
+  function login() {
+    isLoggedIn = true;
+    showToast('¡Bienvenido, María!');
+    go('dashboard');
+  }
+
+  function logout() {
+    isLoggedIn = false;
+    isAdmin = false;
+    showToast('Sesión cerrada');
+    go('landing');
+  }
+
+  // ===== Toast =====
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2500);
+  }
+
+  // ===== Init =====
+  go('landing');
+</script>
+
+</body>
+</html>
