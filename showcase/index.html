@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es" data-theme="clean-minimal">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Showcase comparativo de los UI Kits de Toolyo" />
+    <title>Toolyo / UI Kit Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#top" aria-label="Toolyo UI Kit Showcase, inicio">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>toolyo <small>/ ui kit</small></span>
+        </a>
+        <div class="header-meta">
+          <span class="eyebrow">MVP visual direction</span>
+          <span class="status-chip"><span class="status-dot" aria-hidden="true"></span> pending approval</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="top" class="page-shell">
+      <section class="intro-section" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="kicker">01 / compare the feeling</p>
+          <h1 id="page-title">Cuatro formas de<br /><em>hacerlo cercano.</em></h1>
+          <p class="intro-text">Un mismo catálogo, cuatro direcciones. Explora cómo cambia la experiencia de alquilar cuando el tono visual se mueve entre lo preciso, lo cálido, lo seguro y lo vibrante.</p>
+        </div>
+        <div class="intro-note">
+          <span class="note-index">A</span>
+          <p>La opción previsualizada no es todavía la opción aprobada.</p>
+        </div>
+      </section>
+
+      <section class="theme-selector" aria-labelledby="theme-heading">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">02 / choose a lens</p>
+            <h2 id="theme-heading">Direcciones visuales</h2>
+          </div>
+          <p class="selection-readout">Mostrando <strong id="active-theme-name">Clean / Minimal</strong></p>
+        </div>
+        <div class="theme-tabs" role="tablist" aria-label="Propuestas de estilo">
+          <button class="theme-tab is-active" id="tab-clean-minimal" role="tab" aria-selected="true" aria-controls="theme-panel" tabindex="0" data-theme-id="clean-minimal">
+            <span class="tab-number">01</span><span>Clean / Minimal</span><span class="tab-swatch" aria-hidden="true"></span>
+          </button>
+          <button class="theme-tab" id="tab-calido-sostenible" role="tab" aria-selected="false" aria-controls="theme-panel" tabindex="-1" data-theme-id="calido-sostenible">
+            <span class="tab-number">02</span><span>Cálido / Sostenible</span><span class="tab-swatch" aria-hidden="true"></span>
+          </button>
+          <button class="theme-tab" id="tab-profesional-seguro" role="tab" aria-selected="false" aria-controls="theme-panel" tabindex="-1" data-theme-id="profesional-seguro">
+            <span class="tab-number">03</span><span>Profesional / Seguro</span><span class="tab-swatch" aria-hidden="true"></span>
+          </button>
+          <button class="theme-tab" id="tab-vibrante-comunitario" role="tab" aria-selected="false" aria-controls="theme-panel" tabindex="-1" data-theme-id="vibrante-comunitario">
+            <span class="tab-number">04</span><span>Vibrante / Comunitario</span><span class="tab-swatch" aria-hidden="true"></span>
+          </button>
+        </div>
+      </section>
+
+      <section id="theme-panel" class="theme-panel" role="tabpanel" aria-labelledby="tab-clean-minimal" tabindex="0">
+        <div class="panel-heading">
+          <div>
+            <p class="kicker">active direction</p>
+            <h2 id="theme-title">Clean / Minimal</h2>
+            <p id="theme-description">Precisa, luminosa y silenciosa; prioriza escaneabilidad y sensación de producto fácil de usar.</p>
+          </div>
+          <div class="token-summary" aria-label="Resumen de tokens">
+            <div class="token-group"><span>primary</span><i id="token-primary"></i><code id="token-primary-value">#165DFF</code></div>
+            <div class="token-group"><span>secondary</span><i id="token-secondary"></i><code id="token-secondary-value">#E8EEF8</code></div>
+            <div class="token-group"><span>success</span><i id="token-success"></i><code id="token-success-value">#16803C</code></div>
+            <div class="token-group"><span>error</span><i id="token-error"></i><code id="token-error-value">#D92D20</code></div>
+          </div>
+        </div>
+
+        <div class="showcase-grid">
+          <article class="showcase-block block-actions">
+            <div class="block-label"><span>01</span><h3>Actions</h3><span class="block-rule"></span></div>
+            <div class="button-row">
+              <button class="ui-button primary">Publicar anuncio <span aria-hidden="true">↗</span></button>
+              <button class="ui-button secondary">Ver detalles</button>
+              <button class="ui-button icon-button" aria-label="Añadir a favoritos" data-favorite><span aria-hidden="true">♡</span></button>
+            </div>
+            <div class="button-row compact-row">
+              <button class="ui-button tertiary">Cancelar</button>
+              <button class="ui-button destructive">Eliminar anuncio</button>
+              <button class="ui-button loading" disabled><span class="spinner" aria-hidden="true"></span> Guardando</button>
+            </div>
+          </article>
+
+          <article class="showcase-block block-form">
+            <div class="block-label"><span>02</span><h3>Inputs</h3><span class="block-rule"></span></div>
+            <div class="input-stack">
+              <label class="field-label" for="product-name">¿Qué quieres alquilar?<span class="required">*</span></label>
+              <input id="product-name" class="ui-input" type="text" value="Taladro percutor Bosch" />
+              <label class="field-label" for="location">Ubicación</label>
+              <div class="input-with-icon"><span aria-hidden="true">⌖</span><input id="location" class="ui-input" type="text" placeholder="Madrid, España" /></div>
+              <div class="field-error"><span aria-hidden="true">!</span><span>Introduce una ubicación válida para continuar.</span></div>
+            </div>
+          </article>
+
+          <article class="showcase-block block-badges">
+            <div class="block-label"><span>03</span><h3>Trust signals</h3><span class="block-rule"></span></div>
+            <div class="badge-row"><span class="ui-badge verified"><span aria-hidden="true">✓</span> Verificado</span><span class="ui-badge fast"><span aria-hidden="true">↯</span> Fast responder</span><span class="ui-badge popular">Popular</span></div>
+            <div class="badge-row"><span class="ui-badge listing-live"><span class="badge-dot" aria-hidden="true"></span> Publicado</span><span class="ui-badge listing-review">En revisión</span><span class="ui-badge listing-paused">Pausado</span></div>
+          </article>
+
+          <article class="showcase-block block-listing">
+            <div class="block-label"><span>04</span><h3>Listing card</h3><span class="block-rule"></span></div>
+            <div class="listing-card">
+              <div class="listing-image"><img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=900&q=80" alt="Taladro y herramientas sobre una mesa" /><button class="image-favorite" aria-label="Añadir taladro a favoritos" data-favorite>♡</button><span class="ui-badge image-badge">Popular</span></div>
+              <div class="listing-content"><div class="listing-topline"><span class="listing-category">Herramientas / Madrid</span><span class="rating">★ 4.9 <small>(28)</small></span></div><h4>Taladro percutor Bosch Professional</h4><div class="listing-footer"><span><strong>32€</strong> / día</span><span class="owner"><span class="avatar">M</span> María <span class="verified-mini" aria-label="Usuario verificado">✓</span></span></div></div>
+            </div>
+          </article>
+
+          <article class="showcase-block block-feedback">
+            <div class="block-label"><span>05</span><h3>Feedback</h3><span class="block-rule"></span></div>
+            <div class="feedback-stack"><div class="ui-alert success-alert"><span class="alert-icon" aria-hidden="true">✓</span><span><strong>Reserva enviada.</strong><br />Te avisaremos cuando María responda.</span><button aria-label="Cerrar alerta">×</button></div><div class="ui-alert warning-alert"><span class="alert-icon" aria-hidden="true">!</span><span><strong>Sin seguro de plataforma.</strong><br />El arrendador aún no ha verificado su identidad.</span></div></div>
+          </article>
+
+          <article class="showcase-block block-chat">
+            <div class="block-label"><span>06</span><h3>Chat box</h3><span class="block-rule"></span></div>
+            <div class="chat-box"><div class="chat-header"><div class="owner"><span class="avatar avatar-large">M</span><span><strong>María López</strong><small><span class="online-dot"></span> Responde habitualmente &lt; 1h</small></span></div><button class="chat-more" aria-label="Más opciones">•••</button></div><div class="messages"><div class="message received">¡Hola! Sí, sigue disponible para este fin de semana.<time>10:42</time></div><div class="message sent">Perfecto, ¿incluye la broca para hormigón?<time>10:44 ✓✓</time></div><div class="message failed"><span>Mensaje no enviado</span><button>Reintentar</button></div></div><div class="chat-composer"><button aria-label="Adjuntar imagen">＋</button><input type="text" placeholder="Escribe un mensaje..." aria-label="Escribe un mensaje" /><button class="send-button" aria-label="Enviar mensaje">↑</button></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="decision-section" aria-labelledby="decision-title">
+        <div class="decision-marker">03</div>
+        <div><p class="kicker">final call</p><h2 id="decision-title">La elección queda abierta.</h2><p>Esta herramienta compara la dirección. La decisión de producto se registra por separado cuando el equipo esté listo.</p></div>
+        <div class="decision-state"><span>status</span><strong>pending_approval</strong><small>selected_option: null</small></div>
+      </section>
+    </main>
+    <footer class="site-footer"><span>toolyo / visual components</span><span>mvp · 2026</span></footer>
+  </body>
+</html>
