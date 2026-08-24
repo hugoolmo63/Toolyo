@@ -17,15 +17,15 @@ El objetivo de este documento es extraer toda la inteligencia funcional, de nego
 - **Proximidad geográfica**: Sistema de búsqueda basado en ubicación (GPS + municipios/zonas).
 - **Flexibilidad temporal**: Alquiler por horas, días o semanas con descuentos por volumen.
 - **Precios dinámicos**: El precio por día decrece a medida que aumenta el período de alquiler.
-- **Seguro integrado**: Cobertura de daños sin franquicia (en la mayoría de categorías) gestionado por la plataforma.
-- **Confianza**: Sistema de valoraciones, badges de verificación y estadísticas del arrendador.
+- **Seguro integrado**: Cobertura de daños sin franquicia (en la mayoría de categorías) gestionado por la plataforma, disponible cuando ambas partes están verificadas.
+- **Confianza**: Sistema de valoraciones, badges de verificación escalonada (Registrado / Verificado / Superarrendador) y estadísticas del arrendador.
 
 ### 2.2 Para el Arrendador (Quien pone en alquiler)
 - **Monetización de activos ociosos**: Generar ingresos de bienes que están parados (herramientas, remolques, bicicletas de carga, tiendas de campaña, etc.).
 - **Gestión simplificada**: La plataforma gestiona reservas, pagos, calendario de disponibilidad y seguros.
 - **Visibilidad local**: Posicionamiento geográfico para captar arrendatarios cercanos.
-- **Protección**: Seguro que cubre daños durante el período de alquiler.
-- **Reputación**: Sistema de ratings y reviews que aumenta la credibilidad y las reservas futuras.
+- **Protección**: Seguro que cubre daños durante el período de alquiler para usuarios verificados.
+- **Reputación**: Sistema de ratings y reviews que aumenta la credibilidad y las reservas futuras. Badge de verificación como diferenciador de confianza.
 
 ### 2.3 Para la Plataforma
 - **Comisión por transacción**: Porcentaje sobre cada alquiler completado (modelo marketplace).
@@ -70,7 +70,7 @@ El objetivo de este documento es extraer toda la inteligencia funcional, de nego
    - Equipos de playa/paddle surf/kayak
    - Artículos de fiesta (castillos hinchables, carpas)
    - Cámaras y drones
-5. **Verificación de identidad**: DNI-e, validación con VideoID (normativa AML/KYC española).
+5. **Verificación de identidad escalonada**: KYC opcional para uso básico (publicar y alquilar sin límite), con incentivos (badge "Verificado", acceso al seguro, reservas instantáneas). DNI-e y validación con VideoID disponibles. KYC obligatorio solo al superar umbrales AML (>1.000€/año o >10 transacciones/año).
 6. **Temporadas**: Adaptar a calendario español (verano prolongado, puentes, Semana Santa, Fallas, San Fermín, etc.).
 
 ---

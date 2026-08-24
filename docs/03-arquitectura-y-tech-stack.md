@@ -215,8 +215,8 @@
 |------|--------|
 | **Transporte** | TLS 1.3 en todas las conexiones. |
 | **Autenticación** | JWT con refresh tokens, OAuth 2.0 (Google, Apple). |
-| **Autorización** | RBAC (Role-Based Access Control): admin, user, verified_owner. |
+| **Autorización** | RBAC con niveles de confianza: admin, user (registrado), verified_user, super_owner. |
 | **Datos sensibles** | Encriptación en reposo (AES-256), tokenización de tarjetas (Stripe). |
 | **Validación** | Rate limiting en APIs, validación estricta con Zod, sanitización de inputs. |
 | **Privacidad** | Cumplimiento GDPR (derecho al olvido, portabilidad de datos). |
-| **KYC** | Verificación de identidad antes de poder publicar o alquilar bienes de alto valor. |
+| **KYC** | Verificación de identidad escalonada: opcional para uso básico (publicar/alquilar). Obligatoria para acceder a seguro de plataforma, reservas instantáneas y transacciones que superen umbrales AML (>1.000€/año o >10 transacciones/año). |

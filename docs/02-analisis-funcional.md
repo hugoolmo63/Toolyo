@@ -15,7 +15,7 @@ A partir del análisis del payload JSON de Hygglo, se identifican las siguientes
 }
 ```
 - **Perfil público**: foto, nombre, rating promedio.
-- **Badges**: "fastResponder" (responde rápido), posiblemente más como "verificado", "superarrendador".
+- **Badges**: "fastResponder" (responde rápido), "verificado" (KYC completado), "superarrendador" (alta reputación + verificación). Los badges de verificación son visibles en perfil, tarjetas de listing y chat.
 - **Rating**: escala 1-5 basada en reviews post-alquiler.
 - **Moneda**: DKK por defecto (en España sería EUR).
 
@@ -99,8 +99,8 @@ A partir del análisis del payload JSON de Hygglo, se identifican las siguientes
 6. **Checkout**: Selección de fechas, resumen de precios, pago, confirmación.
 
 ### 2.2 Flujo de Publicación (Arrendador)
-1. **Onboarding**: Verificación de identidad y teléfono.
-2. **Crear Listing**: 
+1. **Onboarding**: Registro con email y verificación de teléfono. KYC opcional (DNI + selfie) para obtener badge "Verificado".
+2. **Crear Listing** (disponible para todos, verificados o no):
    - Seleccionar categoría.
    - Subir fotos (múltiples, con cropping).
    - Título y descripción.
@@ -108,7 +108,7 @@ A partir del análisis del payload JSON de Hygglo, se identifican las siguientes
    - Establecer mínimo de días.
    - Definir ubicación de recogida (mapa interactivo).
    - Configurar calendario de disponibilidad (bloquear fechas).
-3. **Publicar**: El listing pasa a estado "publicado" y aparece en búsquedas.
+3. **Publicar**: El listing pasa a estado "publicado" y aparece en búsquedas. Los listings de usuarios no verificados muestran aviso contextual de ausencia de seguro.
 4. **Gestión**: Dashboard con solicitudes de alquiler, calendario, ingresos, mensajes.
 
 ### 2.3 Flujo de Alquiler (Transacción)
@@ -155,7 +155,7 @@ A partir del análisis del payload JSON de Hygglo, se identifican las siguientes
 ### 3.6 Sistema de Seguros y Confianza
 - **Seguro de daños**: Cubre daños accidentales durante el alquiler.
 - **Franquicia variable**: Algunas categorías tienen franquicia (ej. vehículos, trailers).
-- **Verificación de identidad**: KYC con DNI/documento de identidad.
+- **Verificación de identidad escalonada**: KYC opcional con DNI/documento de identidad. El seguro de plataforma solo está disponible cuando ambas partes (arrendador y arrendatario) están verificadas. Los usuarios no verificados pueden publicar y alquilar sin límite, pero sin acceso al seguro ni a reservas instantáneas.
 - **Depósito de garantía**: Opcional para productos de alto valor.
 
 ### 3.7 Sistema de Pagos
@@ -223,9 +223,11 @@ Hygglo maneja cientos de categorías muy específicas. A continuación, las fami
 - Número de órdenes completadas ("completedOrders").
 - Rating promedio ("averageRating").
 - Badge de "fastResponder".
+- Badge de "Verificado" (KYC completado) — visible en perfil, tarjeta de listing y chat.
+- Nivel de usuario (Registrado / Verificado / Superarrendador).
 - Tiempo de respuesta promedio.
 - Fotos de calidad y descripción detallada.
-- Verificación de identidad del arrendador.
+- Aviso contextual en listings de usuarios no verificados sobre ausencia de seguro de plataforma.
 
 ### 5.2 Señales de Popularidad
 - Vistas del listing en los últimos 7 días.

@@ -8,7 +8,7 @@
 | AUTH-001 | Registro con email + contraseña o SSO (Google, Apple, Facebook). | Alta |
 | AUTH-002 | Verificación de email mediante código OTP. | Alta |
 | AUTH-003 | Verificación de número de teléfono mediante SMS OTP. | Alta |
-| AUTH-004 | Flujo de KYC para verificación de identidad (DNI/NIE + selfie en vivo) antes de publicar o alquilar bienes >200€. | Alta |
+| AUTH-004 | Flujo opcional de verificación de identidad (DNI/NIE + selfie en vivo). Los usuarios verificados obtienen badge público, acceso al seguro de plataforma y preferencia en búsqueda. Obligatorio solo para activar reservas instantáneas. | Alta |
 | AUTH-005 | Aceptación de Términos y Condiciones y Política de Privacidad en el registro. | Alta |
 
 ### 1.2 Perfil de Usuario
@@ -19,6 +19,8 @@
 | PROF-003 | Configuración de notificaciones (email, push, SMS) por tipo de evento. | Media |
 | PROF-004 | Gestión de métodos de pago (tarjetas, Bizum, cuenta bancaria para payouts). | Alta |
 | PROF-005 | Historial de transacciones: alquileres realizados, bienes alquilados, ingresos, estado de payouts. | Alta |
+| PROF-006 | Sistema de niveles de usuario: Registrado, Verificado, Superarrendador. Cada nivel con badge visual y permisos diferenciados. | Alta |
+| PROF-007 | Badge "Verificado" visible en tarjeta de listing, perfil público y chat. | Alta |
 
 ---
 
@@ -46,6 +48,8 @@
 | LIST-013 | Pausar/reactivar listing sin perder datos ni reviews. | Media |
 | LIST-014 | Duplicar listing como plantilla para crear variantes. | Baja |
 | LIST-015 | Estadísticas de vistas, clics y conversiones por listing. | Media |
+| LIST-016 | Listings de usuarios no verificados muestran aviso contextual: "Este arrendador aún no ha verificado su identidad. El alquiler no incluye seguro de plataforma." | Media |
+| LIST-017 | Los usuarios no verificados pueden publicar sin límite de listings ni de valor, pero no pueden activar reservas instantáneas ni contratar el seguro de plataforma. | Media |
 
 ---
 
@@ -61,6 +65,7 @@
 | SEARCH-005 | Resultados en vista de grid (tarjetas) o lista. | Media |
 | SEARCH-006 | Mapa interactivo con pins de productos, clic para ver preview. | Alta |
 | SEARCH-007 | Paginación infinita (infinite scroll) en móvil, paginación numerada en desktop. | Media |
+| SEARCH-008 | Filtro "Solo usuarios verificados" en resultados de búsqueda. | Media |
 
 ### 3.2 Tarjeta de Producto
 | ID | Requisito | Prioridad |
@@ -111,6 +116,7 @@
 | PAY-005 | Soporte de Bizum como método de pago alternativo para usuarios españoles. | Media |
 | PAY-006 | Wallet interno: el arrendador puede acumular saldo o solicitar transferencia a cuenta bancaria. | Media |
 | PAY-007 | Emisión automática de factura simplificada / recibo para ambas partes. | Media |
+| PAY-008 | El seguro de daños (INS-001) solo se activa automáticamente si ambas partes (arrendador y arrendatario) están verificadas. | Alta |
 
 ### 4.3 Cancelaciones y Reembolsos
 | ID | Requisito | Prioridad |
@@ -152,7 +158,7 @@
 
 | ID | Requisito | Prioridad |
 |----|-----------|-----------|
-| INS-001 | Contratación automática de seguro de daños para cada alquiler (on-demand). | Alta |
+| INS-001 | Contratación automática de seguro de daños para cada alquiler (on-demand). Solo disponible cuando arrendador y arrendatario están verificados. | Alta |
 | INS-002 | Cobertura estándar sin franquicia para la mayoría de categorías. | Alta |
 | INS-003 | Franquicia configurable por categoría (ej. 100€ para vehículos y remolques). | Media |
 | INS-004 | Proceso de reclamación de daños desde la plataforma: formulario con fotos, descripción, valoración. | Alta |
@@ -192,10 +198,10 @@
 
 Para el lanzamiento inicial (Fase 1), se recomienda implementar únicamente:
 
-1. **Auth**: Registro/login básico + verificación email/teléfono. KYC manual en backend.
+1. **Auth**: Registro/login básico + verificación email/teléfono. KYC opcional en onboarding (manual en backend para quienes lo soliciten).
 2. **Listings**: Creación básica con hasta 5 fotos, precio fijo por día (sin escalonado en MVP), ubicación por texto.
 3. **Búsqueda**: Por ubicación (texto) + categoría, sin filtros avanzados en MVP.
-4. **Reservas**: Solicitud de reserva con aprobación manual, sin pagos automatizados en MVP (pago en mano gestionado por usuarios, con seguimiento de estado).
+4. **Reservas**: Solicitud de reserva con aprobación manual; reservas instantáneas solo para usuarios verificados. Sin pagos automatizados en MVP (pago en mano gestionado por usuarios, con seguimiento de estado).
 5. **Chat**: Mensajería básica (no necesariamente en tiempo real; polling cada 30s es aceptable en MVP).
 6. **Reviews**: Post-alquiler, publicación inmediata (sin doble ciego en MVP).
 7. **Admin**: Panel básico para ver usuarios, listings y marcar reservas como completadas.

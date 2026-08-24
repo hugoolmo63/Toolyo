@@ -31,7 +31,7 @@
 1. **Términos y Condiciones específicos**: Clarificar que la plataforma es un intermediario; el contrato de alquiler es entre particulares.
 2. **Política de Privacidad**: Cumplimiento estricto del RGPD, registro de actividades de tratamiento (RAT).
 3. **Seguro de Responsabilidad Civil**: La plataforma debe tener un seguro de RC profesional por operación del marketplace.
-4. **KYC/AML**: Verificación de identidad para usuarios con volumen de transacciones >1.000€/año o >10 transacciones/año.
+4. **KYC/AML**: Verificación de identidad escalonada. El KYC es voluntario para obtener badge "Verificado", acceso al seguro de plataforma y reservas instantáneas. Sin embargo, se vuelve obligatorio cuando un usuario supera los umbrales normativos (>1.000€/año o >10 transacciones/año), conforme a la Ley 10/2010 de Prevención del Blanqueo de Capitales.
 5. **Cláusulas arbitrales**: Opción de resolución de disputas mediante mediación/arbitraje antes de vía judicial.
 
 ---

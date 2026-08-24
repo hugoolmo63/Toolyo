@@ -125,17 +125,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Registro / Login] --> B[Onboarding]
-    B --> C[Verificación KYC]
-    C --> D{¿Verificado?}
-    D -->|No| E[Esperando aprobación]
-    D -->|Sí| F[Dashboard Arrendador]
+    A[Registro / Login] --> B[Onboarding básico]
+    B --> C[Verificar email + teléfono]
+    C --> D[Dashboard Arrendador]
 
-    F --> G[Crear nuevo listing]
-    F --> H[Gestionar listings existentes]
-    F --> I[Ver calendario de reservas]
-    F --> J[Ver mensajes]
-    F --> K[Ver ingresos]
+    D --> G[Crear nuevo listing]
+    D --> H[Gestionar listings existentes]
+    D --> I[Ver calendario de reservas]
+    D --> J[Ver mensajes]
+    D --> K[Ver ingresos]
+    D --> KYC[Verificación KYC opcional]
+    KYC --> L[Obtener badge Verificado + seguro + reservas instantáneas]
 
     G --> L[Paso 1: Seleccionar categoría]
     L --> M[Paso 2: Subir fotos + descripción]
@@ -188,8 +188,12 @@ sequenceDiagram
         PG-->>P: Hold confirmado
     end
     P->>A: Confirmación de reserva
-    P->>INS: Activa seguro (on-demand)
-    INS-->>P: Póliza generada
+    alt Ambas partes verificadas
+        P->>INS: Activa seguro (on-demand)
+        INS-->>P: Póliza generada
+    else Sin verificación
+        P->>A: Aviso: alquiler sin seguro de plataforma
+    end
 
     Note over A,O: Período de alquiler
 
@@ -281,23 +285,23 @@ flowchart LR
     A[Registro básico] --> B[Verificar email]
     B --> C[Verificar teléfono]
     C --> D[Completar perfil]
+    D --> E[Usuario Registrado]
 
-    D --> E{¿Quiere publicar o alquilar >200€?}
-    E -->|No| F[Usuario verificado básico]
-    E -->|Sí| G[KYC:
-    DNI/NIE +
-    Selfie en vivo]
+    E --> F[Publicar listings]
+    E --> G[Alquilar sin límite]
+    E --> H[Explorar la plataforma]
+    E --> I[Solicitar verificación KYC]
 
-    G --> H{¿Validación automática?}
-    H -->|Sí| I[Usuario verificado completo]
-    H -->|No| J[Revisión manual por admin]
-    J -->|Aprobado| I
-    J -->|Rechazado| K[Solicitar documentación adicional]
-    K --> G
+    I --> J[KYC: DNI/NIE + Selfie en vivo]
+    J --> K{¿Validación automática?}
+    K -->|Sí| L[Usuario Verificado]
+    K -->|No| M[Revisión manual por admin]
+    M -->|Aprobado| L
+    M -->|Rechazado| N[Solicitar documentación adicional]
+    N --> J
 
-    F --> L[Explorar / Alquilar <200€]
-    I --> M[Publicar listings]
-    I --> N[Alquilar sin límite]
+    L --> O[Badge Verificado + seguro + reservas instantáneas]
+    L --> P[Preferencia en búsqueda]
 ```
 
 ---
@@ -360,7 +364,7 @@ flowchart LR
 │  [Foto] María · ⭐ 5.0 · Respuesta <1h    │
 │  [Ver perfil] [Contactar]                  │
 ├────────────────────────────────────────────┤
-│  🛡️ SEGURO: Cubierto sin franquicia        │
+│  🛡️ SEGURO: Cubierto sin franquicia (si arrendador verificado) │
 ├────────────────────────────────────────────┤
 │  💬 REVIEWS (23):                          │
 │  ⭐⭐⭐⭐⭐ "Todo perfecto, muy amable"      │
