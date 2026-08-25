@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: toolyo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: toolyo
+      POSTGRES_PASSWORD: toolyo
+      POSTGRES_DB: toolyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - toolyo_pgdata:/var/lib/postgresql/data
+
+volumes:
+  toolyo_pgdata:

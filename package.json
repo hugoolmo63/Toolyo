@@ -1,0 +1,14 @@
+{
+  "name": "toolyo-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix development run dev",
+    "build": "npm --prefix development run build",
+    "start": "npm --prefix development run start",
+    "test": "npm --prefix development run test",
+    "test:integration": "npm --prefix development run test:integration",
+    "db:generate": "npm --prefix development run db:generate",
+    "db:migrate": "npm --prefix development run db:migrate",
+    "db:seed": "npm --prefix development run db:seed"
+  }
+}

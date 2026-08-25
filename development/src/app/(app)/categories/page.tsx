@@ -1,0 +1,1 @@
+export { default, dynamic } from "@/features/categories/presentation/categories-page";
