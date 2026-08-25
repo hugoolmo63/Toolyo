@@ -17,6 +17,7 @@ Este repositorio contiene la documentación completa para el desarrollo de una p
 | 4 | [`04-especificaciones-funcionales.md`](./04-especificaciones-funcionales.md) | Especificaciones funcionales detalladas por módulo (auth, listings, búsqueda, reservas, pagos, chat, reviews, seguros, admin). Incluye scope del MVP. |
 | 5 | [`05-diagramas-navegacion.md`](./05-diagramas-navegacion.md) | Mapa del sitio, flujos de usuario, diagramas de secuencia, diagramas de estado y wireframes de pantallas principales. |
 | 6 | [`06-adaptacion-mercado-espanol.md`](./06-adaptacion-mercado-espanol.md) | Análisis del mercado español, adaptaciones legales (RGPD, AML), localización, pagos (Bizum), seguros, estrategia de lanzamiento por ciudades y métricas. |
+| 7 | [`07-analisis-de-competencia.md`](./07-analisis-de-competencia.md) | Análisis detallado de competidores: Wallapop (ES), Hygglo (Nórdico), Share y Flecto (PT), AlloVoisins y Bricolib (FR). Matriz comparativa, FODA y oportunidades de diferenciación. |
 
 ---
 

@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Categoría — entidad de ejemplo del scaffold (caso dummy).
+/// Demuestra el patrón completo: id cuid, campo único (slug),
+/// auto-referencia (parentId), estado (showInNav) y auditoría/soft-delete.
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  showInNav Boolean   @default(true)
+  parentId  String?
+  parent    Category? @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Restrict)
+  children  Category[] @relation("CategoryChildren")
+
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  @@index([parentId])
+  @@index([showInNav])
+}
