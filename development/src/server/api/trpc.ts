@@ -11,7 +11,7 @@ import { AppError } from "../lib/errors/domain-errors";
  */
 export interface TRPCContext {
   prisma: PrismaClient;
-  session: null;
+  session: { userId: string; role: "user" | "admin" } | null;
 }
 
 export const createTRPCContext = (opts: { prisma: PrismaClient }): TRPCContext => ({

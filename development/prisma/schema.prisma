@@ -26,3 +26,196 @@ model Category {
   @@index([parentId])
   @@index([showInNav])
 }
+
+enum AccountStatus {
+  pending
+  active
+  suspended
+  deletion_requested
+  deleted
+}
+
+enum VerificationChannel {
+  email
+  phone
+  identity
+}
+
+enum ContactVerificationStatus {
+  pending
+  verified
+  blocked
+}
+
+enum OtpPurpose {
+  registration
+  contact_verification
+  credential_change
+  recovery
+}
+
+enum OtpChannel {
+  email
+  phone
+}
+
+enum IdentityVerificationStatus {
+  not_started
+  pending
+  verified
+  rejected
+  retry_required
+}
+
+enum LegalDocumentType {
+  terms
+  privacy
+  marketing
+  kyc
+}
+
+enum LegalAcceptancePurpose {
+  account_terms
+  privacy_notice
+  marketing
+  kyc
+}
+
+enum SecurityEventOutcome {
+  success
+  failure
+  blocked
+}
+
+model User {
+  id                    String                  @id @default(cuid())
+  emailNormalized       String                  @unique
+  phoneE164             String?                 @unique
+  accountStatus         AccountStatus           @default(pending)
+  createdAt             DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime                @updatedAt @db.Timestamptz(6)
+  deletedAt             DateTime?               @db.Timestamptz(6)
+  passwordCredential    PasswordCredential?
+  oauthAccounts         OAuthAccount[]
+  verificationStates    VerificationState[]
+  otpChallenges         OtpChallenge[]
+  identityVerifications IdentityVerification[]
+  legalAcceptances      LegalAcceptance[]
+  securityEvents        SecurityEvent[]
+}
+
+model PasswordCredential {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  passwordHash String
+  changedAt    DateTime @default(now()) @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @db.Timestamptz(6)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationState {
+  id              String                     @id @default(cuid())
+  userId          String
+  channel         VerificationChannel
+  status          ContactVerificationStatus  @default(pending)
+  verifiedAt      DateTime?                  @db.Timestamptz(6)
+  lastRequestedAt DateTime?                  @db.Timestamptz(6)
+  createdAt       DateTime                   @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime                   @updatedAt @db.Timestamptz(6)
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, channel])
+  @@index([channel, status])
+}
+
+model OtpChallenge {
+  id              String     @id @default(cuid())
+  userId          String?
+  channel         OtpChannel
+  purpose         OtpPurpose
+  destinationHash String
+  codeHash        String
+  expiresAt       DateTime   @db.Timestamptz(6)
+  attemptCount    Int        @default(0)
+  resendCount     Int        @default(0)
+  consumedAt      DateTime?  @db.Timestamptz(6)
+  blockedAt       DateTime?  @db.Timestamptz(6)
+  createdAt       DateTime   @default(now()) @db.Timestamptz(6)
+  user            User?      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, channel, purpose, createdAt])
+  @@index([expiresAt])
+}
+
+model IdentityVerification {
+  id               String                    @id @default(cuid())
+  userId           String
+  provider         String
+  providerReference String                    @unique
+  status           IdentityVerificationStatus @default(not_started)
+  resultCode       String?
+  termsVersion     String
+  startedAt        DateTime?                 @db.Timestamptz(6)
+  completedAt      DateTime?                 @db.Timestamptz(6)
+  createdAt        DateTime                  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime                  @updatedAt @db.Timestamptz(6)
+  user             User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status])
+}
+
+model LegalDocument {
+  id             String                  @id @default(cuid())
+  documentType   LegalDocumentType
+  version        String
+  language       String
+  effectiveAt    DateTime                @db.Timestamptz(6)
+  retiredAt      DateTime?               @db.Timestamptz(6)
+  contentHash    String
+  legalAcceptances LegalAcceptance[]
+  createdAt      DateTime                @default(now()) @db.Timestamptz(6)
+
+  @@unique([documentType, version, language])
+  @@index([documentType, effectiveAt])
+}
+
+model LegalAcceptance {
+  id              String                @id @default(cuid())
+  userId          String
+  legalDocumentId String
+  purpose         LegalAcceptancePurpose
+  acceptedAt      DateTime              @db.Timestamptz(6)
+  context         Json?
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  legalDocument   LegalDocument         @relation(fields: [legalDocumentId], references: [id], onDelete: Restrict)
+
+  @@index([userId, legalDocumentId, acceptedAt])
+}
+
+model SecurityEvent {
+  id        String              @id @default(cuid())
+  eventType String
+  outcome   SecurityEventOutcome
+  userId    String?
+  requestId String?
+  metadata  Json?
+  createdAt DateTime            @default(now()) @db.Timestamptz(6)
+  user      User?               @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+}
