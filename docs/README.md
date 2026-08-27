@@ -18,6 +18,7 @@ Este repositorio contiene la documentación completa para el desarrollo de una p
 | 5 | [`05-diagramas-navegacion.md`](./05-diagramas-navegacion.md) | Mapa del sitio, flujos de usuario, diagramas de secuencia, diagramas de estado y wireframes de pantallas principales. |
 | 6 | [`06-adaptacion-mercado-espanol.md`](./06-adaptacion-mercado-espanol.md) | Análisis del mercado español, adaptaciones legales (RGPD, AML), localización, pagos (Bizum), seguros, estrategia de lanzamiento por ciudades y métricas. |
 | 7 | [`07-analisis-de-competencia.md`](./07-analisis-de-competencia.md) | Análisis detallado de competidores: Wallapop (ES), Hygglo (Nórdico), Share y Flecto (PT), AlloVoisins y Bricolib (FR). Matriz comparativa, FODA y oportunidades de diferenciación. |
+| 8 | [`08-proveedores-otp-kyc.md`](./08-proveedores-otp-kyc.md) | Referencia formal de proveedores OTP y KYC, con opciones SaaS, precios públicos y alternativas DIY open source. |
 
 ---
 
