@@ -21,6 +21,19 @@ async function main() {
     });
   }
 
+  const documents = [
+    { documentType: "terms" as const, version: "2026-08", language: "es", contentHash: "seed-terms-2026-08" },
+    { documentType: "privacy" as const, version: "2026-08", language: "es", contentHash: "seed-privacy-2026-08" },
+    { documentType: "marketing" as const, version: "2026-08", language: "es", contentHash: "seed-marketing-2026-08" },
+  ];
+  for (const document of documents) {
+    await prisma.legalDocument.upsert({
+      where: { documentType_version_language: { documentType: document.documentType, version: document.version, language: document.language } },
+      update: { retiredAt: null },
+      create: { ...document, effectiveAt: new Date("2026-01-01T00:00:00.000Z") },
+    });
+  }
+
   // eslint-disable-next-line no-console
   console.log("Seed completada: categorías de ejemplo creadas.");
 }

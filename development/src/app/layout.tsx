@@ -3,8 +3,8 @@ import "../styles/globals.css";
 import { AppProviders } from "../providers/app-providers";
 
 export const metadata: Metadata = {
-  title: "Toolyo — Scaffold de referencia",
-  description: "Caso dummy de desarrollo: entidad Category end-to-end.",
+  title: "Toolyo — Alquila con confianza",
+  description: "Marketplace local de alquiler entre particulares.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
