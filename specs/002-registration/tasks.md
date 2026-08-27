@@ -103,6 +103,7 @@ description: "Task list for Toolyo user registration and verification"
 - [X] T036 [US2] Añadir `requestOtp` y `verifyOtp` al router `development/src/server/api/routers/auth.router.ts` con errores públicos `challenge_invalid`, `challenge_expired`, `challenge_blocked` y `provider_unavailable`.
 - [ ] T037 [US2] Añadir en `development/src/server/services/security-event.service.ts` redacción de metadatos y eventos de OTP/rate limit sin contraseña, código, token, destino completo ni documentos.
 - [ ] T038 [US2] Completar en `development/tests/integration/auth/auth.router.integration.test.ts` escenarios de email OTP, SMS OTP, límites y respuestas genéricas de cuenta existente.
+- [ ] T066 [US2] Hacer configurable la verificación OTP de SMS mediante `SMS_OTP_ENABLED` y cubrir con tests el bloqueo del canal cuando esté deshabilitado.
 
 **Checkpoint**: US2 verifica ambos canales con consumo atómico, rate limiting, proveedores sustituibles y auditoría segura.
 

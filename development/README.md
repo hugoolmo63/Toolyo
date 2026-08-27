@@ -24,7 +24,7 @@ npm run db:seed
 npm run dev
 ```
 
-No introduzcas credenciales reales en `.env` ni en fixtures. `AUTH_GOOGLE_ENABLED`, `AUTH_APPLE_ENABLED`, `AUTH_FACEBOOK_ENABLED` y `KYC_PROVIDER` permanecen deshabilitados hasta configurar proveedores y revisar requisitos legales.
+No introduzcas credenciales reales en `.env` ni en fixtures. `AUTH_GOOGLE_ENABLED`, `AUTH_APPLE_ENABLED`, `AUTH_FACEBOOK_ENABLED`, `SMS_OTP_ENABLED` y `KYC_PROVIDER` permanecen deshabilitados o controlados por entorno hasta configurar proveedores y revisar requisitos legales.
 
 ## Validación
 

@@ -16,6 +16,7 @@ const envSchema = z.object({
   AUTH_FACEBOOK_ENABLED: z.coerce.boolean().default(false),
   EMAIL_PROVIDER: z.enum(["console", "resend"]).default("console"),
   SMS_PROVIDER: z.enum(["console", "twilio"]).default("console"),
+  SMS_OTP_ENABLED: z.coerce.boolean().default(true),
   KYC_PROVIDER: z.enum(["disabled", "external"]).default("disabled"),
   OTP_SECRET: z.string().min(16).optional(),
   RATE_LIMIT_STORE: z.enum(["memory", "redis"]).default("memory"),
