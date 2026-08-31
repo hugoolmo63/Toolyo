@@ -13,6 +13,7 @@
 3. **Lógica de negocio aislada.** Los routers tRPC son delgados. La lógica vive en servicios puros que no conocen HTTP ni tRPC.
 4. **Transaccionalidad explícita.** Las operaciones que modifican múltiples registros deben ejecutarse dentro de transacciones de base de datos.
 5. **Observabilidad completa.** Todo error, toda mutación crítica y toda integración externa debe dejar traza estructurada.
+6. **La base de datos no es pública.** Ningún navegador, Client Component ni código cliente accede directamente a Prisma o a PostgreSQL; todo acceso a datos pasa por server components, route handlers, tRPC, servicios o repositorios del servidor.
 
 ---
 
@@ -49,6 +50,7 @@ src/
 - **Un router por dominio.** No mezclar endpoints de pagos con endpoints de mensajes en el mismo archivo.
 - **Los servicios no importan de `api/`.** Pueden importar de `db/`, `lib/` y otros `services/`.
 - **No exponer Prisma Client directamente** en routers ni en servicios que no sean repositories. Usar funciones tipadas que encapsulen los queries.
+- **Nunca importar Prisma en código cliente.** El cliente web consume datos vía Server Components, tRPC o route handlers; las lecturas/escrituras de base de datos viven exclusivamente en el servidor.
 
 ---
 

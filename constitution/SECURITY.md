@@ -13,6 +13,7 @@
 3. **Menor privilegio.** Usuarios, servicios y procesos deben tener exactamente los permisos que necesitan, ni uno más.
 4. **Seguridad por diseño, no por capa.** No se añade al final; se define en cada decisión técnica.
 5. **Transparencia controlada.** Documentar brechas conocidas y mitigaciones. No ocultar incidentes internamente.
+6. **El cliente nunca toca la DB.** El navegador no debe acceder a PostgreSQL ni a Prisma; la superficie expuesta al cliente son APIs y renderizado del servidor, lo que reduce exposición de credenciales, consultas y metadatos internos.
 
 ---
 

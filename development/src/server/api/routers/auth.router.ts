@@ -3,6 +3,7 @@ import { RegistrationSchema, RequestOtpSchema, VerifyOtpSchema } from "@/lib/val
 import { registerWithPassword, getOnboardingStatus } from "@/server/auth/auth.service";
 import { requestOtp } from "@/server/auth/otp-delivery.service";
 import { consumeOtpChallenge } from "@/server/auth/otp.service";
+import { getRegistrationLegalDocuments } from "@/server/auth/legal-acceptance.service";
 import { mapErrorToTRPC } from "@/server/lib/errors/map-error";
 
 const OTP_SECRET = process.env.OTP_SECRET ?? "development-only-otp-secret";
@@ -11,6 +12,14 @@ export const authRouter = createTRPCRouter({
   registerWithPassword: publicProcedure.input(RegistrationSchema).mutation(async ({ ctx, input }) => {
     try {
       return await registerWithPassword(ctx.prisma, input);
+    } catch (error) {
+      throw mapErrorToTRPC(error);
+    }
+  }),
+
+  getRegistrationLegalDocuments: publicProcedure.query(async ({ ctx }) => {
+    try {
+      return await getRegistrationLegalDocuments(ctx.prisma);
     } catch (error) {
       throw mapErrorToTRPC(error);
     }

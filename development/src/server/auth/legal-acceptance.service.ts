@@ -1,5 +1,6 @@
 import type { LegalAcceptancePurpose, LegalDocumentType, Prisma, PrismaClient } from "@prisma/client";
 import { ValidationError } from "../lib/errors/domain-errors";
+import type { LegalRegistrationDocument } from "@/types/auth";
 
 export async function assertCurrentDocument(prisma: PrismaClient | Prisma.TransactionClient, id: string, type: LegalDocumentType) {
   const document = await prisma.legalDocument.findFirst({ where: { id, documentType: type, effectiveAt: { lte: new Date() }, retiredAt: null } });
@@ -22,4 +23,21 @@ export async function recordAcceptances(prisma: PrismaClient | Prisma.Transactio
     if (marketing) data.push({ userId: input.userId, legalDocumentId: marketing.id, purpose: "marketing", acceptedAt });
   }
   await prisma.legalAcceptance.createMany({ data });
+}
+
+export async function getRegistrationLegalDocuments(prisma: PrismaClient | Prisma.TransactionClient): Promise<LegalRegistrationDocument[]> {
+  const documents = await prisma.legalDocument.findMany({
+    where: { documentType: { in: ["terms", "privacy"] }, effectiveAt: { lte: new Date() }, retiredAt: null },
+    orderBy: [{ documentType: "asc" }, { effectiveAt: "desc" }],
+    select: { id: true, documentType: true, version: true, language: true, effectiveAt: true },
+  });
+
+  const terms = documents.find((document) => document.documentType === "terms");
+  const privacy = documents.find((document) => document.documentType === "privacy");
+  if (!terms || !privacy) throw new ValidationError("No hay documentos legales vigentes para el registro");
+
+  return [
+    { id: terms.id, documentType: "terms", version: terms.version, language: terms.language, effectiveAt: terms.effectiveAt },
+    { id: privacy.id, documentType: "privacy", version: privacy.version, language: privacy.language, effectiveAt: privacy.effectiveAt },
+  ];
 }

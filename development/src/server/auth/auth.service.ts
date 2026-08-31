@@ -5,8 +5,9 @@ import { hashPassword } from "./password";
 import { recordAcceptances } from "./legal-acceptance.service";
 import { deriveCapabilities } from "./capabilities.service";
 import type { OnboardingStatus } from "@/types/auth";
+import { requestOtp } from "./otp-delivery.service";
 
-export async function registerWithPassword(prisma: PrismaClient, input: { email: string; password: string; termsDocumentId: string; privacyDocumentId: string; marketingAccepted?: boolean }): Promise<{ userId: string; accountStatus: string }> {
+export async function registerWithPassword(prisma: PrismaClient, input: { email: string; password: string; termsDocumentId: string; privacyDocumentId: string; marketingAccepted?: boolean }): Promise<{ userId: string; accountStatus: string; challengeId: string; challengeExpiresAt: Date }> {
   const emailNormalized = normalizeEmail(input.email);
   if (input.password.length < 12) throw new ValidationError("La contraseña debe tener al menos 12 caracteres");
   try {
@@ -15,9 +16,12 @@ export async function registerWithPassword(prisma: PrismaClient, input: { email:
       await recordAcceptances(tx, { userId: created.id, ...input });
       return created;
     });
-    return { userId: user.id, accountStatus: user.accountStatus };
+    const emailChallenge = await requestOtp(prisma, { userId: user.id, channel: "email", purpose: "registration", destination: emailNormalized });
+    return { userId: user.id, accountStatus: user.accountStatus, challengeId: emailChallenge.challengeId, challengeExpiresAt: emailChallenge.expiresAt };
   } catch (error) {
-    if (error instanceof Error && error.message.includes("Unique constraint")) throw new ConflictError("No se ha podido completar el registro con esos datos");
+    if (error instanceof Error && error.message.includes("Unique constraint")) {
+      throw new ConflictError(`El email ${emailNormalized} ya está registrado. Usa otro correo o inicia sesión.`);
+    }
     throw error;
   }
 }

@@ -6,6 +6,14 @@ export type SsoProvider = "google" | "apple" | "facebook";
 export type OtpPurpose = "registration" | "contact_verification" | "credential_change" | "recovery";
 export type Capability = "publish_listing" | "request_booking" | "instant_booking" | "platform_insurance";
 
+export interface LegalRegistrationDocument {
+  id: string;
+  documentType: "terms" | "privacy";
+  version: string;
+  language: string;
+  effectiveAt: Date;
+}
+
 export interface OnboardingStatus {
   accountStatus: AccountStatus;
   email: ContactVerificationStatus;

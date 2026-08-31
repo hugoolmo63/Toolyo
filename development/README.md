@@ -26,6 +26,8 @@ npm run dev
 
 No introduzcas credenciales reales en `.env` ni en fixtures. `AUTH_GOOGLE_ENABLED`, `AUTH_APPLE_ENABLED`, `AUTH_FACEBOOK_ENABLED`, `SMS_OTP_ENABLED` y `KYC_PROVIDER` permanecen deshabilitados o controlados por entorno hasta configurar proveedores y revisar requisitos legales.
 
+Para enviar el correo real de verificación, configura `EMAIL_PROVIDER="resend"` y completa `RESEND_API_KEY` y `RESEND_FROM` en `.env`.
+
 ## Validación
 
 ```bash
@@ -35,3 +37,11 @@ npx tsc --noEmit
 ```
 
 La integración PostgreSQL requiere que la base de datos de `docker-compose.yml` esté disponible. Los documentos KYC no se almacenan en Toolyo por defecto; solo se conserva el resultado minimizado y la referencia del proveedor.
+
+## Cheat Sheet
+
+Consulta [CHEATSHEET.md](CHEATSHEET.md) para una referencia rápida de comandos de npm, Prisma, Docker y depuración.
+
+## Arquitectura
+
+Consulta [ARCHITECTURE.md](ARCHITECTURE.md) para una explicación visual y orientada a principiantes de todas las piezas del proyecto.

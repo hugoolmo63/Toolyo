@@ -14,6 +14,7 @@
 3. **UI como función de estado.** Los componentes reciben props inmutables y derivan la UI sin side effects locales ocultos.
 4. **Optimización progresiva.** Medir antes de optimizar. Las reglas de performance (lazy loading, memoización) son obligatorias solo cuando el perfilado lo justifica, salvo excepciones definidas aquí.
 5. **Accesibilidad no negociable.** Todo componente interactivo debe ser usable con teclado y lector de pantalla. Ver `DESIGN.md` §7.
+6. **Sin acceso directo a datos.** El navegador nunca consulta la base de datos ni instancia Prisma; los Client Components reciben datos ya resueltos por Server Components, tRPC o route handlers del servidor.
 
 ---
 
@@ -96,6 +97,7 @@ app/
 
 - Todo archivo bajo `app/` es un Server Component salvo que se use la directiva `"use client"`.
 - **Llamadas a tRPC desde el servidor:** usar `api.listings.getBySlug.query()` directamente en el Server Component (vía RSC helper). No levantar un provider de cliente innecesario.
+- **Datos sensibles y persistencia:** cualquier lectura o escritura de base de datos se hace en el servidor. El frontend solo envía intents, inputs y acciones, nunca queries directas a la DB.
 
 ### 4.2 Client Components
 
