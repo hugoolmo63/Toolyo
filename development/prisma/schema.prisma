@@ -93,6 +93,12 @@ model User {
   emailNormalized       String                  @unique
   phoneE164             String?                 @unique
   accountStatus         AccountStatus           @default(pending)
+  displayName           String?                 @db.VarChar(100)
+  avatarUrl             String?                 @db.VarChar(512)
+  bio                   String?                 @db.Text
+  ratingAverage         Decimal?                @db.Decimal(2, 1)
+  responseTimeHours     Int?
+  transactionCount      Int?                    @default(0)
   createdAt             DateTime                @default(now()) @db.Timestamptz(6)
   updatedAt             DateTime                @updatedAt @db.Timestamptz(6)
   deletedAt             DateTime?               @db.Timestamptz(6)

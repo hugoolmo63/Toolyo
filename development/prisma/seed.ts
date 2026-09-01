@@ -48,21 +48,72 @@ async function main() {
   const vehiclesCat = await prisma.category.findUniqueOrThrow({ where: { slug: "vehiculos" } });
 
   // Arrendadores: 4 usuarios activos, 2 verificados y 2 no verificados
+  // Con datos de perfil público: displayName, avatarUrl, bio, rating, responseTime, transactions
   const owners = [
-    { email: "owner-verified-1@toolyo.dev", verified: true, name: "Ana García" },
-    { email: "owner-verified-2@toolyo.dev", verified: true, name: "Carlos Ruiz" },
-    { email: "owner-unverified-1@toolyo.dev", verified: false, name: "Beatriz López" },
-    { email: "owner-unverified-2@toolyo.dev", verified: false, name: "David Martín" },
+    {
+      email: "owner-verified-1@toolyo.dev",
+      verified: true,
+      name: "Ana García",
+      bio: "Fotógrafa profesional con 10 años de experiencia. Alquiler de equipo audiovisual cuidado y revisado.",
+      avatarUrl: "https://i.pravatar.cc/150?img=1",
+      ratingAverage: 4.8,
+      responseTimeHours: 2,
+      transactionCount: 47,
+    },
+    {
+      email: "owner-verified-2@toolyo.dev",
+      verified: true,
+      name: "Carlos Ruiz",
+      bio: "Técnico de sonido y eventos. Material siempre revisado antes de cada entrega.",
+      avatarUrl: "https://i.pravatar.cc/150?img=3",
+      ratingAverage: 4.6,
+      responseTimeHours: 4,
+      transactionCount: 32,
+    },
+    {
+      email: "owner-unverified-1@toolyo.dev",
+      verified: false,
+      name: "Beatriz López",
+      bio: "Amante del deporte y la montaña. Alquilo equipo en buen estado para tus aventuras.",
+      avatarUrl: "https://i.pravatar.cc/150?img=5",
+      ratingAverage: 4.2,
+      responseTimeHours: 8,
+      transactionCount: 12,
+    },
+    {
+      email: "owner-unverified-2@toolyo.dev",
+      verified: false,
+      name: "David Martín",
+      bio: "Entusiasta de la electrónica y los gadgets. Disponible para resolver dudas.",
+      avatarUrl: null,
+      ratingAverage: null,
+      responseTimeHours: null,
+      transactionCount: 0,
+    },
   ];
 
   const ownerIds: string[] = [];
   for (const owner of owners) {
     const user = await prisma.user.upsert({
       where: { emailNormalized: owner.email },
-      update: { accountStatus: "active" },
+      update: {
+        accountStatus: "active",
+        displayName: owner.name,
+        avatarUrl: owner.avatarUrl,
+        bio: owner.bio,
+        ratingAverage: owner.ratingAverage,
+        responseTimeHours: owner.responseTimeHours,
+        transactionCount: owner.transactionCount,
+      },
       create: {
         emailNormalized: owner.email,
         accountStatus: "active",
+        displayName: owner.name,
+        avatarUrl: owner.avatarUrl,
+        bio: owner.bio,
+        ratingAverage: owner.ratingAverage,
+        responseTimeHours: owner.responseTimeHours,
+        transactionCount: owner.transactionCount,
         passwordCredential: { create: { passwordHash: "hash:placeholder" } },
       },
     });

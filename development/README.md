@@ -46,6 +46,26 @@ La feature `004-public-search` añade:
 
 Consulta [specs/004-public-search/quickstart.md](../specs/004-public-search/quickstart.md) para la guía de validación.
 
+## Página de detalle del producto
+
+La feature `005-listing-detail` añade:
+
+- Ruta pública `/listings/[slug]` con la ficha completa de un listing publicado, accesible sin sesión ni identificación.
+- Galería de imágenes con carrusel navegable, zoom y pantalla completa (accesible por teclado).
+- Título, descripción, categoría, ubicación aproximada, badges (verificado, reserva instantánea) y rating.
+- Calendario de disponibilidad interactivo con selección de rango de fechas (recogida y devolución) que marca fechas bloqueadas; el rango se refleja en la URL (`?start=...&end=...`) para ser compartible y restaurable.
+- Tabla de precios derivados por defecto desde `pricePerDay` (tramos 1d/3d/7d con descuentos 0%/5%/10%) y total estimado que se recalcula al cambiar el rango.
+- Perfil público del arrendador (nombre, avatar, badge verificado, rating, tiempo de respuesta, número de transacciones — los campos no disponibles se muestran como "N/A" hasta la feature de perfil §1.2).
+- Botones "Contactar" y "Reservar" como entry-points con gating de login no bloqueante que preservan el contexto (listing + rango) en el callback; enrutan a `/messages` y `/checkout` (futuros módulos §5 y §4) o muestran "próximamente" si no existen.
+- Sección de reviews con estado vacío "Aún no hay reviews" (las reviews reales llegan con el módulo §6).
+- Productos similares de misma categoría y/o zona (hasta 6 tarjetas compactas).
+- Información de seguro (informativa, condicional a la verificación del arrendador) y reglas del arrendador con defaults (Flexible + horarios genéricos) hasta que la feature de listings §2 introduzca campos configurables.
+- 404 informativo para listings no publicados/inexistentes sin filtrar el motivo interno.
+- Incremento del contador `viewCount` deduplicado por IP/sesión en ventana de 30 min, fire-and-forget para no añadir latencia al render.
+- Sin cambios en el schema Prisma: reutiliza `Listing`, `ListingPhoto`, `ListingAvailability`, `User`, `VerificationState` y `Category` de features anteriores.
+
+Consulta [specs/005-listing-detail/quickstart.md](../specs/005-listing-detail/quickstart.md) para la guía de validación.
+
 ## Desarrollo local
 
 ```bash
