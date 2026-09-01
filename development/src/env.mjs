@@ -25,6 +25,18 @@ const envSchema = z.object({
   SESSION_COOKIE_NAME: z.string().min(1).default("toolyo_session"),
   SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
   SESSION_REMEMBER_TTL_SECONDS: z.coerce.number().int().positive().default(2592000),
+  // Búsqueda pública (004-public-search)
+  MAP_TILES_URL: z
+    .string()
+    .url()
+    .default("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
+  GEOCODING_PROVIDER: z.enum(["nominatim"]).default("nominatim"),
+  GEOCODING_BASE_URL: z
+    .string()
+    .url()
+    .default("https://nominatim.openstreetmap.org"),
+  SEARCH_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(100),
+  SUGGEST_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(60),
 });
 
 const parsed = envSchema.safeParse(process.env);

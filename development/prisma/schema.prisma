@@ -18,6 +18,7 @@ model Category {
   parentId  String?
   parent    Category? @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Restrict)
   children  Category[] @relation("CategoryChildren")
+  listings  Listing[]
 
   createdAt DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @db.Timestamptz(6)
@@ -103,6 +104,7 @@ model User {
   legalAcceptances      LegalAcceptance[]
   securityEvents        SecurityEvent[]
   sessions              Session[]
+  listings              Listing[]
 }
 
 model PasswordCredential {
@@ -238,4 +240,88 @@ model Session {
 
   @@index([userId, revokedAt])
   @@index([expiresAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// 004-public-search — Búsqueda pública y listings
+// ─────────────────────────────────────────────────────────────
+
+/// Estado de publicación de un listing. Solo `published` aparece en búsqueda pública.
+enum ListingStatus {
+  draft
+  in_review
+  published
+  paused
+  rejected
+}
+
+/// Listing — publicación de un producto disponible para alquiler.
+/// Modelo mínimo introducido en 004-public-search para servir resultados de búsqueda;
+/// la feature de listings (§2) lo extenderá con wizard, precios escalonados, etc.
+model Listing {
+  id               String                 @id @default(cuid())
+  ownerId          String
+  categoryId       String
+  title            String
+  slug             String                 @unique
+  description      String?                @db.Text
+  pricePerDay      Decimal                @db.Decimal(19, 4)
+  /// Punto geoespacial PostGIS (geometry(Point, 4326)). Prisma no soporta el tipo
+  /// nativamente; se gestiona via SQL raw en migraciones y queries. Ver DATABASE.md §5.4.
+  location         Unsupported("geometry(Point, 4326)")?
+  lat              Decimal?               @db.Decimal(10, 7)
+  lng              Decimal?               @db.Decimal(10, 7)
+  addressText      String?
+  city             String?
+  status           ListingStatus          @default(draft)
+  ratingAverage    Decimal                @default(0) @db.Decimal(3, 2)
+  reviewCount      Int                    @default(0)
+  viewCount        Int                    @default(0)
+  isInstantBooking Boolean                @default(false)
+  createdAt        DateTime               @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime               @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime?              @db.Timestamptz(6)
+
+  owner            User                   @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  category         Category               @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  photos           ListingPhoto[]
+  availability     ListingAvailability[]
+
+  @@index([status, deletedAt])
+  @@index([categoryId, status, deletedAt])
+  @@index([ownerId, status])
+  @@index([pricePerDay])
+  @@index([ratingAverage])
+}
+
+/// Foto de un listing. La feature de listings (§2) añadirá hasta 10 con ordenación drag & drop.
+model ListingPhoto {
+  id         String    @id @default(cuid())
+  listingId  String
+  url        String
+  altText    String?
+  order      Int       @default(0)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+
+  listing    Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, order, deletedAt])
+}
+
+/// Bloqueo de calendario de un listing (fecha no disponible).
+/// La feature de listings (§2) añadirá el calendario completo con bloqueos manuales.
+model ListingAvailability {
+  id          String    @id @default(cuid())
+  listingId   String
+  blockedDate DateTime  @db.Date
+  reason      String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, blockedDate])
+  @@index([listingId, blockedDate])
 }

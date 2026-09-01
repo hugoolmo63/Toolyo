@@ -17,12 +17,21 @@ export interface TRPCContext {
   sessionToken: string | null;
   pendingCookies: string[];
   setCookie: (value: string) => void;
+  /** IP del cliente para rate limiting (004-public-search). */
+  clientIp: string | null;
 }
 
 export async function createTRPCContext(opts: { prisma: PrismaClient; request?: Request }): Promise<TRPCContext> {
   const pendingCookies: string[] = [];
   let session: { userId: string; role: "user" | "admin" } | null = null;
   let sessionToken: string | null = null;
+
+  // Extraer IP del cliente para rate limiting (004-public-search)
+  const clientIp = opts.request
+    ? opts.request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      opts.request.headers.get("x-real-ip") ??
+      null
+    : null;
 
   if (opts.request) {
     const cookieHeader = opts.request.headers.get("cookie");
@@ -43,6 +52,7 @@ export async function createTRPCContext(opts: { prisma: PrismaClient; request?: 
     sessionToken,
     pendingCookies,
     setCookie: (value: string) => pendingCookies.push(value),
+    clientIp,
   };
 }
 

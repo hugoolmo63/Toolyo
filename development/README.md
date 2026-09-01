@@ -27,6 +27,25 @@ La feature `003-login` añade:
 - Eventos de seguridad: `login_success`, `login_failure`, `login_blocked`, `logout`.
 - Variables de entorno: `SESSION_COOKIE_NAME`, `SESSION_TTL_SECONDS` (3600), `SESSION_REMEMBER_TTL_SECONDS` (2592000).
 
+## Búsqueda pública y página de inicio
+
+La feature `004-public-search` añade:
+
+- Página raíz `/` como landing de búsqueda pública, accesible sin sesión ni identificación.
+- Resultados aleatorios de listings publicados desde la carga inicial (sin que el visitante busque nada).
+- Barra de búsqueda con autocompletado de ubicaciones (Nominatim/OpenStreetMap) y categorías.
+- Detección automática de ubicación (GPS) o selección manual.
+- Filtros combinables (categoría, rango de fechas, precio máximo, distancia máxima, rating mínimo, solo verificados) y ordenación (Relevancia, Más cercano, Precio, Mejor valorado, Más popular).
+- Vista de mapa interactivo (Leaflet) con pins y preview, y vista de grid/lista.
+- Paginación adaptativa: infinite scroll en móvil, paginación numerada en desktop.
+- Estado de búsqueda codificado en la URL (compartible y restaurable) vía `nuqs`.
+- Modelo `Listing` mínimo con PostGIS para búsquedas por proximidad; la feature de listings (§2) lo extenderá después.
+- Degradación elegante del mapa si el proveedor no carga.
+- Variables de entorno: `MAP_TILES_URL`, `GEOCODING_PROVIDER`, `GEOCODING_BASE_URL`, `SEARCH_RATE_LIMIT_PER_MIN` (100), `SUGGEST_RATE_LIMIT_PER_MIN` (60).
+- Requiere imagen Docker `postgis/postgis` en lugar de `postgres` estándar.
+
+Consulta [specs/004-public-search/quickstart.md](../specs/004-public-search/quickstart.md) para la guía de validación.
+
 ## Desarrollo local
 
 ```bash
