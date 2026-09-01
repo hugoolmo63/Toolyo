@@ -34,6 +34,8 @@ function statusToCode(status: number): TRPCError["code"] {
       return "NOT_FOUND";
     case 409:
       return "CONFLICT";
+    case 429:
+      return "TOO_MANY_REQUESTS";
     default:
       return "INTERNAL_SERVER_ERROR";
   }

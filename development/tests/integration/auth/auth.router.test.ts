@@ -40,7 +40,7 @@ afterAll(async () => {
 
 describe("auth.router", () => {
   it("expone los documentos legales vigentes para el registro", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
 
     const documents = await caller.auth.getRegistrationLegalDocuments();
 
@@ -50,14 +50,14 @@ describe("auth.router", () => {
   });
 
   it("crea una cuenta usando los ids de documentos vigentes", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     const [terms, privacy] = await caller.auth.getRegistrationLegalDocuments();
 
     const result = await caller.auth.registerWithPassword({
       email: "router.fake@toolyo.dev",
       password: "Password12345!",
-      termsDocumentId: terms.id,
-      privacyDocumentId: privacy.id,
+      termsDocumentId: terms!.id,
+      privacyDocumentId: privacy!.id,
       marketingAccepted: false,
     });
 

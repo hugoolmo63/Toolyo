@@ -15,13 +15,16 @@ const envSchema = z.object({
   AUTH_APPLE_ENABLED: z.coerce.boolean().default(false),
   AUTH_FACEBOOK_ENABLED: z.coerce.boolean().default(false),
   EMAIL_PROVIDER: z.enum(["console", "resend"]).default("console"),
-  RESEND_API_KEY: z.string().min(1).optional(),
-  RESEND_FROM: z.string().min(1).optional(),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM: z.string().optional(),
   SMS_PROVIDER: z.enum(["console", "twilio"]).default("console"),
   SMS_OTP_ENABLED: z.coerce.boolean().default(false),
   KYC_PROVIDER: z.enum(["disabled", "external"]).default("disabled"),
   OTP_SECRET: z.string().min(16).optional(),
   RATE_LIMIT_STORE: z.enum(["memory", "redis"]).default("memory"),
+  SESSION_COOKIE_NAME: z.string().min(1).default("toolyo_session"),
+  SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  SESSION_REMEMBER_TTL_SECONDS: z.coerce.number().int().positive().default(2592000),
 });
 
 const parsed = envSchema.safeParse(process.env);

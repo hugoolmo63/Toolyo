@@ -38,14 +38,14 @@ afterAll(async () => {
 
 describe("category.router", () => {
   it("list devuelve array vacío al inicio y filtra soft-deleted", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     const result = await caller.category.list();
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(0);
   });
 
   it("create persiste una categoría y la devuelve como DTO (sin deletedAt)", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     const created = await caller.category.create({
       name: "Electrónica",
       slug: "electronica",
@@ -63,21 +63,21 @@ describe("category.router", () => {
   });
 
   it("create rechaza nombre vacío con error de validación (400)", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     await expect(
       caller.category.create({ name: "", slug: "x", showInNav: true }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("create rechaza slug mal formado (400)", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     await expect(
       caller.category.create({ name: "Bad", slug: "Bad Slug!", showInNav: true }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("create con slug duplicado devuelve conflicto (409)", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     await caller.category.create({ name: "A", slug: "dup", showInNav: true });
     await expect(
       caller.category.create({ name: "B", slug: "dup", showInNav: true }),
@@ -85,7 +85,7 @@ describe("category.router", () => {
   });
 
   it("create con padre inexistente devuelve no encontrado (404)", async () => {
-    const caller = appRouter.createCaller(createTRPCContext({ prisma }));
+    const caller = appRouter.createCaller(() => createTRPCContext({ prisma }));
     await expect(
       caller.category.create({
         name: "Hija",

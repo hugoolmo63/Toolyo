@@ -3,21 +3,48 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { type PrismaClient } from "@prisma/client";
 import { AppError } from "../lib/errors/domain-errors";
+import { validateSession } from "../auth/session.service";
+import { readSessionCookie } from "@/lib/auth";
 
 /**
- * Contexto tRPC. En el scaffold no hay autenticación real;
- * `session` queda a null y `authedProcedure` preparado como punto de extensión
- * (BACKEND.md §4.1, research.md R6).
+ * Contexto tRPC. La sesión se carga desde la cookie opaca respaldada por DB (003-login).
+ * Si no hay cookie, la sesión es inválida o está revocada, `session` es `null`.
+ * `pendingCookies` recoge cookies a establecer en la respuesta HTTP via responseMeta.
  */
 export interface TRPCContext {
   prisma: PrismaClient;
   session: { userId: string; role: "user" | "admin" } | null;
+  sessionToken: string | null;
+  pendingCookies: string[];
+  setCookie: (value: string) => void;
 }
 
-export const createTRPCContext = (opts: { prisma: PrismaClient }): TRPCContext => ({
-  prisma: opts.prisma,
-  session: null,
-});
+export async function createTRPCContext(opts: { prisma: PrismaClient; request?: Request }): Promise<TRPCContext> {
+  const pendingCookies: string[] = [];
+  let session: { userId: string; role: "user" | "admin" } | null = null;
+  let sessionToken: string | null = null;
+
+  if (opts.request) {
+    const cookieHeader = opts.request.headers.get("cookie");
+    const token = readSessionCookie(cookieHeader);
+    if (token) {
+      const claims = await validateSession(opts.prisma, token);
+      if (claims) {
+        // TODO: derive role from user data when RBAC is fully implemented
+        session = { userId: claims.userId, role: "user" };
+        sessionToken = token;
+      }
+    }
+  }
+
+  return {
+    prisma: opts.prisma,
+    session,
+    sessionToken,
+    pendingCookies,
+    setCookie: (value: string) => pendingCookies.push(value),
+  };
+}
 
 const t = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
@@ -51,9 +78,7 @@ const t = initTRPC.context<TRPCContext>().create({
 export const publicProcedure = t.procedure;
 
 /**
- * Procedimiento autenticado — preparado pero NO cableado a un proveedor en este
- * scaffold. Cuando se integre Auth.js, se rellena el middleware y `session`
- * deja de ser `null` (punto de extensión).
+ * Procedimiento autenticado — requiere sesión válida cargada desde cookie (003-login).
  */
 export const authedProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.session) {

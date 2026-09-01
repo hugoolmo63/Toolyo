@@ -26,20 +26,6 @@ CREATE TYPE "LegalAcceptancePurpose" AS ENUM ('account_terms', 'privacy_notice',
 CREATE TYPE "SecurityEventOutcome" AS ENUM ('success', 'failure', 'blocked');
 
 -- CreateTable
-CREATE TABLE "Category" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "showInNav" BOOLEAN NOT NULL DEFAULT true,
-    "parentId" TEXT,
-    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMPTZ(6) NOT NULL,
-    "deletedAt" TIMESTAMPTZ(6),
-
-    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "emailNormalized" TEXT NOT NULL,
@@ -165,15 +151,6 @@ CREATE TABLE "SecurityEvent" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
-
--- CreateIndex
-CREATE INDEX "Category_parentId_idx" ON "Category"("parentId");
-
--- CreateIndex
-CREATE INDEX "Category_showInNav_idx" ON "Category"("showInNav");
-
--- CreateIndex
 CREATE UNIQUE INDEX "User_emailNormalized_key" ON "User"("emailNormalized");
 
 -- CreateIndex
@@ -220,9 +197,6 @@ CREATE INDEX "SecurityEvent_userId_createdAt_idx" ON "SecurityEvent"("userId", "
 
 -- CreateIndex
 CREATE INDEX "SecurityEvent_eventType_createdAt_idx" ON "SecurityEvent"("eventType", "createdAt");
-
--- AddForeignKey
-ALTER TABLE "Category" ADD CONSTRAINT "Category_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PasswordCredential" ADD CONSTRAINT "PasswordCredential_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

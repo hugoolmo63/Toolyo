@@ -46,6 +46,10 @@ export function RegistrationForm({ legalDocuments }: { legalDocuments: LegalRegi
       <label className="check-row optional" htmlFor="marketing-accepted"><input id="marketing-accepted" type="checkbox" {...form.register("marketingAccepted")} /><span>Quiero recibir novedades y oportunidades de Toolyo.</span></label>
       {form.formState.errors.root && <p className="form-error" role="alert">{form.formState.errors.root.message}</p>}
       <button className="auth-submit" type="submit" disabled={registerMutation.isPending}>{registerMutation.isPending ? "Creando cuenta..." : "Crear cuenta"}</button>
+      <p className="auth-switch">
+        ¿Ya tienes cuenta?{" "}
+        <a href="/auth?tab=login">Inicia sesión</a>
+      </p>
       <div className="divider"><span>o continúa con</span></div>
       <SsoButtons />
       <p className="form-footnote">Los accesos SSO estarán disponibles cuando se configuren de forma segura.</p>

@@ -102,6 +102,7 @@ model User {
   identityVerifications IdentityVerification[]
   legalAcceptances      LegalAcceptance[]
   securityEvents        SecurityEvent[]
+  sessions              Session[]
 }
 
 model PasswordCredential {
@@ -218,4 +219,23 @@ model SecurityEvent {
 
   @@index([userId, createdAt])
   @@index([eventType, createdAt])
+}
+
+/// Sesión opaca respaldada por DB — token aleatorio en cookie HttpOnly (003-login).
+/// Revocable marcando `revokedAt` o eliminando la fila. Una sesión es válida si
+/// `revokedAt IS NULL` AND `expiresAt > now()`.
+model Session {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String
+  expiresAt  DateTime  @db.Timestamptz(6)
+  revokedAt  DateTime? @db.Timestamptz(6)
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }

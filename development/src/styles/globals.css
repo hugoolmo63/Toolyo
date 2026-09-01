@@ -93,6 +93,8 @@ a {
 .auth-submit { min-height: 44px; margin-top: 12px; border: 0; border-radius: var(--ps-radius-md); color: var(--ps-neutral-0); background: var(--ps-primary-500); box-shadow: var(--ps-shadow-sm); font-weight: 600; cursor: pointer; }
 .auth-submit:hover { background: var(--ps-primary-600); }
 .auth-submit:disabled, .sso-row button:disabled { cursor: not-allowed; opacity: .55; }
+.auth-switch { margin-top: 16px; text-align: center; font-size: .85rem; }
+.auth-switch a { color: var(--ps-primary-700); font-weight: 600; text-decoration: underline; }
 .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 8px; color: var(--ps-neutral-500); font-size: .75rem; }
 .divider::before, .divider::after { height: 1px; flex: 1; content: ""; background: var(--ps-neutral-200); }
 .sso-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

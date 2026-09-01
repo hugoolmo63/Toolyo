@@ -11,7 +11,21 @@ La feature `002-registration` añade:
 - OTP temporal almacenado como HMAC/hash.
 - Consentimientos legales versionados.
 - Adaptadores seguros de email, SMS y KYC sin proveedores reales por defecto.
-- Páginas `/register`, `/verify` y `/kyc` con tema `profesional-seguro`.
+- Páginas `/register` (redirige a `/auth?tab=register`), `/verify` y `/kyc` con tema `profesional-seguro`.
+
+## Inicio de sesión y sesión
+
+La feature `003-login` añade:
+
+- Login por email/contraseña con sesión opaca respaldada por DB (tabla `Session`).
+- Cookie `HttpOnly`, `Secure` (producción), `SameSite=Lax` con token opaco de 32 bytes.
+- Revocación inmediata de sesión (logout marca `revokedAt`).
+- Rate limiting dual: 5 intentos/min por IP y por email.
+- Pantalla unificada `/auth` con tabs para alternar entre "Iniciar sesión" y "Crear cuenta".
+- Middleware de Next.js que protege rutas autenticadas (`/dashboard`, `/profile`) redirigiendo a `/auth?tab=login&callback=<destino>`.
+- Dashboard de onboarding con estado de email, teléfono, identidad y capacidades.
+- Eventos de seguridad: `login_success`, `login_failure`, `login_blocked`, `logout`.
+- Variables de entorno: `SESSION_COOKIE_NAME`, `SESSION_TTL_SECONDS` (3600), `SESSION_REMEMBER_TTL_SECONDS` (2592000).
 
 ## Desarrollo local
 

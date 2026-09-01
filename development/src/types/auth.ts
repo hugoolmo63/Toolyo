@@ -21,3 +21,18 @@ export interface OnboardingStatus {
   identity: IdentityVerificationStatus;
   capabilities: Record<Capability, boolean>;
 }
+
+export interface SessionClaims {
+  userId: string;
+  email: string;
+  accountStatus: AccountStatus;
+  emailVerificationStatus: ContactVerificationStatus;
+  capabilities: Record<Capability, boolean>;
+}
+
+export interface LoginResult {
+  userId: string;
+  accountStatus: AccountStatus;
+  emailVerificationStatus: ContactVerificationStatus;
+  redirectTo: string;
+}

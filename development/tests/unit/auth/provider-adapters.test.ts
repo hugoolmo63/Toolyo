@@ -1,4 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/env.mjs", () => ({
+  env: {
+    EMAIL_PROVIDER: "console",
+    SMS_OTP_ENABLED: false,
+  },
+}));
+
 import { consoleEmailProvider } from "@/server/integrations/email/email.provider";
 import { consoleSmsProvider } from "@/server/integrations/sms/sms.provider";
 import { consumeRateLimit, resetRateLimits } from "@/server/auth/rate-limit.service";
