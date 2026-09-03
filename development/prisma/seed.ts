@@ -8,21 +8,79 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const categories = [
-    { name: "Electrónica", slug: "electronica", showInNav: true },
-    { name: "Herramientas", slug: "herramientas", showInNav: true },
-    { name: "Deporte y aire libre", slug: "deporte-aire-libre", showInNav: true },
-    { name: "Cámaras y foto", slug: "camaras-y-foto", showInNav: true },
-    { name: "Audio", slug: "audio", showInNav: true },
-    { name: "Vehículos", slug: "vehiculos", showInNav: true },
-  ];
+  const categoryGroups = [
+    {
+      name: "Tecnología y Electrónica",
+      slug: "tecnologia-y-electronica",
+      children: [
+        ["Cámaras y Fotografía", "camaras-y-fotografia"],
+        ["Audio y Sonido", "audio-y-sonido"],
+        ["Informática y Consolas", "informatica-y-consolas"],
+        ["Telefonía y Gadgets", "telefonia-y-gadgets"],
+      ],
+    },
+    {
+      name: "Ocio y Deporte",
+      slug: "ocio-y-deporte",
+      children: [
+        ["Deportes de Raqueta", "deportes-de-raqueta"],
+        ["Ciclismo y Movilidad Urbana", "ciclismo-y-movilidad-urbana"],
+        ["Acampada y Montaña", "acampada-y-montana"],
+        ["Deportes Acuáticos", "deportes-acuaticos"],
+      ],
+    },
+    {
+      name: "Bricolaje y Profesional",
+      slug: "bricolaje-y-profesional",
+      children: [
+        ["Herramientas Eléctricas", "herramientas-electricas"],
+        ["Herramientas Manuales", "herramientas-manuales"],
+        ["Maquinaria de Jardín", "maquinaria-de-jardin"],
+        ["Construcción y Reformas", "construccion-y-reformas"],
+      ],
+    },
+    {
+      name: "Vehículos y Transporte",
+      slug: "vehiculos-y-transporte",
+      children: [
+        ["Coches y Motos", "coches-y-motos"],
+        ["Remolques y Transporte", "remolques-y-transporte"],
+        ["Caravanas y Furgonetas Camper", "caravanas-y-furgonetas-camper"],
+      ],
+    },
+    {
+      name: "Hogar y Eventos",
+      slug: "hogar-y-eventos",
+      children: [
+        ["Sonido e Iluminación para Fiestas", "sonido-iluminacion-para-fiestas"],
+        ["Mobiliario, Limpieza y Mudanzas", "mobiliario-limpieza-y-mudanzas"],
+        ["Fotomatón y Decoración", "fotomaton-y-decoracion"],
+      ],
+    },
+  ] as const;
 
-  for (const category of categories) {
-    await prisma.category.upsert({
-      where: { slug: category.slug },
-      update: category,
-      create: category,
+  // Desactiva categorías antiguas antes de reconstruir la jerarquía canónica.
+  await prisma.category.updateMany({ data: { showInNav: false, parentId: null } });
+
+  const categoryBySlug = new Map<string, { id: string }>();
+  for (const group of categoryGroups) {
+    const parent = await prisma.category.upsert({
+      where: { slug: group.slug },
+      update: { name: group.name, showInNav: true, parentId: null },
+      create: { name: group.name, slug: group.slug, showInNav: true },
+      select: { id: true },
     });
+    categoryBySlug.set(group.slug, parent);
+
+    for (const [name, slug] of group.children) {
+      const child = await prisma.category.upsert({
+        where: { slug },
+        update: { name, showInNav: false, parentId: parent.id },
+        create: { name, slug, showInNav: false, parentId: parent.id },
+        select: { id: true },
+      });
+      categoryBySlug.set(slug, child);
+    }
   }
 
   const documents = [
@@ -40,12 +98,22 @@ async function main() {
 
   // ── 004-public-search: arrendadores y listings de ejemplo ──
 
-  const electronicsCat = await prisma.category.findUniqueOrThrow({ where: { slug: "electronica" } });
-  const toolsCat = await prisma.category.findUniqueOrThrow({ where: { slug: "herramientas" } });
-  const sportCat = await prisma.category.findUniqueOrThrow({ where: { slug: "deporte-aire-libre" } });
-  const camerasCat = await prisma.category.findUniqueOrThrow({ where: { slug: "camaras-y-foto" } });
-  const audioCat = await prisma.category.findUniqueOrThrow({ where: { slug: "audio" } });
-  const vehiclesCat = await prisma.category.findUniqueOrThrow({ where: { slug: "vehiculos" } });
+  const category = (slug: string) => categoryBySlug.get(slug)!;
+  const camerasCat = category("camaras-y-fotografia");
+  const audioCat = category("audio-y-sonido");
+  const computersCat = category("informatica-y-consolas");
+  const gadgetsCat = category("telefonia-y-gadgets");
+  const racketCat = category("deportes-de-raqueta");
+  const cyclingCat = category("ciclismo-y-movilidad-urbana");
+  const campingCat = category("acampada-y-montana");
+  const waterSportsCat = category("deportes-acuaticos");
+  const electricToolsCat = category("herramientas-electricas");
+  const manualToolsCat = category("herramientas-manuales");
+  const gardenCat = category("maquinaria-de-jardin");
+  const constructionCat = category("construccion-y-reformas");
+  const carsAndMotorcyclesCat = category("coches-y-motos");
+  const trailersCat = category("remolques-y-transporte");
+  const camperCat = category("caravanas-y-furgonetas-camper");
 
   // Arrendadores: 4 usuarios activos, 2 verificados y 2 no verificados
   // Con datos de perfil público: displayName, avatarUrl, bio, rating, responseTime, transactions
@@ -184,82 +252,82 @@ async function main() {
     { title: "Pantalla acústica plegable", category: audioCat, pricePerDay: 9 },
 
     // ── Electrónica (20) ──
-    { title: "Proyector Full HD", category: electronicsCat, pricePerDay: 35 },
-    { title: "Portátil gaming", category: electronicsCat, pricePerDay: 50 },
-    { title: "Monitor 27\" 4K", category: electronicsCat, pricePerDay: 25 },
-    { title: "Consola de última generación", category: electronicsCat, pricePerDay: 30 },
-    { title: "Set de iluminación LED", category: electronicsCat, pricePerDay: 28 },
-    { title: "Escáner 3D portátil", category: electronicsCat, pricePerDay: 70 },
-    { title: "Impresora 3D", category: electronicsCat, pricePerDay: 40 },
-    { title: "Robot aspirador", category: electronicsCat, pricePerDay: 12 },
-    { title: "Freidora de aire XL", category: electronicsCat, pricePerDay: 8 },
-    { title: "Pantalla LED 100 pulgadas", category: electronicsCat, pricePerDay: 90 },
-    { title: "Mini PC silencioso", category: electronicsCat, pricePerDay: 22 },
-    { title: "Tablet gráfica profesional", category: electronicsCat, pricePerDay: 18 },
-    { title: "Router WiFi 6 mesh", category: electronicsCat, pricePerDay: 8 },
-    { title: "Cámara de videovigilancia 4K", category: electronicsCat, pricePerDay: 10 },
-    { title: "Disco duro externo 4TB", category: electronicsCat, pricePerDay: 5 },
-    { title: "Auriculares VR todo-en-uno", category: electronicsCat, pricePerDay: 35 },
-    { title: "Teclado mecánico RGB", category: electronicsCat, pricePerDay: 10 },
-    { title: "Hub USB-C 12 en 1", category: electronicsCat, pricePerDay: 5 },
-    { title: "Cargador solar portátil", category: electronicsCat, pricePerDay: 6 },
-    { title: "Proyector láser 4K ultra-corta", category: electronicsCat, pricePerDay: 150 },
+    { title: "Proyector Full HD", category: computersCat, pricePerDay: 35 },
+    { title: "Portátil gaming", category: computersCat, pricePerDay: 50 },
+    { title: "Monitor 27\" 4K", category: computersCat, pricePerDay: 25 },
+    { title: "Consola de última generación", category: computersCat, pricePerDay: 30 },
+    { title: "Set de iluminación LED", category: gadgetsCat, pricePerDay: 28 },
+    { title: "Escáner 3D portátil", category: computersCat, pricePerDay: 70 },
+    { title: "Impresora 3D", category: computersCat, pricePerDay: 40 },
+    { title: "Robot aspirador", category: gadgetsCat, pricePerDay: 12 },
+    { title: "Freidora de aire XL", category: gadgetsCat, pricePerDay: 8 },
+    { title: "Pantalla LED 100 pulgadas", category: computersCat, pricePerDay: 90 },
+    { title: "Mini PC silencioso", category: computersCat, pricePerDay: 22 },
+    { title: "Tablet gráfica profesional", category: computersCat, pricePerDay: 18 },
+    { title: "Router WiFi 6 mesh", category: gadgetsCat, pricePerDay: 8 },
+    { title: "Cámara de videovigilancia 4K", category: gadgetsCat, pricePerDay: 10 },
+    { title: "Disco duro externo 4TB", category: computersCat, pricePerDay: 5 },
+    { title: "Auriculares VR todo-en-uno", category: gadgetsCat, pricePerDay: 35 },
+    { title: "Teclado mecánico RGB", category: computersCat, pricePerDay: 10 },
+    { title: "Hub USB-C 12 en 1", category: gadgetsCat, pricePerDay: 5 },
+    { title: "Cargador solar portátil", category: gadgetsCat, pricePerDay: 6 },
+    { title: "Proyector láser 4K ultra-corta", category: computersCat, pricePerDay: 150 },
 
     // ── Herramientas (16) ──
-    { title: "Taladro percusión profesional", category: toolsCat, pricePerDay: 12 },
-    { title: "Andamio modular 2m", category: toolsCat, pricePerDay: 20 },
-    { title: "Compresor de aire 50L", category: toolsCat, pricePerDay: 18 },
-    { title: "Sierra circular", category: toolsCat, pricePerDay: 15 },
-    { title: "Máquina de coser", category: toolsCat, pricePerDay: 14 },
-    { title: "Hidrolimpiadora", category: toolsCat, pricePerDay: 22 },
-    { title: "Caja de herramientas completa", category: toolsCat, pricePerDay: 16 },
-    { title: "Amoladora angular 230mm", category: toolsCat, pricePerDay: 10 },
-    { title: "Soldadora inverter MMA", category: toolsCat, pricePerDay: 25 },
-    { title: "Carretilla reforzada 200L", category: toolsCat, pricePerDay: 8 },
-    { title: "Andamio de aluminio 6m", category: toolsCat, pricePerDay: 45 },
-    { title: "Pulidora de paredes", category: toolsCat, pricePerDay: 18 },
-    { title: "Detector de tuberías y cables", category: toolsCat, pricePerDay: 7 },
-    { title: "Martillo demoledor eléctrico", category: toolsCat, pricePerDay: 30 },
-    { title: "Set de brocas para mampostería", category: toolsCat, pricePerDay: 5 },
-    { title: "Generador eléctrico 3kW", category: toolsCat, pricePerDay: 35 },
+    { title: "Taladro percusión profesional", category: electricToolsCat, pricePerDay: 12 },
+    { title: "Andamio modular 2m", category: constructionCat, pricePerDay: 20 },
+    { title: "Compresor de aire 50L", category: electricToolsCat, pricePerDay: 18 },
+    { title: "Sierra circular", category: electricToolsCat, pricePerDay: 15 },
+    { title: "Máquina de coser", category: manualToolsCat, pricePerDay: 14 },
+    { title: "Hidrolimpiadora", category: gardenCat, pricePerDay: 22 },
+    { title: "Caja de herramientas completa", category: manualToolsCat, pricePerDay: 16 },
+    { title: "Amoladora angular 230mm", category: electricToolsCat, pricePerDay: 10 },
+    { title: "Soldadora inverter MMA", category: electricToolsCat, pricePerDay: 25 },
+    { title: "Carretilla reforzada 200L", category: manualToolsCat, pricePerDay: 8 },
+    { title: "Andamio de aluminio 6m", category: constructionCat, pricePerDay: 45 },
+    { title: "Pulidora de paredes", category: electricToolsCat, pricePerDay: 18 },
+    { title: "Detector de tuberías y cables", category: manualToolsCat, pricePerDay: 7 },
+    { title: "Martillo demoledor eléctrico", category: electricToolsCat, pricePerDay: 30 },
+    { title: "Set de brocas para mampostería", category: manualToolsCat, pricePerDay: 5 },
+    { title: "Generador eléctrico 3kW", category: electricToolsCat, pricePerDay: 35 },
 
     // ── Deporte y aire libre (18) ──
-    { title: "Bicicleta de montaña", category: sportCat, pricePerDay: 22 },
-    { title: "Kayak inflable", category: sportCat, pricePerDay: 28 },
-    { title: "Tabla de paddle surf", category: sportCat, pricePerDay: 25 },
-    { title: "Casetas de campaña 4 plazas", category: sportCat, pricePerDay: 16 },
-    { title: "Equipo de escalada completo", category: sportCat, pricePerDay: 40 },
-    { title: "Tabla de snowboard", category: sportCat, pricePerDay: 26 },
-    { title: "Raquetas de tenis", category: sportCat, pricePerDay: 10 },
-    { title: "Set de palas de pádel", category: sportCat, pricePerDay: 12 },
-    { title: "Bicicleta de carretera carbono", category: sportCat, pricePerDay: 45 },
-    { title: "Saco de dormir -10°C", category: sportCat, pricePerDay: 8 },
-    { title: "Canoa para 2 personas", category: sportCat, pricePerDay: 30 },
-    { title: "Equipo completo de buceo", category: sportCat, pricePerDay: 55 },
-    { title: "Tabla de surf 6'2\"", category: sportCat, pricePerDay: 20 },
-    { title: "Botas de trekking impermeables", category: sportCat, pricePerDay: 7 },
-    { title: "Mochila de expedición 60L", category: sportCat, pricePerDay: 6 },
-    { title: "Estación meteorológica portátil", category: sportCat, pricePerDay: 9 },
-    { title: "Set de pesca con caña y carrete", category: sportCat, pricePerDay: 14 },
-    { title: "Trineo de plástico para nieve", category: sportCat, pricePerDay: 5 },
+    { title: "Bicicleta de montaña", category: cyclingCat, pricePerDay: 22 },
+    { title: "Kayak inflable", category: waterSportsCat, pricePerDay: 28 },
+    { title: "Tabla de paddle surf", category: waterSportsCat, pricePerDay: 25 },
+    { title: "Casetas de campaña 4 plazas", category: campingCat, pricePerDay: 16 },
+    { title: "Equipo de escalada completo", category: campingCat, pricePerDay: 40 },
+    { title: "Tabla de snowboard", category: campingCat, pricePerDay: 26 },
+    { title: "Raquetas de tenis", category: racketCat, pricePerDay: 10 },
+    { title: "Set de palas de pádel", category: racketCat, pricePerDay: 12 },
+    { title: "Bicicleta de carretera carbono", category: cyclingCat, pricePerDay: 45 },
+    { title: "Saco de dormir -10°C", category: campingCat, pricePerDay: 8 },
+    { title: "Canoa para 2 personas", category: waterSportsCat, pricePerDay: 30 },
+    { title: "Equipo completo de buceo", category: waterSportsCat, pricePerDay: 55 },
+    { title: "Tabla de surf 6'2\"", category: waterSportsCat, pricePerDay: 20 },
+    { title: "Botas de trekking impermeables", category: campingCat, pricePerDay: 7 },
+    { title: "Mochila de expedición 60L", category: campingCat, pricePerDay: 6 },
+    { title: "Estación meteorológica portátil", category: campingCat, pricePerDay: 9 },
+    { title: "Set de pesca con caña y carrete", category: waterSportsCat, pricePerDay: 14 },
+    { title: "Trineo de plástico para nieve", category: campingCat, pricePerDay: 5 },
 
     // ── Vehículos (16) ──
-    { title: "Patinete eléctrico", category: vehiclesCat, pricePerDay: 20 },
-    { title: "Bicicleta eléctrica plegable", category: vehiclesCat, pricePerDay: 30 },
-    { title: "Remolque de carga", category: vehiclesCat, pricePerDay: 35 },
-    { title: "Furgoneta camper", category: vehiclesCat, pricePerDay: 95 },
-    { title: "Coche clásico para eventos", category: vehiclesCat, pricePerDay: 150 },
-    { title: "Moto scooter 125cc", category: vehiclesCat, pricePerDay: 40 },
-    { title: "Quad 250cc off-road", category: vehiclesCat, pricePerDay: 60 },
-    { title: "Furgoneta de mudanza 3.5T", category: vehiclesCat, pricePerDay: 70 },
-    { title: "Bicicleta tandem", category: vehiclesCat, pricePerDay: 18 },
-    { title: "Remolque porta-motos", category: vehiclesCat, pricePerDay: 25 },
-    { title: "Monociclo eléctrico", category: vehiclesCat, pricePerDay: 22 },
-    { title: "Patinete eléctrico de asiento", category: vehiclesCat, pricePerDay: 28 },
-    { title: "Furgoneta refrigerada", category: vehiclesCat, pricePerDay: 85 },
-    { title: "Coche eléctrico largo alcance", category: vehiclesCat, pricePerDay: 75 },
-    { title: "Moto de trail 500cc", category: vehiclesCat, pricePerDay: 55 },
-    { title: "Ciclomotor clásico restaurado", category: vehiclesCat, pricePerDay: 35 },
+    { title: "Patinete eléctrico", category: cyclingCat, pricePerDay: 20 },
+    { title: "Bicicleta eléctrica plegable", category: cyclingCat, pricePerDay: 30 },
+    { title: "Remolque de carga", category: trailersCat, pricePerDay: 35 },
+    { title: "Furgoneta camper", category: camperCat, pricePerDay: 95 },
+    { title: "Coche clásico para eventos", category: carsAndMotorcyclesCat, pricePerDay: 150 },
+    { title: "Moto scooter 125cc", category: carsAndMotorcyclesCat, pricePerDay: 40 },
+    { title: "Quad 250cc off-road", category: carsAndMotorcyclesCat, pricePerDay: 60 },
+    { title: "Furgoneta de mudanza 3.5T", category: trailersCat, pricePerDay: 70 },
+    { title: "Bicicleta tandem", category: cyclingCat, pricePerDay: 18 },
+    { title: "Remolque porta-motos", category: trailersCat, pricePerDay: 25 },
+    { title: "Monociclo eléctrico", category: cyclingCat, pricePerDay: 22 },
+    { title: "Patinete eléctrico de asiento", category: cyclingCat, pricePerDay: 28 },
+    { title: "Furgoneta refrigerada", category: trailersCat, pricePerDay: 85 },
+    { title: "Coche eléctrico largo alcance", category: carsAndMotorcyclesCat, pricePerDay: 75 },
+    { title: "Moto de trail 500cc", category: carsAndMotorcyclesCat, pricePerDay: 55 },
+    { title: "Ciclomotor clásico restaurado", category: carsAndMotorcyclesCat, pricePerDay: 35 },
   ];
 
   // Generar 100 listings distribuidos en ciudades y arrendadores
@@ -354,7 +422,7 @@ async function main() {
   }
 
   // eslint-disable-next-line no-console
-  console.log(`Seed completada: ${categories.length} categorías, ${listingIndex} listings de ejemplo.`);
+  console.log(`Seed completada: ${categoryGroups.length} categorías padre y ${categoryGroups.reduce((total, group) => total + group.children.length, 0)} subcategorías, ${listingIndex} listings de ejemplo.`);
 }
 
 main()

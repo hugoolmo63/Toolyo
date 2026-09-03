@@ -27,6 +27,7 @@ export interface RawListingDetailRow {
   categoryId: string;
   categoryName: string;
   categorySlug: string;
+  parentCategoryName?: string | null;
   ownerId: string;
   ownerDisplayName: string | null;
   ownerAvatarUrl: string | null;
@@ -78,6 +79,11 @@ const CATEGORY_JOIN = `
     AND cat."deletedAt" IS NULL
 `;
 
+const PARENT_CATEGORY_JOIN = `
+  LEFT JOIN "Category" AS parent_cat ON parent_cat."id" = cat."parentId"
+    AND parent_cat."deletedAt" IS NULL
+`;
+
 const BASE_WHERE = `"Listing"."status" = 'published' AND "Listing"."deletedAt" IS NULL AND owner."id" IS NOT NULL`;
 
 /**
@@ -107,6 +113,7 @@ export async function findListingBySlug(
       "Listing"."categoryId",
       cat."name" AS "categoryName",
       cat."slug" AS "categorySlug",
+      parent_cat."name" AS "parentCategoryName",
       "Listing"."ownerId",
       owner."displayName" AS "ownerDisplayName",
       owner."avatarUrl" AS "ownerAvatarUrl",
@@ -118,6 +125,7 @@ export async function findListingBySlug(
     ${Prisma.raw(OWNER_JOIN)}
     ${Prisma.raw(VERIFIED_JOIN)}
     ${Prisma.raw(CATEGORY_JOIN)}
+    ${Prisma.raw(PARENT_CATEGORY_JOIN)}
     WHERE ${Prisma.raw(BASE_WHERE)} AND "Listing"."slug" = ${slug}
     LIMIT 1
   `;

@@ -66,6 +66,7 @@ export interface ListingDetailDTO {
     id: string;
     name: string;
     slug: string;
+    parentName: string | null;
   };
   owner: OwnerDTO;
   photos: ListingPhotoDTO[];
