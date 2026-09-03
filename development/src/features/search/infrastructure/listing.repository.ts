@@ -118,7 +118,10 @@ function buildFilterWhere(input: SearchQueryInput): string {
 
   if (input.query) {
     const q = input.query.replace(/'/g, "''");
-    conditions.push(`("Listing"."title" ILIKE '%${q}%' OR "Listing"."description" ILIKE '%${q}%')`);
+    conditions.push(`(
+      similarity("Listing"."title", '${q}') > 0.15
+      OR similarity("Listing"."description", '${q}') > 0.15
+    )`);
   }
 
   if (input.categoryId) {
@@ -175,10 +178,20 @@ function buildOrderBy(input: SearchQueryInput): string {
       return 'ORDER BY "Listing"."viewCount" DESC, "Listing"."reviewCount" DESC';
     case "relevance":
     default:
-      // Si no hay criterios, el caller debería usar random. Si hay criterios,
-      // ordenamos por rating + popularidad como heurística de relevancia.
+      if (input.query) {
+        return `ORDER BY match_score DESC,
+          "Listing"."ratingAverage" DESC,
+          "Listing"."viewCount" DESC`;
+      }
+      // Si no hay texto, usamos rating + popularidad como relevancia.
       return 'ORDER BY "Listing"."ratingAverage" DESC, "Listing"."viewCount" DESC';
   }
+}
+
+function buildMatchScoreSelect(input: SearchQueryInput): Prisma.Sql {
+  if (!input.query) return Prisma.raw(", 0::real AS match_score");
+  const q = input.query.replace(/'/g, "''");
+  return Prisma.raw(`, similarity("Listing"."title", '${q}') AS match_score`);
 }
 
 /**
@@ -190,6 +203,7 @@ export async function findPublishedListingsFiltered(
 ): Promise<{ rows: RawListingRow[]; total: number }> {
   const whereClause = buildFilterWhere(input);
   const orderByClause = buildOrderBy(input);
+  const matchScoreSelect = buildMatchScoreSelect(input);
   const limit = input.limit;
 
   // Paginación
@@ -211,7 +225,7 @@ export async function findPublishedListingsFiltered(
     : Prisma.raw("");
 
   const rows = await prisma.$queryRaw<RawListingRow[]>`
-    SELECT ${Prisma.raw(LISTING_SELECT_COLUMNS)}${distanceSelect},
+    SELECT ${Prisma.raw(LISTING_SELECT_COLUMNS)}${distanceSelect}${matchScoreSelect},
       NULL::text AS "ownerDisplayName",
       NULL::text AS "ownerAvatarUrl",
       (vs."id" IS NOT NULL) AS "ownerIsVerified",

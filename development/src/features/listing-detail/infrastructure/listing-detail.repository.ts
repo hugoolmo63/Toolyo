@@ -153,51 +153,162 @@ export async function findAvailabilityByListingId(
 }
 
 /**
- * Devuelve listings similares: misma categoría y/o misma zona, excluyendo el actual.
- * Ordena por rating DESC, reviewCount DESC. Limita a `limit` resultados.
+ * Devuelve listings similares por cuatro niveles de prioridad: palabra del
+ * título, misma categoría, categoría padre y popularidad global.
  */
 export async function findSimilarListings(
   prisma: PrismaClient,
   input: GetSimilarInput,
 ): Promise<RawSimilarListingRow[]> {
-  const { listingId, categoryId, city, lat, lng, limit } = input;
-
-  const conditions: string[] = [BASE_WHERE, `"Listing"."id" != '${listingId.replace(/'/g, "''")}'`];
-
-  // Priorización: misma categoría OR misma ciudad OR misma zona (50km)
-  const orParts: string[] = [`"Listing"."categoryId" = '${categoryId.replace(/'/g, "''")}'`];
-  if (city) {
-    orParts.push(`"Listing"."city" = '${city.replace(/'/g, "''")}'`);
-  }
-  if (lat !== null && lat !== undefined && lng !== null && lng !== undefined) {
-    orParts.push(stDWithinClause(lat, lng, 50_000));
-  }
-  conditions.push(`(${orParts.join(" OR ")})`);
-
-  const whereClause = conditions.join(" AND ");
+  const { listingId, categoryId, limit } = input;
 
   return prisma.$queryRaw<RawSimilarListingRow[]>`
-    SELECT
-      "Listing"."id",
-      "Listing"."slug",
-      "Listing"."title",
-      "Listing"."pricePerDay",
-      "Listing"."ratingAverage",
-      "Listing"."reviewCount",
-      "Listing"."city",
-      photo."url" AS "primaryPhotoUrl"
-    FROM "Listing"
-    ${Prisma.raw(OWNER_JOIN)}
-    ${Prisma.raw(VERIFIED_JOIN)}
-    LEFT JOIN LATERAL (
-      SELECT "url" FROM "ListingPhoto"
-      WHERE "ListingPhoto"."listingId" = "Listing"."id"
-        AND "ListingPhoto"."deletedAt" IS NULL
-      ORDER BY "ListingPhoto"."order" ASC
+    WITH current_product AS (
+      SELECT
+        current_listing."title",
+        current_listing."categoryId",
+        "Category"."parentId"
+      FROM "Listing" AS current_listing
+      LEFT JOIN "Category" ON "Category"."id" = current_listing."categoryId"
+        AND "Category"."deletedAt" IS NULL
+      WHERE current_listing."id" = ${listingId}
       LIMIT 1
-    ) AS photo ON TRUE
-    WHERE ${Prisma.raw(whereClause)}
-    ORDER BY "Listing"."ratingAverage" DESC, "Listing"."reviewCount" DESC
+    ), candidates AS (
+      SELECT
+        l."id",
+        l."slug",
+        l."title",
+        l."pricePerDay",
+        l."ratingAverage",
+        l."reviewCount",
+        l."city",
+        photo."url" AS "primaryPhotoUrl",
+        similarity(l."title", cp."title") AS "match_score",
+        0 AS "priority"
+      FROM "Listing" AS l
+      LEFT JOIN "User" AS owner ON owner."id" = l."ownerId"
+        AND owner."deletedAt" IS NULL
+        AND owner."accountStatus" = 'active'
+      LEFT JOIN "VerificationState" AS vs ON vs."userId" = l."ownerId"
+        AND vs."channel" = 'identity'
+        AND vs."status" = 'verified'
+      CROSS JOIN current_product AS cp
+      LEFT JOIN LATERAL (
+        SELECT "url" FROM "ListingPhoto"
+        WHERE "ListingPhoto"."listingId" = l."id"
+          AND "ListingPhoto"."deletedAt" IS NULL
+        ORDER BY "ListingPhoto"."order" ASC
+        LIMIT 1
+      ) AS photo ON TRUE
+      WHERE "l"."status" = 'published'
+        AND l."deletedAt" IS NULL
+        AND owner."id" IS NOT NULL
+        AND l."id" != ${listingId}
+        AND l."title" % cp."title"
+
+      UNION ALL
+
+      SELECT
+        "Listing"."id",
+        "Listing"."slug",
+        "Listing"."title",
+        "Listing"."pricePerDay",
+        "Listing"."ratingAverage",
+        "Listing"."reviewCount",
+        "Listing"."city",
+        photo."url" AS "primaryPhotoUrl",
+        0::real AS "match_score",
+        1 AS "priority"
+      FROM "Listing"
+      ${Prisma.raw(OWNER_JOIN)}
+      ${Prisma.raw(VERIFIED_JOIN)}
+      CROSS JOIN current_product AS cp
+      LEFT JOIN LATERAL (
+        SELECT "url" FROM "ListingPhoto"
+        WHERE "ListingPhoto"."listingId" = "Listing"."id"
+          AND "ListingPhoto"."deletedAt" IS NULL
+        ORDER BY "ListingPhoto"."order" ASC
+        LIMIT 1
+      ) AS photo ON TRUE
+      WHERE ${Prisma.raw(BASE_WHERE)}
+        AND "Listing"."id" != ${listingId}
+        AND "Listing"."categoryId" = cp."categoryId"
+
+      UNION ALL
+
+      SELECT
+        "Listing"."id",
+        "Listing"."slug",
+        "Listing"."title",
+        "Listing"."pricePerDay",
+        "Listing"."ratingAverage",
+        "Listing"."reviewCount",
+        "Listing"."city",
+        photo."url" AS "primaryPhotoUrl",
+        0::real AS "match_score",
+        2 AS "priority"
+      FROM "Listing"
+      ${Prisma.raw(OWNER_JOIN)}
+      ${Prisma.raw(VERIFIED_JOIN)}
+      CROSS JOIN current_product AS cp
+      LEFT JOIN LATERAL (
+        SELECT "url" FROM "ListingPhoto"
+        WHERE "ListingPhoto"."listingId" = "Listing"."id"
+          AND "ListingPhoto"."deletedAt" IS NULL
+        ORDER BY "ListingPhoto"."order" ASC
+        LIMIT 1
+      ) AS photo ON TRUE
+      WHERE ${Prisma.raw(BASE_WHERE)}
+        AND "Listing"."id" != ${listingId}
+        AND cp."parentId" IS NOT NULL
+        AND "Listing"."categoryId" = cp."parentId"
+
+      UNION ALL
+
+      SELECT
+        "Listing"."id",
+        "Listing"."slug",
+        "Listing"."title",
+        "Listing"."pricePerDay",
+        "Listing"."ratingAverage",
+        "Listing"."reviewCount",
+        "Listing"."city",
+        photo."url" AS "primaryPhotoUrl",
+        0::real AS "match_score",
+        3 AS "priority"
+      FROM "Listing"
+      ${Prisma.raw(OWNER_JOIN)}
+      ${Prisma.raw(VERIFIED_JOIN)}
+      LEFT JOIN LATERAL (
+        SELECT "url" FROM "ListingPhoto"
+        WHERE "ListingPhoto"."listingId" = "Listing"."id"
+          AND "ListingPhoto"."deletedAt" IS NULL
+        ORDER BY "ListingPhoto"."order" ASC
+        LIMIT 1
+      ) AS photo ON TRUE
+      WHERE ${Prisma.raw(BASE_WHERE)}
+        AND "Listing"."id" != ${listingId}
+    ), deduplicated AS (
+      SELECT
+        candidates.*,
+        ROW_NUMBER() OVER (
+          PARTITION BY "id"
+          ORDER BY "priority" ASC, "match_score" DESC
+        ) AS "duplicateRank"
+      FROM candidates
+    )
+    SELECT
+      "id",
+      "slug",
+      "title",
+      "pricePerDay",
+      "ratingAverage",
+      "reviewCount",
+      "city",
+      "primaryPhotoUrl"
+    FROM deduplicated
+    WHERE "duplicateRank" = 1
+    ORDER BY "priority" ASC, "match_score" DESC, "ratingAverage" DESC, "reviewCount" DESC
     LIMIT ${limit}
   `;
 }
