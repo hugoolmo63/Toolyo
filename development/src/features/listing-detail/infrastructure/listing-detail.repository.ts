@@ -156,6 +156,7 @@ export async function findAvailabilityByListingId(
  * Devuelve listings similares por cuatro niveles de prioridad: palabra del
  * título, misma categoría, categoría padre y popularidad global.
  */
+// TODO: Optimize query or migrate to Elasticsearch/external search engine for high-scale production
 export async function findSimilarListings(
   prisma: PrismaClient,
   input: GetSimilarInput,
