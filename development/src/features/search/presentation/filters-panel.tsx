@@ -61,11 +61,25 @@ export function FiltersPanel() {
               }
             >
               <option value="">Todas</option>
-              {categories.data?.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
+              {categories.data
+                ?.filter((parent) => parent.parentId === null)
+                .map((parent) => {
+                  const children = categories.data?.filter(
+                    (category) => category.parentId === parent.id,
+                  );
+
+                  if (!children?.length) return null;
+
+                  return (
+                    <optgroup key={parent.id} label={parent.name}>
+                      {children.map((child) => (
+                        <option key={child.id} value={child.id}>
+                          {child.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
             </select>
           </div>
 

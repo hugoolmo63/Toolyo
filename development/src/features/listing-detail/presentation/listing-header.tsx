@@ -12,7 +12,11 @@ export function ListingHeader({ listing }: ListingHeaderProps) {
   return (
     <header className="listing-header">
       <div className="listing-header-badges">
-        <span className="listing-category-badge">{listing.category.name}</span>
+        <span className="listing-category-badge">
+          {listing.category.parentName
+            ? `${listing.category.parentName} > ${listing.category.name}`
+            : listing.category.name}
+        </span>
         {listing.isInstantBooking && (
           <span className="listing-instant-badge" title="Reserva instantánea">
             ⚡ Reserva instantánea

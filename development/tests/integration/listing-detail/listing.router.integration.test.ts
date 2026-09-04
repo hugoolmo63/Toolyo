@@ -24,6 +24,7 @@ beforeAll(async () => {
     env: { ...process.env, DATABASE_URL: dbUrl },
     stdio: "pipe",
   });
+  await prisma.$executeRawUnsafe("CREATE EXTENSION IF NOT EXISTS pg_trgm");
 }, 120_000);
 
 afterAll(async () => {
