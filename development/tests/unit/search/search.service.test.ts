@@ -17,6 +17,14 @@ vi.mock("@/server/lib/geo/distance", () => ({
   haversineDistanceKm: vi.fn(() => 5.2),
 }));
 
+// La integración real con Ollama se cubre fuera de estos tests unitarios.
+// Aquí se fuerza el fallback pg_trgm para mantener los tests deterministas.
+vi.mock("@/lib/embeddings/embedding.service", () => ({
+  embedText: vi.fn().mockRejectedValue(new Error("Ollama unavailable in unit tests")),
+  EMBEDDING_DIMENSIONS: 384,
+  EMBEDDING_MODEL: "Xenova/all-MiniLM-L6-v2",
+}));
+
 import { findPublishedListingsRandom, findPublishedListingsFiltered } from "@/features/search/infrastructure/listing.repository";
 import { searchLocationsNominatim } from "@/features/search/infrastructure/geocoding.repository";
 
