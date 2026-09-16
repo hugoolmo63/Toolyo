@@ -1,10 +1,7 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import {
-  stDWithinClause,
-  stDistanceSelect,
-  setSeedSql,
-} from "@/server/lib/geo/postgis";
+import { stDWithinClause, stDistanceSelect, setSeedSql } from "@/server/lib/geo/postgis";
 import type { SearchQueryInput } from "@/features/search/shared/search.schema";
+import { EMBEDDING_DIMENSIONS } from "@/lib/embeddings/embedding.service";
 
 /**
  * Repositorio de Listing — capa de acceso a datos para búsqueda pública.
@@ -29,6 +26,7 @@ interface RawListingRow {
   ownerAvatarUrl: string | null;
   ownerIsVerified: boolean;
   primaryPhotoUrl: string | null;
+  semantic_score?: number | null;
 }
 
 interface RawCountRow {
@@ -113,14 +111,14 @@ export async function findPublishedListingsRandom(
 /**
  * Construye la cláusula WHERE con los filtros de búsqueda.
  */
-function buildFilterWhere(input: SearchQueryInput): string {
+function buildFilterWhere(input: SearchQueryInput, includeText = true): string {
   const conditions: string[] = [BASE_WHERE];
 
-  if (input.query) {
+  if (input.query && includeText) {
     const q = input.query.replace(/'/g, "''");
     conditions.push(`(
-      similarity("Listing"."title", '${q}') > 0.15
-      OR similarity("Listing"."description", '${q}') > 0.15
+      similarity("Listing"."title", '${q}'::text) > 0.15
+      OR similarity("Listing"."description", '${q}'::text) > 0.15
     )`);
   }
 
@@ -167,7 +165,7 @@ function buildOrderBy(input: SearchQueryInput): string {
       if (input.location) {
         return `ORDER BY ST_Distance("Listing"."location", ST_GeomFromText('POINT(${input.location.lng} ${input.location.lat})', 4326)::geography) ASC`;
       }
-      return "ORDER BY \"Listing\".\"ratingAverage\" DESC";
+      return 'ORDER BY "Listing"."ratingAverage" DESC';
     case "price_asc":
       return 'ORDER BY "Listing"."pricePerDay" ASC';
     case "price_desc":
@@ -191,7 +189,7 @@ function buildOrderBy(input: SearchQueryInput): string {
 function buildMatchScoreSelect(input: SearchQueryInput): Prisma.Sql {
   if (!input.query) return Prisma.raw(", 0::real AS match_score");
   const q = input.query.replace(/'/g, "''");
-  return Prisma.raw(`, similarity("Listing"."title", '${q}') AS match_score`);
+  return Prisma.raw(`, similarity("Listing"."title", '${q}'::text) AS match_score`);
 }
 
 /**
@@ -200,10 +198,28 @@ function buildMatchScoreSelect(input: SearchQueryInput): Prisma.Sql {
 export async function findPublishedListingsFiltered(
   prisma: PrismaClient,
   input: SearchQueryInput,
+  semanticEmbedding?: number[],
 ): Promise<{ rows: RawListingRow[]; total: number }> {
-  const whereClause = buildFilterWhere(input);
-  const orderByClause = buildOrderBy(input);
+  if (
+    semanticEmbedding &&
+    (semanticEmbedding.length !== EMBEDDING_DIMENSIONS ||
+      semanticEmbedding.some((value) => !Number.isFinite(value)))
+  ) {
+    semanticEmbedding = undefined;
+  }
+  const textWhereClause = buildFilterWhere(input);
+  const whereClause = buildFilterWhere(input, !semanticEmbedding || !input.query);
+  const orderByClause =
+    semanticEmbedding && input.query
+      ? `ORDER BY semantic_score DESC NULLS LAST, match_score DESC, "Listing"."ratingAverage" DESC, "Listing"."viewCount" DESC`
+      : buildOrderBy(input);
   const matchScoreSelect = buildMatchScoreSelect(input);
+  const vectorValue = semanticEmbedding ? `[${semanticEmbedding.join(",")}]` : "";
+  const vectorLiteral = semanticEmbedding
+    ? Prisma.sql`CAST(${vectorValue} AS vector)`
+    : Prisma.empty;
+  const semanticLimitClause = "LIMIT 3";
+  const semanticThreshold = 0.38;
   const limit = input.limit;
 
   // Paginación
@@ -220,12 +236,24 @@ export async function findPublishedListingsFiltered(
     : Prisma.raw("");
 
   // Filtro de distancia máxima (requiere location)
-  const distanceWhere = input.location && input.maxDistanceKm
-    ? Prisma.raw(` AND ${stDWithinClause(input.location.lat, input.location.lng, input.maxDistanceKm * 1000)}`)
-    : Prisma.raw("");
+  const distanceWhere =
+    input.location && input.maxDistanceKm
+      ? Prisma.raw(
+          ` AND ${stDWithinClause(input.location.lat, input.location.lng, input.maxDistanceKm * 1000)}`,
+        )
+      : Prisma.raw("");
 
-  const rows = await prisma.$queryRaw<RawListingRow[]>`
-    SELECT ${Prisma.raw(LISTING_SELECT_COLUMNS)}${distanceSelect}${matchScoreSelect},
+  const runQuery = async (useSemantic: boolean) => {
+    const semanticSelect = useSemantic
+      ? Prisma.sql`, CASE WHEN embedding."embedding" IS NULL THEN NULL::real
+          ELSE (1 - (embedding."embedding" <=> ${vectorLiteral}))::real END AS semantic_score`
+      : Prisma.empty;
+    const semanticWhere = useSemantic
+      ? Prisma.sql`AND 1 - (embedding."embedding" <=> ${vectorLiteral}) > ${semanticThreshold}`
+      : Prisma.empty;
+
+    return prisma.$queryRaw<RawListingRow[]>`
+    SELECT ${Prisma.raw(LISTING_SELECT_COLUMNS)}${distanceSelect}${matchScoreSelect}${semanticSelect},
       NULL::text AS "ownerDisplayName",
       NULL::text AS "ownerAvatarUrl",
       (vs."id" IS NOT NULL) AS "ownerIsVerified",
@@ -234,19 +262,58 @@ export async function findPublishedListingsFiltered(
     ${Prisma.raw(OWNER_JOIN)}
     ${Prisma.raw(VERIFIED_JOIN)}
     ${Prisma.raw(PHOTO_JOIN)}
-    WHERE ${Prisma.raw(whereClause)}${distanceWhere}
-    ${Prisma.raw(orderByClause)}
-    ${Prisma.raw(limitClause)}
+    ${useSemantic ? Prisma.raw('INNER JOIN "ListingEmbedding" AS embedding ON embedding."listingId" = "Listing"."id"') : Prisma.raw("")}
+    WHERE ${Prisma.raw(useSemantic ? whereClause : textWhereClause)}${distanceWhere} ${semanticWhere}
+    ${Prisma.raw(useSemantic ? orderByClause : buildOrderBy(input))}
+    ${Prisma.raw(useSemantic ? semanticLimitClause : limitClause)}
   `;
+  };
 
-  const countResult = await prisma.$queryRaw<RawCountRow[]>`
-    SELECT COUNT(*)::bigint FROM "Listing"
-    ${Prisma.raw(OWNER_JOIN)}
-    ${Prisma.raw(VERIFIED_JOIN)}
-    WHERE ${Prisma.raw(whereClause)}${distanceWhere}
-  `;
+  // A missing extension/table or any vector query problem must never take down text search.
+  let rows: RawListingRow[];
+  let usedSemantic = false;
+  if (semanticEmbedding && input.query) {
+    console.log("[search] semantic branch", {
+      query: input.query,
+      embeddingDimensions: semanticEmbedding.length,
+      threshold: semanticThreshold,
+    });
+    try {
+      rows = await runQuery(true);
+      console.log("[search] semantic scores", {
+        count: rows.length,
+        scores: rows.map((row) => row.semantic_score ?? null),
+      });
+      if (rows.length === 0) {
+        console.log("[search] semantic returned 0 rows; falling back to pg_trgm");
+        rows = await runQuery(false);
+      } else {
+        usedSemantic = true;
+      }
+    } catch (error) {
+      console.error("[search] semantic query failed; falling back to pg_trgm", error);
+      rows = await runQuery(false);
+    }
+  } else {
+    console.log("[search] pg_trgm fallback branch", {
+      hasEmbedding: Boolean(semanticEmbedding),
+      query: input.query ?? null,
+    });
+    rows = await runQuery(false);
+  }
 
-  return { rows, total: Number(countResult[0]?.count ?? 0) };
+  const countResult = usedSemantic
+    ? []
+    : await prisma.$queryRaw<RawCountRow[]>`
+        SELECT COUNT(*)::bigint FROM "Listing"
+        ${Prisma.raw(OWNER_JOIN)}
+        ${Prisma.raw(VERIFIED_JOIN)}
+        WHERE ${Prisma.raw(textWhereClause)}${distanceWhere}
+      `;
+
+  // Semantic results are intentionally capped at three items, so expose the
+  // number actually returned instead of the global pg_trgm/catalog count.
+  return { rows, total: usedSemantic ? rows.length : Number(countResult[0]?.count ?? 0) };
 }
 
 /**

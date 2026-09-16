@@ -292,12 +292,27 @@ model Listing {
   category         Category               @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   photos           ListingPhoto[]
   availability     ListingAvailability[]
+  embedding        ListingEmbedding?
 
   @@index([status, deletedAt])
   @@index([categoryId, status, deletedAt])
   @@index([ownerId, status])
   @@index([pricePerDay])
   @@index([ratingAverage])
+}
+
+/// Embedding semántico generado por OpenAI para búsqueda pgvector.
+/// El tipo vector no está soportado nativamente por Prisma y se consulta con SQL raw.
+model ListingEmbedding {
+  id         String   @id
+  listingId  String   @unique
+  model      String
+  dimensions Int
+  embedding  Unsupported("vector(384)")
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 }
 
 /// Foto de un listing. La feature de listings (§2) añadirá hasta 10 con ordenación drag & drop.

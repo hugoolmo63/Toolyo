@@ -1,9 +1,10 @@
--- PoC: pgvector para búsqueda semántica de listings.
+-- pgvector para búsqueda semántica con OpenAI text-embedding-3-small.
 -- La imagen actual postgis/postgis:15-3.4-alpine no incluye vector por defecto.
 -- Aplicar esta migración tras usar una imagen PostgreSQL que incluya pgvector
 -- junto con PostGIS, o tras instalar la extensión en la imagen de desarrollo.
 
 CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE TABLE IF NOT EXISTS "ListingEmbedding" (
     "id" TEXT NOT NULL,
@@ -19,6 +20,5 @@ CREATE TABLE IF NOT EXISTS "ListingEmbedding" (
       FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE
 );
 
--- Índice ANN opcional para la PoC. Activarlo cuando haya suficientes embeddings.
--- CREATE INDEX IF NOT EXISTS "ListingEmbedding_embedding_hnsw_idx"
---   ON "ListingEmbedding" USING hnsw ("embedding" vector_cosine_ops);
+CREATE INDEX IF NOT EXISTS "ListingEmbedding_embedding_hnsw_idx"
+  ON "ListingEmbedding" USING hnsw ("embedding" vector_cosine_ops);

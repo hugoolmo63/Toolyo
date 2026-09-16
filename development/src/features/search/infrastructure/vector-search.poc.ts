@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/embeddings/embedding.service";
 
 /**
  * PoC de búsqueda semántica con pgvector.
@@ -12,8 +13,6 @@ export type ListingEmbeddingInput = {
   model: string;
   embedding: number[];
 };
-
-const EMBEDDING_DIMENSIONS = 1536;
 
 /** Guarda o reemplaza el embedding de un listing en formato pgvector. */
 export async function upsertListingEmbedding(
@@ -32,7 +31,7 @@ export async function upsertListingEmbedding(
     VALUES (
       ${crypto.randomUUID()},
       ${input.listingId},
-      ${input.model},
+      ${input.model || EMBEDDING_MODEL},
       ${input.embedding.length},
       ${vectorLiteral}::vector,
       NOW(),
@@ -64,9 +63,7 @@ export async function findSimilarListingsByEmbedding(
     ? Prisma.sql`AND l."id" <> ${input.excludeListingId}`
     : Prisma.empty;
 
-  return prisma.$queryRaw<
-    Array<{ id: string; slug: string; title: string; distance: number }>
-  >`
+  return prisma.$queryRaw<Array<{ id: string; slug: string; title: string; distance: number }>>`
     SELECT
       l."id",
       l."slug",

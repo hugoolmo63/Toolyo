@@ -7,6 +7,7 @@ import {
 } from "../infrastructure/listing.repository";
 import { searchLocationsNominatim } from "../infrastructure/geocoding.repository";
 import { haversineDistanceKm } from "@/server/lib/geo/distance";
+import { embedText } from "@/lib/embeddings/embedding.service";
 import type {
   SearchResultDTO,
   SearchResultsPage,
@@ -44,12 +45,7 @@ function mapToDTO(row: RawListingRow, userLat?: number, userLng?: number): Searc
     if (row.distance_meters !== null) {
       distanceKm = Math.round((Number(row.distance_meters) / 1000) * 100) / 100;
     } else {
-      distanceKm = haversineDistanceKm(
-        userLat,
-        userLng,
-        Number(row.lat),
-        Number(row.lng),
-      );
+      distanceKm = haversineDistanceKm(userLat, userLng, Number(row.lat), Number(row.lng));
     }
   }
 
@@ -63,10 +59,7 @@ function mapToDTO(row: RawListingRow, userLat?: number, userLng?: number): Searc
     reviewCount: row.reviewCount,
     distanceKm,
     city: row.city,
-    location:
-      row.lat && row.lng
-        ? { lat: Number(row.lat), lng: Number(row.lng) }
-        : null,
+    location: row.lat && row.lng ? { lat: Number(row.lat), lng: Number(row.lng) } : null,
     owner: {
       id: row.ownerId,
       // El displayName real se resolvería desde el perfil del usuario;
@@ -130,10 +123,20 @@ export async function searchQuery(
     });
   }
 
-  const { rows, total } = await findPublishedListingsFiltered(prisma, input);
-  const items = rows.map((r) =>
-    mapToDTO(r, input.location?.lat, input.location?.lng),
-  );
+  let semanticEmbedding: number[] | undefined;
+  if (input.query) {
+    try {
+      semanticEmbedding = await embedText(input.query);
+    } catch {
+      // OpenAI is optional: pg_trgm remains the reliable text-search fallback.
+      semanticEmbedding = undefined;
+    }
+  }
+
+  const { rows, total } = semanticEmbedding
+    ? await findPublishedListingsFiltered(prisma, input, semanticEmbedding)
+    : await findPublishedListingsFiltered(prisma, input);
+  const items = rows.map((r) => mapToDTO(r, input.location?.lat, input.location?.lng));
 
   const page = input.page ?? 1;
   const totalPages = Math.max(1, Math.ceil(total / input.limit));
