@@ -96,6 +96,7 @@ model User {
   displayName           String?                 @db.VarChar(100)
   avatarUrl             String?                 @db.VarChar(512)
   bio                   String?                 @db.Text
+  preferredLocation     String?                 @db.VarChar(160)
   ratingAverage         Decimal?                @db.Decimal(2, 1)
   responseTimeHours     Int?
   transactionCount      Int?                    @default(0)
