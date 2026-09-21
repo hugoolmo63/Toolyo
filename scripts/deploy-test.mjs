@@ -546,10 +546,15 @@ if (opts.seedFile) {
   }
   ok("Carga de datos completada.");
 } else {
-  log("Ejecutando seed por defecto (prisma db seed)...");
-  composeRun([], ["npx", "prisma", "db", "seed"]);
-  ok("Seed por defecto completado.");
-}
+    log("Ejecutando seed por defecto (prisma db seed)...");
+
+    await composeRun([], ["exec", "-T", "db", "psql", "-U", "postgres", "-d", "toolyo", "-c", 'CREATE EXTENSION IF NOT EXISTS "postgis"; CREATE EXTENSION IF NOT EXISTS "vector";']).catch(() => {});
+
+    await composeRun([], ["run", "--rm", "seeder", "npx", "prisma", "db", "push", "--skip-generate"]);
+
+    await composeRun([], ["run", "--rm", "seeder", "npx", "prisma", "db", "seed"]);
+    ok("Seed por defecto completado.");
+  }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Summary
