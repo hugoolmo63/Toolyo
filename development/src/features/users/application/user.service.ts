@@ -7,6 +7,7 @@ import {
 } from "../domain/user-profile";
 import {
   findPublicUserProfile,
+  findEditableUserProfile,
   updateUserProfile,
   type PublicUserProfileRecord,
 } from "../infrastructure/user.repository";
@@ -14,6 +15,9 @@ import {
   UpdateUserProfileSchema,
   type UpdateUserProfileInput,
 } from "../shared/user-profile.schema";
+import { DEVELOPMENT_PROFILE_USER_ID } from "../domain/preferred-location";
+
+export const developmentProfileUserId = DEVELOPMENT_PROFILE_USER_ID;
 
 function mapPublicProfile(record: NonNullable<PublicUserProfileRecord>): PublicUserProfile {
   return {
@@ -21,6 +25,7 @@ function mapPublicProfile(record: NonNullable<PublicUserProfileRecord>): PublicU
     displayName: record.displayName,
     avatarUrl: record.avatarUrl,
     bio: record.bio,
+    preferredLocation: record.preferredLocation,
     ratingAverage: record.ratingAverage === null ? null : Number(record.ratingAverage),
     transactionCount: record.transactionCount ?? 0,
     badges: {
@@ -34,6 +39,7 @@ function mapPublicProfile(record: NonNullable<PublicUserProfileRecord>): PublicU
       title: listing.title,
       pricePerDay: Number(listing.pricePerDay),
       city: listing.city,
+      coverImageUrl: listing.photos?.[0]?.url ?? null,
     })),
   };
 }
@@ -48,6 +54,15 @@ export async function getPublicProfileById(
     throw new NotFoundError("El perfil no está disponible");
   }
   return mapPublicProfile(record);
+}
+
+export async function getEditableProfileById(
+  userId: string,
+  db: PrismaClient = defaultPrisma,
+) {
+  const record = await findEditableUserProfile(db, userId);
+  if (!record) throw new NotFoundError("El perfil no está disponible");
+  return record;
 }
 
 /**

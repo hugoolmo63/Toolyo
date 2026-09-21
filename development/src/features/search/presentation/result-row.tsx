@@ -18,6 +18,7 @@ export function ResultRow({ listing }: { listing: SearchResultDTO }) {
               src={listing.primaryPhotoUrl}
               alt={listing.title}
               fill
+              unoptimized
               sizes="120px"
               style={{ objectFit: "cover" }}
             />

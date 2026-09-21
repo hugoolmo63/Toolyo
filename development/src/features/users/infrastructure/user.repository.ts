@@ -6,6 +6,7 @@ const publicProfileSelect = {
   displayName: true,
   avatarUrl: true,
   bio: true,
+  preferredLocation: true,
   ratingAverage: true,
   transactionCount: true,
   responseTimeHours: true,
@@ -23,6 +24,12 @@ const publicProfileSelect = {
       title: true,
       pricePerDay: true,
       city: true,
+      photos: {
+        where: { deletedAt: null },
+        orderBy: { order: "asc" },
+        take: 1,
+        select: { url: true },
+      },
     },
   },
 } as const;
@@ -34,6 +41,13 @@ const editableProfileSelect = {
   bio: true,
   preferredLocation: true,
 } as const;
+
+export async function findEditableUserProfile(db: PrismaClient, userId: string) {
+  return db.user.findFirst({
+    where: { id: userId, accountStatus: "active", deletedAt: null },
+    select: editableProfileSelect,
+  });
+}
 
 export async function findPublicUserProfile(db: PrismaClient, userId: string) {
   return db.user.findFirst({
@@ -63,3 +77,4 @@ export async function updateUserProfile(
 }
 
 export type PublicUserProfileRecord = Awaited<ReturnType<typeof findPublicUserProfile>>;
+export type EditableUserProfileRecord = Awaited<ReturnType<typeof findEditableUserProfile>>;

@@ -112,6 +112,7 @@ model User {
   securityEvents        SecurityEvent[]
   sessions              Session[]
   listings              Listing[]
+  reviewsWritten        Review[]
 }
 
 model PasswordCredential {
@@ -294,12 +295,31 @@ model Listing {
   photos           ListingPhoto[]
   availability     ListingAvailability[]
   embedding        ListingEmbedding?
+  reviews          Review[]
 
   @@index([status, deletedAt])
   @@index([categoryId, status, deletedAt])
   @@index([ownerId, status])
   @@index([pricePerDay])
   @@index([ratingAverage])
+}
+
+/// Valoración pública de un listing realizada por un usuario.
+model Review {
+  id         String   @id @default(cuid())
+  listingId  String
+  authorId   String
+  rating     Int
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+  deletedAt  DateTime?
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([listingId, deletedAt, createdAt])
+  @@index([authorId, createdAt])
 }
 
 /// Embedding semántico generado por OpenAI para búsqueda pgvector.

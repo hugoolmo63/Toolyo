@@ -11,6 +11,7 @@
 // Ver docs/09-entornos-y-despliegue.md para contexto de arquitectura.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import fs from "fs";
 import { execFileSync, spawnSync } from "node:child_process";
 import {
   existsSync,
@@ -548,11 +549,9 @@ if (opts.seedFile) {
 } else {
     log("Ejecutando seed por defecto (prisma db seed)...");
 
-    await composeRun([], ["exec", "-T", "db", "psql", "-U", "postgres", "-d", "toolyo", "-c", 'CREATE EXTENSION IF NOT EXISTS "postgis"; CREATE EXTENSION IF NOT EXISTS "vector";']).catch(() => {});
+    await composeRun([], ["npx", "prisma", "db", "push", "--accept-data-loss", "--skip-generate"]);
 
-    await composeRun([], ["run", "--rm", "seeder", "npx", "prisma", "db", "push", "--skip-generate"]);
-
-    await composeRun([], ["run", "--rm", "seeder", "npx", "prisma", "db", "seed"]);
+    await composeRun([], ["npx", "prisma", "db", "seed"]);
     ok("Seed por defecto completado.");
   }
 

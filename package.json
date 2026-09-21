@@ -13,5 +13,8 @@
   },
   "dependencies": {
     "puppeteer": "^25.9.0"
+  },
+  "devDependencies": {
+    "prisma": "5.20.0"
   }
 }

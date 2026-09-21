@@ -3,13 +3,16 @@ import {
   findListingBySlug,
   findPhotosByListingId,
   findAvailabilityByListingId,
+  findReviewsByListingId,
   findSimilarListings,
   incrementListingView,
   type RawListingDetailRow,
   type RawListingPhotoRow,
   type RawSimilarListingRow,
+  type RawListingReviewRow,
 } from "../infrastructure/listing-detail.repository";
 import { derivePriceTiers } from "../domain/price-tiers";
+import { obfuscatePreferredLocation } from "@/features/users/domain/preferred-location";
 import type {
   ListingDetailDTO,
   OwnerDTO,
@@ -41,6 +44,7 @@ function mapDetailToDTO(
   photos: RawListingPhotoRow[],
   availability: string[],
   priceTiers: PriceTierDTO[],
+  reviews: RawListingReviewRow[],
 ): ListingDetailDTO {
   const owner: OwnerDTO = {
     id: row.ownerId,
@@ -60,7 +64,7 @@ function mapDetailToDTO(
     pricePerDay: Number(row.pricePerDay),
     location:
       row.lat && row.lng
-        ? { lat: Number(row.lat), lng: Number(row.lng) }
+        ? obfuscatePreferredLocation({ lat: Number(row.lat), lng: Number(row.lng) }, row.id)
         : null,
     addressText: row.addressText,
     city: row.city,
@@ -79,6 +83,7 @@ function mapDetailToDTO(
     photos: photos.map(mapPhotoToDTO),
     availability,
     priceTiers,
+    reviews: reviews.map((review) => ({ id: review.id, author: { id: review.authorId, displayName: review.authorDisplayName, avatarUrl: review.authorAvatarUrl }, rating: review.rating, comment: review.comment, createdAt: review.createdAt.toISOString() })),
   };
 }
 
@@ -121,9 +126,10 @@ export async function getListingBySlug(
   if (!row) return null;
 
   // Cargar fotos, disponibilidad y calcular tramos en paralelo
-  const [photos, availability] = await Promise.all([
+  const [photos, availability, reviews] = await Promise.all([
     findPhotosByListingId(prisma, row.id),
     findAvailabilityByListingId(prisma, row.id),
+    findReviewsByListingId(prisma, row.id),
   ]);
 
   const priceTiers = derivePriceTiers(Number(row.pricePerDay));
@@ -133,6 +139,7 @@ export async function getListingBySlug(
     photos,
     datesToISO(availability.map((a) => a.blockedDate)),
     priceTiers,
+    reviews,
   );
 }
 

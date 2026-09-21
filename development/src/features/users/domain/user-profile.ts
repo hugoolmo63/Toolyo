@@ -3,6 +3,7 @@ export type UserProfileListing = {
   slug: string;
   title: string;
   pricePerDay: number;
+  coverImageUrl: string | null;
   city: string | null;
 };
 
@@ -11,6 +12,7 @@ export type PublicUserProfile = {
   displayName: string | null;
   avatarUrl: string | null;
   bio: string | null;
+  preferredLocation: string | null;
   ratingAverage: number | null;
   transactionCount: number;
   badges: {
