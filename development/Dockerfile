@@ -1,17 +1,21 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
+
+# Instalar OpenSSL y dependencias nativas requeridas por Prisma y ONNX
+RUN apt-get update -y && apt-get install -y openssl ca-certificates libc6
 
 WORKDIR /app
 
-# Instalar dependencias necesarias
+# Copiar configuración de dependencias
 COPY package*.json ./
 COPY prisma ./prisma/
+
 RUN npm ci
 
-# Copiar el resto del código
+# Copiar código fuente y generar Prisma Client
 COPY . .
 RUN npx prisma generate
 
-# Variables dummy para la fase de compilación de Next.js
+# Variables de entorno para la fase de build
 ENV DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5432/toolyo"
 ENV SKIP_ENV_VALIDATION="true"
 
