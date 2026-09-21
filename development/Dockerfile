@@ -4,9 +4,9 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: deps — instala dependencias (cacheable) ──
-FROM node:20-alpine AS deps
-# Prisma 5 necesita OpenSSL disponible para detectar el engine correcto en Alpine
-RUN apk add --no-cache libc6-compat openssl
+FROM node:20-slim AS deps
+# OpenSSL es necesario para Prisma y los certificados para dependencias externas
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
@@ -15,9 +15,9 @@ COPY prisma ./prisma
 RUN npm ci --omit=dev && npx prisma generate
 
 # ── Stage 2: builder — compila la app Next.js ──
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 # Necesario también para generar el Prisma Client usado por app y seeder
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -35,9 +35,9 @@ RUN npm ci --include=dev && npx prisma generate && npm run build
 RUN mkdir -p /app/public
 
 # ── Stage 3: runner — imagen final mínima ──
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 # OpenSSL también es necesario en runtime para Prisma migrate deploy
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -65,7 +65,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/
 
 # Script de entrada: migra la BD y luego arranca Next.js
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+# Normalizar CRLF producido por Git en Windows para ejecutarlo en Linux
+RUN sed -i 's/\r$//' ./docker-entrypoint.sh && chmod +x ./docker-entrypoint.sh
 
 USER nextjs
 
