@@ -10,7 +10,7 @@ ALTER TABLE "ListingEmbedding"
   ADD COLUMN "embedding" vector(384);
 
 UPDATE "ListingEmbedding"
-    "dimensions" = 384,
+SET "dimensions" = 384,
     "model" = 'Xenova/all-MiniLM-L6-v2'
 WHERE FALSE;
 

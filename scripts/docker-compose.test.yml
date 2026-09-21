@@ -6,9 +6,12 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
-  # ── Base de datos: PostgreSQL 15 + PostGIS ──
+  # ── Base de datos: PostgreSQL 15 + pgvector + PostGIS ──
   db:
-    image: postgis/postgis:15-3.4-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres-test
+    image: toolyo-test-postgres:15-pgvector-postgis
     platform: linux/amd64
     restart: "no"
     environment:
