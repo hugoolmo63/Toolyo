@@ -5,7 +5,8 @@
 
 # ── Stage 1: deps — instala dependencias (cacheable) ──
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+# Prisma 5 necesita OpenSSL disponible para detectar el engine correcto en Alpine
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
@@ -15,6 +16,8 @@ RUN npm ci --omit=dev && npx prisma generate
 
 # ── Stage 2: builder — compila la app Next.js ──
 FROM node:20-alpine AS builder
+# Necesario también para generar el Prisma Client usado por app y seeder
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -22,11 +25,19 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+# DATABASE_URL placeholder para que next build pase la validación de env.mjs.
+# La URL real se inyecta en runtime vía variable de entorno.
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
-RUN npm ci && npx prisma generate && npm run build
+# --include=dev: next build necesita devDependencies (typescript, @hookform/resolvers, puppeteer)
+RUN npm ci --include=dev && npx prisma generate && npm run build
+# Asegurar que public/ existe (puede no estar presente en el repo)
+RUN mkdir -p /app/public
 
 # ── Stage 3: runner — imagen final mínima ──
 FROM node:20-alpine AS runner
+# OpenSSL también es necesario en runtime para Prisma migrate deploy
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -46,8 +57,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Copiar migraciones Prisma y cliente generado para migrate deploy en runtime
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
+# Copiar todo el namespace @prisma (client, engines, etc.) para que prisma migrate deploy funcione
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+# Copiar el directorio .bin completo: Prisma necesita sus ficheros auxiliares .wasm
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
 
 # Script de entrada: migra la BD y luego arranca Next.js
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh

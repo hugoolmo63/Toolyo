@@ -1,0 +1,72 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Toolyo — Entorno Docker aislado para pruebas
+# Generado por scripts/deploy-test.sh — no usar directamente.
+# Las variables ${IMAGE_TAG}, ${SEEDER_IMAGE} y ${HOST_PORT} se inyectan
+# desde el script vía entorno.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Base de datos: PostgreSQL 15 + PostGIS ──
+  db:
+    image: postgis/postgis:15-3.4-alpine
+    platform: linux/amd64
+    restart: "no"
+    environment:
+      POSTGRES_USER: toolyo
+      POSTGRES_PASSWORD: toolyo
+      POSTGRES_DB: toolyo
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toolyo -d toolyo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Aplicación Next.js (imagen de producción) ──
+  app:
+    image: ${IMAGE_TAG}
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://toolyo:toolyo@db:5432/toolyo?schema=public"
+      NODE_ENV: "production"
+      AUTH_SECRET: "test-secret-change-me-please-32chars-min"
+      AUTH_URL: "http://localhost:${HOST_PORT}"
+      AUTH_GOOGLE_ENABLED: "false"
+      AUTH_APPLE_ENABLED: "false"
+      AUTH_FACEBOOK_ENABLED: "false"
+      EMAIL_PROVIDER: "console"
+      SMS_PROVIDER: "console"
+      SMS_OTP_ENABLED: "false"
+      KYC_PROVIDER: "disabled"
+      OTP_SECRET: "test-otp-secret-change-me"
+      RATE_LIMIT_STORE: "memory"
+    ports:
+      - "${HOST_PORT}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Seeder: imagen con dependencias de dev para ejecutar seeds ──
+  # Solo se arranca bajo demanda (profile "seed") para cargar datos.
+  seeder:
+    image: ${SEEDER_IMAGE}
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://toolyo:toolyo@db:5432/toolyo?schema=public"
+      NODE_ENV: "production"
+    working_dir: /app
+    profiles:
+      - seed
+
+volumes:
+  pgdata:

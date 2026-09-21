@@ -5,7 +5,12 @@ set -e
 # Solo si DATABASE_URL está definida
 if [ -n "$DATABASE_URL" ]; then
   echo "[entrypoint] Applying Prisma migrations..."
-  npx prisma migrate deploy
+  # Usar el binario local de prisma (npx puede no encontrarlo en standalone)
+  if [ -x "./node_modules/.bin/prisma" ]; then
+    ./node_modules/.bin/prisma migrate deploy
+  else
+    npx prisma migrate deploy
+  fi
   echo "[entrypoint] Migrations applied."
 else
   echo "[entrypoint] DATABASE_URL not set — skipping migrations."
