@@ -5,6 +5,8 @@ import { searchRouter } from "./routers/search.router";
 import { listingRouter } from "./routers/listing.router";
 import { listingManagementRouter } from "./routers/listing-management.router";
 import { userProfileRouter } from "./routers/user-profile.router";
+import { bookingRouter } from "./routers/booking.router";
+import { messagingRouter } from "./routers/messaging.router";
 
 /**
  * App router tRPC: merge de routers por dominio (BACKEND.md §2.1).
@@ -17,6 +19,8 @@ export const appRouter = createTRPCRouter({
   listing: listingRouter,
   listingManagement: listingManagementRouter,
   userProfile: userProfileRouter,
+  booking: bookingRouter,
+  messaging: messagingRouter,
 });
 
 export type AppRouter = typeof appRouter;

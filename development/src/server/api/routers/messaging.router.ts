@@ -1,0 +1,18 @@
+import { createTRPCRouter, authedProcedure } from "../trpc";
+import { ListMessagesSchema, MarkReadSchema } from "@/features/messaging/shared/messaging.schema";
+import { listMessages, markRead } from "@/features/messaging/application/messaging.service";
+import { mapErrorToTRPC } from "@/server/lib/errors/map-error";
+import { logger } from "@/server/lib/logger";
+import { CreateAttachmentUploadSchema, ConfirmAttachmentSchema } from "@/features/messaging/shared/attachment.schema";
+import { createAttachmentUpload, confirmAttachment } from "@/features/messaging/application/attachment.service";
+
+async function safely<T>(operation: string, userId: string, action: () => Promise<T>): Promise<T> {
+  try { return await action(); } catch (error) { logger.error(operation, { error, userId }); throw mapErrorToTRPC(error); }
+}
+
+export const messagingRouter = createTRPCRouter({
+  listMessages: authedProcedure.input(ListMessagesSchema).query(({ ctx, input }) => safely("messaging.listMessages", ctx.session.userId, () => listMessages(ctx.prisma, ctx.session.userId, input))),
+  markRead: authedProcedure.input(MarkReadSchema).mutation(({ ctx, input }) => safely("messaging.markRead", ctx.session.userId, () => markRead(ctx.prisma, ctx.session.userId, input))),
+  createAttachmentUpload: authedProcedure.input(CreateAttachmentUploadSchema).mutation(({ ctx, input }) => safely("messaging.createAttachmentUpload", ctx.session.userId, () => createAttachmentUpload(ctx.prisma, ctx.session.userId, input))),
+  confirmAttachment: authedProcedure.input(ConfirmAttachmentSchema).mutation(({ ctx, input }) => safely("messaging.confirmAttachment", ctx.session.userId, () => confirmAttachment(ctx.prisma, ctx.session.userId, input))),
+});

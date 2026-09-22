@@ -37,6 +37,14 @@ const envSchema = z.object({
     .default("https://nominatim.openstreetmap.org"),
   SEARCH_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(100),
   SUGGEST_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(60),
+  STORAGE_PROVIDER: z.enum(["local", "s3"]).default("local"),
+  STORAGE_PUBLIC_BASE_URL: z.string().url().default("http://localhost:3000/uploads"),
+  STORAGE_BUCKET: z.string().min(1).default("toolyo-development"),
+  STORAGE_REGION: z.string().min(1).default("auto"),
+  STORAGE_ENDPOINT: z.string().url().optional(),
+  STORAGE_ACCESS_KEY_ID: z.string().optional(),
+  STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
+  STORAGE_PRESIGNED_TTL_SECONDS: z.coerce.number().int().positive().max(900).default(300),
 });
 
 const parsed = envSchema.safeParse(process.env);

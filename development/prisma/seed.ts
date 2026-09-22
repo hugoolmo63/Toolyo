@@ -561,8 +561,88 @@ async function main() {
     });
   }
 
+  // ── 008-modulo-reservas: reserva y conversación deterministas ──
+  // El listing de prueba pertenece a testUser; el primer owner seed actúa como renter.
+  const bookingOwnerId = testUser.id;
+  const bookingRenterId = ownerIds[0]!;
+  const bookingListingId = "test-listing-1";
+  const bookingConversationId = "seed-conversation-booking-1";
+  const bookingId = "seed-booking-1";
+  const bookingMessageId = "seed-message-booking-1";
+  const bookingStartDate = new Date("2030-06-01T00:00:00.000Z");
+  const bookingEndDate = new Date("2030-06-04T00:00:00.000Z");
+
+  await prisma.messageAttachment.deleteMany({ where: { id: { startsWith: "seed-attachment-" } } });
+  await prisma.message.deleteMany({ where: { id: { startsWith: "seed-message-" } } });
+  await prisma.bookingStatusHistory.deleteMany({ where: { bookingId } });
+  await prisma.conversationParticipant.deleteMany({ where: { conversationId: bookingConversationId } });
+  await prisma.booking.deleteMany({ where: { id: bookingId } });
+  await prisma.conversation.deleteMany({ where: { id: bookingConversationId } });
+
+  await prisma.conversation.create({
+    data: {
+      id: bookingConversationId,
+      listingId: bookingListingId,
+      participants: {
+        create: [{ userId: bookingOwnerId }, { userId: bookingRenterId }],
+      },
+    },
+  });
+
+  await prisma.booking.create({
+    data: {
+      id: bookingId,
+      listingId: bookingListingId,
+      renterId: bookingRenterId,
+      ownerId: bookingOwnerId,
+      conversationId: bookingConversationId,
+      startDate: bookingStartDate,
+      endDate: bookingEndDate,
+      status: "pending",
+      pricePerDay: 10,
+      totalDays: 3,
+      subtotal: 30,
+      serviceFee: 3,
+      totalPrice: 33,
+      currencyCode: "EUR",
+      idempotencyKey: "seed-booking-request-1",
+      statusHistory: {
+        create: {
+          fromStatus: null,
+          toStatus: "pending",
+          changedById: bookingRenterId,
+          reason: "Solicitud de prueba",
+        },
+      },
+    },
+  });
+
+  await prisma.message.create({
+    data: {
+      id: bookingMessageId,
+      conversationId: bookingConversationId,
+      senderId: bookingRenterId,
+      clientMessageId: "seed-client-message-booking-1",
+      type: "text",
+      body: "Hola, me interesa reservar este producto.",
+      attachments: {
+        create: {
+          id: "seed-attachment-booking-1",
+          type: "image",
+          storageKey: "seed/bookings/booking-1/example.jpg",
+          publicUrl: "https://example.com/seed/booking-1/example.jpg",
+          mimeType: "image/jpeg",
+          byteSize: 1024,
+          width: 800,
+          height: 600,
+          checksum: "seed-checksum-booking-1",
+        },
+      },
+    },
+  });
+
   // eslint-disable-next-line no-console
-  console.log(`Seed completada: ${categoryGroups.length} categorías padre y ${categoryGroups.reduce((total, group) => total + group.children.length, 0)} subcategorías, ${listingIndex} listings de ejemplo y 10 listings para test@test.com.`);
+  console.log(`Seed completada: ${categoryGroups.length} categorías padre y ${categoryGroups.reduce((total, group) => total + group.children.length, 0)} subcategorías, ${listingIndex} listings de ejemplo, 10 listings para test@test.com y 1 reserva de prueba con conversación.`);
 }
 
 main()
