@@ -42,6 +42,17 @@ jobs:
     defaults:
       run:
         working-directory: development
+    env:
+      NODE_ENV: test
+      CI: true
+      DATABASE_URL: postgresql://test:test@localhost:5432/test?schema=public
+      STORAGE_PROVIDER: local
+      STORAGE_PUBLIC_BASE_URL: http://localhost:3000/uploads
+      STORAGE_BUCKET: toolyo-test
+      STORAGE_REGION: test
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_ACCESS_KEY_ID: test-access-key
+      STORAGE_SECRET_ACCESS_KEY: test-secret-key
     steps:
       - uses: actions/checkout@v4
 
@@ -63,6 +74,16 @@ jobs:
     defaults:
       run:
         working-directory: development
+    env:
+      NODE_ENV: test
+      CI: true
+      STORAGE_PROVIDER: local
+      STORAGE_PUBLIC_BASE_URL: http://localhost:3000/uploads
+      STORAGE_BUCKET: toolyo-test
+      STORAGE_REGION: test
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_ACCESS_KEY_ID: test-access-key
+      STORAGE_SECRET_ACCESS_KEY: test-secret-key
     steps:
       - uses: actions/checkout@v4
 
