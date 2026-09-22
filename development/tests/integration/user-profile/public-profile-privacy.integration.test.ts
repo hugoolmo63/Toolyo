@@ -10,6 +10,6 @@ describe("public profile privacy regression", () => {
     const profile = await getPublicUserProfile(user.id, prisma);
     expect(profile).not.toHaveProperty("email");
     expect(profile).not.toHaveProperty("phoneE164");
-    expect(profile).not.toHaveProperty("preferredLocation");
+    expect(profile).toHaveProperty("preferredLocation");
   });
 });

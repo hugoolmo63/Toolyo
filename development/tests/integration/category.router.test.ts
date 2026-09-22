@@ -25,7 +25,7 @@ beforeAll(async () => {
   prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
 
   // Aplica el schema vía prisma db push (desde la raíz del repo)
-  execSync("npx prisma db push --skip-generate --accept-data-loss", {
+  execSync("npx prisma migrate deploy", {
     env: { ...process.env, DATABASE_URL: dbUrl },
     stdio: "pipe",
   });
