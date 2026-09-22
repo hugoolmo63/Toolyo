@@ -19,6 +19,7 @@ export function ResultCard({ listing }: { listing: SearchResultDTO }) {
               src={listing.primaryPhotoUrl}
               alt={listing.title}
               fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               style={{ objectFit: "cover" }}
             />

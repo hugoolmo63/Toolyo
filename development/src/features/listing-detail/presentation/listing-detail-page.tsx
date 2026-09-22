@@ -12,6 +12,9 @@ import { RulesSection } from "./rules-section";
 import { Calendar } from "./calendar";
 import { PriceTable } from "./price-table";
 import { ActionButtons } from "./action-buttons";
+import dynamic from "next/dynamic";
+
+const ListingLocationMap = dynamic(() => import("./listing-location-map").then((module) => module.ListingLocationMap), { ssr: false });
 
 /**
  * ListingDetailPage — orquesta la ficha interactiva del detalle.
@@ -31,6 +34,12 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
         <div className="listing-detail-main">
           <ListingHeader listing={listing} />
           <DescriptionSection listing={listing} />
+
+          <section className="listing-location-section" aria-labelledby="listing-location-heading">
+            <h2 id="listing-location-heading">Ubicación aproximada</h2>
+            <ListingLocationMap location={listing.location} />
+            <p className="preferred-location-hint">La zona se muestra de forma aproximada para proteger la privacidad.</p>
+          </section>
 
           <section className="listing-calendar-section" aria-labelledby="calendar-heading">
             <h2 id="calendar-heading">Disponibilidad</h2>

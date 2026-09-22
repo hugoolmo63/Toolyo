@@ -11,6 +11,7 @@
 // Ver docs/09-entornos-y-despliegue.md para contexto de arquitectura.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import fs from "fs";
 import { execFileSync, spawnSync } from "node:child_process";
 import {
   existsSync,
@@ -546,10 +547,13 @@ if (opts.seedFile) {
   }
   ok("Carga de datos completada.");
 } else {
-  log("Ejecutando seed por defecto (prisma db seed)...");
-  composeRun([], ["npx", "prisma", "db", "seed"]);
-  ok("Seed por defecto completado.");
-}
+    log("Ejecutando seed por defecto (prisma db seed)...");
+
+    await composeRun([], ["npx", "prisma", "db", "push", "--accept-data-loss", "--skip-generate"]);
+
+    await composeRun([], ["npx", "prisma", "db", "seed"]);
+    ok("Seed por defecto completado.");
+  }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Summary

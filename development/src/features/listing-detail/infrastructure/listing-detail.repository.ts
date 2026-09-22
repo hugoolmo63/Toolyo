@@ -50,6 +50,25 @@ export interface RawAvailabilityRow {
   blockedDate: Date;
 }
 
+export interface RawListingReviewRow {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+  authorId: string;
+  authorDisplayName: string | null;
+  authorAvatarUrl: string | null;
+}
+
+export async function findReviewsByListingId(prisma: PrismaClient, listingId: string): Promise<RawListingReviewRow[]> {
+  return prisma.review.findMany({
+    where: { listingId, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, rating: true, comment: true, createdAt: true, authorId: true, author: { select: { displayName: true, avatarUrl: true } } },
+  }).then((rows) => rows.map((row) => ({ id: row.id, rating: row.rating, comment: row.comment, createdAt: row.createdAt, authorId: row.authorId, authorDisplayName: row.author.displayName, authorAvatarUrl: row.author.avatarUrl })));
+}
+
+
 /** Fila raw de listing similar. */
 export interface RawSimilarListingRow {
   id: string;
@@ -105,8 +124,8 @@ export async function findListingBySlug(
       "Listing"."lng",
       "Listing"."addressText",
       "Listing"."city",
-      "Listing"."ratingAverage",
-      "Listing"."reviewCount",
+      COALESCE(review_stats."ratingAverage", 0)::numeric AS "ratingAverage",
+      COALESCE(review_stats."reviewCount", 0)::int AS "reviewCount",
       "Listing"."viewCount",
       "Listing"."isInstantBooking",
       "Listing"."createdAt",
@@ -126,6 +145,12 @@ export async function findListingBySlug(
     ${Prisma.raw(VERIFIED_JOIN)}
     ${Prisma.raw(CATEGORY_JOIN)}
     ${Prisma.raw(PARENT_CATEGORY_JOIN)}
+    LEFT JOIN LATERAL (
+      SELECT AVG("rating") AS "ratingAverage", COUNT(*)::int AS "reviewCount"
+      FROM "Review" AS listing_review
+      WHERE listing_review."listingId" = "Listing"."id"
+        AND listing_review."deletedAt" IS NULL
+    ) AS review_stats ON TRUE
     WHERE ${Prisma.raw(BASE_WHERE)} AND "Listing"."slug" = ${slug}
     LIMIT 1
   `;

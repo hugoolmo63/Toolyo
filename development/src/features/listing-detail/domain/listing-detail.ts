@@ -29,6 +29,14 @@ export interface ListingPhotoDTO {
   order: number;
 }
 
+export interface ListingReviewDTO {
+  id: string;
+  author: { id: string; displayName: string | null; avatarUrl: string | null };
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
 /** Tramo de precio derivado desde pricePerDay (no persistido). */
 export interface PriceTierDTO {
   /** Días del tramo: 1, 3 o 7. */
@@ -74,6 +82,7 @@ export interface ListingDetailDTO {
   availability: string[];
   /** Tramos derivados desde pricePerDay. */
   priceTiers: PriceTierDTO[];
+  reviews: ListingReviewDTO[];
 }
 
 /** DTO mínimo para renderizar tarjetas de productos similares. */
