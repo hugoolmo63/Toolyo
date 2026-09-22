@@ -15,8 +15,7 @@ export function LogoutButton() {
   return (
     <button
       type="button"
-      className="auth-submit"
-      style={{ minHeight: 36, fontSize: ".8rem", maxWidth: 160 }}
+      className="btn btn-ghost btn-sm"
       onClick={() => logoutMutation.mutate()}
       disabled={logoutMutation.isPending}
     >

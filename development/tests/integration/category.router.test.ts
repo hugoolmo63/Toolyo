@@ -13,7 +13,7 @@ let container: StartedPostgreSqlContainer;
 let prisma: PrismaClient;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgis/postgis:15-3.4-alpine")
+  container = await new PostgreSqlContainer(process.env.TEST_POSTGRES_IMAGE ?? "toolyo-postgres:15-pgvector-postgis")
     .withDatabase("toolyo_test")
     .withUsername("toolyo")
     .withPassword("toolyo")

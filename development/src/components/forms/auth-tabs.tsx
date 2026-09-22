@@ -31,7 +31,7 @@ export function AuthTabs({ legalDocuments }: { legalDocuments: LegalRegistration
         <i>{art.number}</i>
       </div>
       <section className="auth-panel" aria-labelledby="auth-title">
-        <div className="auth-form" style={{ width: "min(100%, 380px)" }}>
+        <div className="auth-form">
           {isRegister ? (
             <RegistrationForm legalDocuments={legalDocuments} />
           ) : (

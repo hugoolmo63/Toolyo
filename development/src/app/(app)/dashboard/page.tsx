@@ -11,37 +11,37 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="legal-page" style={{ maxWidth: 720 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-        <h1 style={{ margin: 0 }}>Tu panel</h1>
+    <div className="dashboard-page">
+      <div className="page-header">
+        <h1 className="page-title">Tu panel</h1>
         <LogoutButton />
       </div>
 
-      <section style={{ marginBottom: 32 }}>
-        <p style={{ color: "var(--ps-neutral-600)" }}>Estado de tu cuenta: <strong>{onboarding.accountStatus}</strong></p>
-        <p style={{ color: "var(--ps-neutral-600)" }}>Email: <strong>{onboarding.email}</strong></p>
+      <section className="dashboard-section">
+        <p>Estado de tu cuenta: <strong>{onboarding.accountStatus}</strong></p>
+        <p>Email: <strong>{onboarding.email}</strong></p>
       </section>
 
-      <section style={{ display: "grid", gap: 16, marginBottom: 32 }}>
-        <h2 style={{ margin: 0, fontSize: "1.25rem" }}>Verificaciones</h2>
-        <div className="kyc-status">
+      <section className="dashboard-section">
+        <h2 className="section-title">Verificaciones</h2>
+        <div className={`kyc-status ${onboarding.email === "verified" ? "verified" : "pending"}`}>
           <div className="status-icon" aria-hidden="true">{onboarding.email === "verified" ? "✓" : "!"}</div>
           <div>
             <strong>Email</strong>
             <p>{onboarding.email === "verified" ? "Verificado" : "Pendiente — verifica tu email para desbloquear todas las funciones."}</p>
             {onboarding.email !== "verified" && (
-              <p><a href="/verify" style={{ color: "var(--ps-primary-700)", fontWeight: 600 }}>Verificar email →</a></p>
+              <p><a href="/verify" className="dashboard-link">Verificar email →</a></p>
             )}
           </div>
         </div>
-        <div className="kyc-status">
+        <div className={`kyc-status ${onboarding.phone === "verified" ? "verified" : "pending"}`}>
           <div className="status-icon" aria-hidden="true">{onboarding.phone === "verified" ? "✓" : "!"}</div>
           <div>
             <strong>Teléfono</strong>
             <p>{onboarding.phone === "verified" ? "Verificado" : "Pendiente — añade y verifica tu teléfono."}</p>
           </div>
         </div>
-        <div className="kyc-status">
+        <div className={`kyc-status ${onboarding.identity}`}>
           <div className="status-icon" aria-hidden="true">{onboarding.identity === "verified" ? "✓" : "i"}</div>
           <div>
             <strong>Identidad (KYC)</strong>
@@ -53,23 +53,23 @@ export default async function DashboardPage() {
               {onboarding.identity === "retry_required" && "Reintento requerido — revisa los requisitos."}
             </p>
             {onboarding.identity !== "verified" && (
-              <p><a href="/kyc" style={{ color: "var(--ps-primary-700)", fontWeight: 600 }}>Iniciar KYC →</a></p>
+              <p><a href="/kyc" className="dashboard-link">Iniciar KYC →</a></p>
             )}
           </div>
         </div>
       </section>
 
-      <section style={{ marginBottom: 32 }}>
-        <h2 style={{ margin: 0, fontSize: "1.25rem", marginBottom: 12 }}>Capacidades disponibles</h2>
-        <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 8 }}>
+      <section className="dashboard-section">
+        <h2 className="section-title">Capacidades disponibles</h2>
+        <ul className="capability-list">
           {Object.entries(onboarding.capabilities).map(([key, enabled]) => (
-            <li key={key} style={{ display: "flex", gap: 8, alignItems: "center", color: enabled ? "var(--ps-neutral-900)" : "var(--ps-neutral-500)" }}>
+            <li key={key} className={`capability-item${enabled ? "" : " is-disabled"}`}>
               <span aria-hidden="true">{enabled ? "✓" : "○"}</span>
               <span>{key.replace(/_/g, " ")}</span>
             </li>
           ))}
         </ul>
       </section>
-    </main>
+    </div>
   );
 }

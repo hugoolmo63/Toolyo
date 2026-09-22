@@ -42,7 +42,7 @@ export function PriceTable({ pricePerDay, priceTiers, availability }: PriceTable
             return (
               <tr
                 key={tier.days}
-                className={`price-tier-row ${isApplicable ? "price-tier-applicable" : ""}`}
+                className={`price-tier-row ${isApplicable ? "price-tier-active" : ""}`}
               >
                 <td>{tier.label}</td>
                 <td>{tier.discountPercent}%</td>

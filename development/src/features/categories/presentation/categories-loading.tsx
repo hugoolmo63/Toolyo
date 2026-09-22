@@ -1,24 +1,10 @@
 export default function CategoriesLoading() {
   return (
-    <section>
-      <div
-        style={{
-          height: 40,
-          marginBottom: 24,
-          borderRadius: "var(--ps-radius-md, 6px)",
-          background: "var(--ps-neutral-100)",
-        }}
-      />
-      <div style={{ display: "grid", gap: 16 }}>
+    <section aria-busy="true">
+      <div className="skeleton skeleton-heading" />
+      <div className="skeleton-stack">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            style={{
-              height: 72,
-              borderRadius: "var(--ps-radius-lg, 8px)",
-              background: "var(--ps-neutral-100)",
-            }}
-          />
+          <div key={i} className="skeleton skeleton-row" />
         ))}
       </div>
     </section>

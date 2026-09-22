@@ -1,6 +1,8 @@
 # PostgreSQL 15 con pgvector + PostGIS para el entorno de pruebas.
 FROM pgvector/pgvector:pg15
 
+COPY init-test-db.sql /docker-entrypoint-initdb.d/10-extensions.sql
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends postgis postgresql-15-postgis-3 \
     && rm -rf /var/lib/apt/lists/*

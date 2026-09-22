@@ -9,7 +9,7 @@ import { api } from "@/lib/trpc-react";
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callback = searchParams.get("callback") ?? undefined;
+  const callback = searchParams.get("callback") ?? "/dashboard";
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),

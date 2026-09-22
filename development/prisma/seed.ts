@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "../src/server/auth/password";
 
 /**
  * Semilla mínima y determinista (TESTING.md §6).
@@ -200,6 +201,29 @@ async function main() {
       });
     }
   }
+
+  const testUserPasswordHash = await hashPassword("passwordpassword123");
+  const testUser = await prisma.user.upsert({
+    where: { emailNormalized: "test@test.com" },
+    update: {
+      accountStatus: "active",
+      displayName: "Usuario de prueba",
+      passwordCredential: { upsert: { update: { passwordHash: testUserPasswordHash }, create: { passwordHash: testUserPasswordHash } } },
+    },
+    create: {
+      emailNormalized: "test@test.com",
+      accountStatus: "active",
+      displayName: "Usuario de prueba",
+      passwordCredential: { create: { passwordHash: testUserPasswordHash } },
+    },
+    select: { id: true },
+  });
+
+  await prisma.verificationState.upsert({
+    where: { userId_channel: { userId: testUser.id, channel: "identity" } },
+    update: { status: "verified", verifiedAt: new Date() },
+    create: { userId: testUser.id, channel: "identity", status: "verified", verifiedAt: new Date() },
+  });
 
   // Ciudades españolas con coordenadas (WGS84)
   const cities = [
@@ -421,8 +445,77 @@ async function main() {
     listingIndex++;
   }
 
+  for (let testListingIndex = 0; testListingIndex < 10; testListingIndex++) {
+    const city = cities[testListingIndex % cities.length]!;
+    const id = `test-listing-${testListingIndex + 1}`;
+    const title = `Producto de prueba ${testListingIndex + 1}`;
+    const slug = `producto-de-prueba-${testListingIndex + 1}`;
+    const pricePerDay = 10 + testListingIndex * 3;
+
+    await prisma.$executeRaw`
+      INSERT INTO "Listing" (
+        "id", "ownerId", "categoryId", "title", "slug", "description",
+        "pricePerDay", "location", "lat", "lng", "addressText", "city",
+        "status", "ratingAverage", "reviewCount", "viewCount", "isInstantBooking",
+        "createdAt", "updatedAt"
+      ) VALUES (
+        ${id},
+        ${testUser.id},
+        ${camerasCat.id},
+        ${title},
+        ${slug},
+        ${`${title} preparado para pruebas del panel de gestión.`},
+        ${pricePerDay},
+        ST_GeomFromText(${`POINT(${city.lng} ${city.lat})`}, 4326),
+        ${city.lat},
+        ${city.lng},
+        ${`${city.name}, España`},
+        ${city.name},
+        'published'::"ListingStatus",
+        5.0,
+        0,
+        0,
+        false,
+        NOW(),
+        NOW()
+      )
+      ON CONFLICT ("id") DO UPDATE SET
+        "ownerId" = EXCLUDED."ownerId",
+        "categoryId" = EXCLUDED."categoryId",
+        "title" = EXCLUDED."title",
+        "slug" = EXCLUDED."slug",
+        "description" = EXCLUDED."description",
+        "pricePerDay" = EXCLUDED."pricePerDay",
+        "location" = EXCLUDED."location",
+        "lat" = EXCLUDED."lat",
+        "lng" = EXCLUDED."lng",
+        "addressText" = EXCLUDED."addressText",
+        "city" = EXCLUDED."city",
+        "status" = EXCLUDED."status",
+        "deletedAt" = NULL,
+        "updatedAt" = NOW()
+    `;
+
+    await prisma.listingPhoto.upsert({
+      where: { id: `test-photo-${testListingIndex + 1}` },
+      update: {
+        url: `https://picsum.photos/seed/toolyo-test-${testListingIndex + 1}/800/600`,
+        altText: title,
+        order: 0,
+        deletedAt: null,
+      },
+      create: {
+        id: `test-photo-${testListingIndex + 1}`,
+        listingId: id,
+        url: `https://picsum.photos/seed/toolyo-test-${testListingIndex + 1}/800/600`,
+        altText: title,
+        order: 0,
+      },
+    });
+  }
+
   // eslint-disable-next-line no-console
-  console.log(`Seed completada: ${categoryGroups.length} categorías padre y ${categoryGroups.reduce((total, group) => total + group.children.length, 0)} subcategorías, ${listingIndex} listings de ejemplo.`);
+  console.log(`Seed completada: ${categoryGroups.length} categorías padre y ${categoryGroups.reduce((total, group) => total + group.children.length, 0)} subcategorías, ${listingIndex} listings de ejemplo y 10 listings para test@test.com.`);
 }
 
 main()

@@ -1,6 +1,9 @@
 services:
   db:
-    image: postgis/postgis:15-3.4-alpine
+    build:
+      context: ../scripts
+      dockerfile: Dockerfile.postgres-test
+    image: toolyo-postgres:15-pgvector-postgis
     platform: linux/amd64
     container_name: toolyo_postgres
     restart: unless-stopped
@@ -12,6 +15,11 @@ services:
       - "5432:5432"
     volumes:
       - toolyo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toolyo -d toolyo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   toolyo_pgdata:
