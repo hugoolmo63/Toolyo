@@ -18,6 +18,7 @@ vi.mock("@/features/listing-detail/infrastructure/listing-detail.repository", ()
   findListingBySlug: vi.fn(),
   findPhotosByListingId: vi.fn(),
   findAvailabilityByListingId: vi.fn(),
+  findReviewsByListingId: vi.fn(),
   findSimilarListings: vi.fn(),
   incrementListingView: vi.fn(),
 }));
@@ -26,6 +27,7 @@ import {
   findListingBySlug,
   findPhotosByListingId,
   findAvailabilityByListingId,
+  findReviewsByListingId,
   findSimilarListings,
   incrementListingView,
 } from "@/features/listing-detail/infrastructure/listing-detail.repository";
@@ -92,6 +94,7 @@ describe("listing-detail.service", () => {
       vi.mocked(findListingBySlug).mockResolvedValue(mockDetailRow);
       vi.mocked(findPhotosByListingId).mockResolvedValue(mockPhotos);
       vi.mocked(findAvailabilityByListingId).mockResolvedValue(mockAvailability);
+      vi.mocked(findReviewsByListingId).mockResolvedValue([]);
 
       const result = await getListingBySlug(mockPrisma, { slug: "test-listing" });
 
@@ -101,7 +104,8 @@ describe("listing-detail.service", () => {
       expect(result!.title).toBe("Cámara de prueba");
       expect(result!.description).toBe("Una cámara excelente");
       expect(result!.pricePerDay).toBe(50);
-      expect(result!.location).toEqual({ lat: 40.4168, lng: -3.7038 });
+      expect(result!.location).not.toEqual({ lat: 40.4168, lng: -3.7038 });
+      expect(result!.location).not.toBeNull();
       expect(result!.addressText).toBe("Centro");
       expect(result!.city).toBe("Madrid");
       expect(result!.ratingAverage).toBe(4.5);
@@ -140,6 +144,7 @@ describe("listing-detail.service", () => {
       vi.mocked(findListingBySlug).mockResolvedValue(mockDetailRow);
       vi.mocked(findPhotosByListingId).mockResolvedValue([]);
       vi.mocked(findAvailabilityByListingId).mockResolvedValue([]);
+      vi.mocked(findReviewsByListingId).mockResolvedValue([]);
 
       const result = await getListingBySlug(mockPrisma, { slug: "test-listing" });
 

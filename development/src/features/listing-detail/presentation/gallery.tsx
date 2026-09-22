@@ -106,6 +106,7 @@ export function Gallery({ photos, title }: GalleryProps) {
               src={currentPhoto.url}
               alt={currentPhoto.altText ?? title}
               fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
               style={{ objectFit: "cover" }}
               priority={currentIndex === 0}
@@ -154,6 +155,7 @@ export function Gallery({ photos, title }: GalleryProps) {
                 alt=""
                 width={60}
                 height={60}
+                unoptimized
                 style={{ objectFit: "cover" }}
               />
             </button>
@@ -182,6 +184,7 @@ export function Gallery({ photos, title }: GalleryProps) {
               src={currentPhoto.url}
               alt={currentPhoto.altText ?? title}
               fill
+              unoptimized
               sizes="100vw"
               style={{ objectFit: "contain" }}
             />

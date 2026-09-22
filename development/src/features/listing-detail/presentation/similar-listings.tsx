@@ -58,6 +58,7 @@ export function SimilarListings({ listing }: SimilarListingsProps) {
                     src={similar.primaryPhotoUrl}
                     alt={similar.title}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 50vw, 25vw"
                     style={{ objectFit: "cover" }}
                   />

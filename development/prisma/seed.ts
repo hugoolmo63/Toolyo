@@ -201,6 +201,17 @@ async function main() {
     }
   }
 
+  await prisma.review.deleteMany({});
+  await prisma.listingAvailability.deleteMany({ where: { id: { startsWith: "seed-avail-" } } });
+  const reviewComments = [
+    "Funciona muy bien, pero la luz está rota.",
+    "Trato increíble, ofrece nuevas brocas por 3€ cada una.",
+    "La herramienta estaba impecable y la entrega fue puntual.",
+    "Todo perfecto y muy fácil de coordinar.",
+    "Buen producto para un proyecto de fin de semana.",
+    "Respondió rápido y explicó muy bien cómo usarlo.",
+  ];
+
   // Ciudades españolas con coordenadas (WGS84)
   const cities = [
     { name: "Madrid", lat: 40.4168, lng: -3.7038 },
@@ -336,7 +347,7 @@ async function main() {
     const city = cities[listingIndex % cities.length]!;
     const ownerId = ownerIds[listingIndex % ownerIds.length]!;
     const rating = 3.5 + ((listingIndex * 7) % 16) / 10; // 3.5 a 5.0
-    const reviewCount = (listingIndex * 3 + 1) % 50;
+    const reviewCount = listingIndex < 10 ? 0 : 1 + (listingIndex % 3);
     const viewCount = (listingIndex * 17 + 5) % 500;
     const slug = `${template.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${listingIndex}`;
     const status = listingIndex % 5 === 4 ? "draft" : "published"; // mayoría published, algunos draft
@@ -382,9 +393,10 @@ async function main() {
         "updatedAt" = NOW()
     `;
 
-    // Foto principal para cada listing (picsum.photos: imágenes estables por ID)
+    // Foto principal para cada listing. Usar la URL /id evita la redirección
+    // de /seed hacia fastly.picsum.photos, que rompe algunos optimizadores.
     const photoId = `seed-photo-${listingIndex}`;
-    const photoUrl = `https://picsum.photos/seed/toolyo-${listingIndex}/800/600`;
+    const photoUrl = `https://picsum.photos/id/${100 + listingIndex}/800/600.jpg`;
     await prisma.listingPhoto.upsert({
       where: { id: photoId },
       update: {
@@ -400,6 +412,41 @@ async function main() {
         order: 0,
       },
     });
+
+    if (listingIndex >= 10) {
+      for (let reviewIndex = 0; reviewIndex < reviewCount; reviewIndex += 1) {
+        const authorId = ownerIds[(listingIndex + reviewIndex + 1) % ownerIds.length]!;
+        await prisma.review.upsert({
+          where: { id: `seed-review-${listingIndex}-${reviewIndex}` },
+          update: {
+            authorId,
+            rating: 3 + ((listingIndex + reviewIndex) % 3),
+            comment: reviewComments[(listingIndex + reviewIndex) % reviewComments.length],
+            deletedAt: null,
+          },
+          create: {
+            id: `seed-review-${listingIndex}-${reviewIndex}`,
+            listingId: id,
+            authorId,
+            rating: 3 + ((listingIndex + reviewIndex) % 3),
+            comment: reviewComments[(listingIndex + reviewIndex) % reviewComments.length],
+            createdAt: new Date(Date.now() - (listingIndex + reviewIndex) * 86_400_000),
+          },
+        });
+      }
+    }
+
+    if (listingIndex >= 10) {
+      const aggregate = await prisma.review.aggregate({
+        where: { listingId: id, deletedAt: null },
+        _avg: { rating: true },
+        _count: { _all: true },
+      });
+      await prisma.listing.update({
+        where: { id },
+        data: { ratingAverage: aggregate._avg.rating ?? 0, reviewCount: aggregate._count._all },
+      });
+    }
 
     // Algunos listings con bloqueos de disponibilidad
     if (listingIndex % 6 === 0) {

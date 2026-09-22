@@ -22,7 +22,7 @@ beforeAll(async () => {
 
   prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
 
-  execSync("npx prisma db push --skip-generate --accept-data-loss", {
+  execSync("npx prisma migrate deploy", {
     env: { ...process.env, DATABASE_URL: dbUrl },
     stdio: "pipe",
   });

@@ -38,15 +38,10 @@ export function ListingHeader({ listing }: ListingHeaderProps) {
             {listing.addressText && ` · ${listing.addressText}`}
           </span>
         )}
-        {listing.reviewCount > 0 && (
-          <span
-            className="listing-rating"
-            aria-label={`Valoración ${listing.ratingAverage.toFixed(1)} de 5 con ${listing.reviewCount} reviews`}
-          >
-            ★ {listing.ratingAverage.toFixed(1)}
-            <small className="listing-reviews"> ({listing.reviewCount})</small>
-          </span>
-        )}
+        <a href="#reviews" className="listing-rating listing-rating-link" aria-label={`Ver ${listing.reviewCount} reseñas`}>
+          ★ {listing.ratingAverage.toFixed(1)}
+          <small className="listing-reviews"> ({listing.reviewCount})</small>
+        </a>
       </div>
     </header>
   );
