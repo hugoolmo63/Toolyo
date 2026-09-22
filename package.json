@@ -9,7 +9,10 @@
     "test:integration": "npm --prefix development run test:integration",
     "db:generate": "npm --prefix development run db:generate",
     "db:migrate": "npm --prefix development run db:migrate",
-    "db:seed": "npm --prefix development run db:seed"
+    "db:seed": "npm --prefix development run db:seed",
+    "test:deploy": "node scripts/deploy-test.mjs",
+    "test:deploy:tag": "node scripts/deploy-test.mjs --tag",
+    "test:down": "node scripts/deploy-test.mjs --down"
   },
   "dependencies": {
     "puppeteer": "^25.9.0"
