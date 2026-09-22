@@ -442,7 +442,7 @@ const composeEnv = {
 };
 
 log("Levantando entorno Docker aislado...");
-const upResult = spawnSync("docker", ["compose", "-p", projectName, "-f", COMPOSE_FILE, "up", "-d"], {
+const upResult = spawnSync("docker", ["compose", "-p", projectName, "-f", COMPOSE_FILE, "up", "-d", "--build"], {
   stdio: "inherit",
   env: composeEnv,
 });

@@ -20,7 +20,6 @@ services:
       POSTGRES_DB: toolyo
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./init-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U toolyo -d toolyo"]
       interval: 5s
