@@ -3,7 +3,7 @@ import { z } from "zod";
 const ListingStatusSchema = z.enum(["draft", "in_review", "published", "paused", "rejected"]);
 
 const PhotoInputSchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().min(1).optional(),
   url: z.string().url("La imagen debe tener una URL válida").max(2048),
   altText: z.string().trim().max(160).optional(),
   order: z.number().int().min(0).max(99),
@@ -33,13 +33,13 @@ export const CreateListingManagementSchema = ListingFieldsSchema.extend({
 });
 
 export const UpdateListingManagementSchema = ListingFieldsSchema.partial().extend({
-  listingId: z.string().cuid(),
+  listingId: z.string().min(1),
 });
 
-export const ListingIdSchema = z.object({ listingId: z.string().cuid() });
+export const ListingIdSchema = z.object({ listingId: z.string().min(1) });
 
 export const RemoveListingSchema = z.object({
-  listingId: z.string().cuid(),
+  listingId: z.string().min(1),
   confirmation: z.literal(true),
 });
 

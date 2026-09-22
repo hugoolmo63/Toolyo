@@ -4,6 +4,6 @@ import { ListMineSchema, RemoveListingSchema } from "@/features/listing-manageme
 describe("listing-management contract boundaries", () => {
   it("keeps pagination and destructive confirmation explicit at the contract boundary", () => {
     expect(ListMineSchema.parse({ page: 1, pageSize: 20 }).pageSize).toBe(20);
-    expect(() => RemoveListingSchema.parse({ listingId: "not-a-cuid", confirmation: true })).toThrow();
+    expect(() => RemoveListingSchema.parse({ listingId: "", confirmation: true })).toThrow();
   });
 });
