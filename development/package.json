@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
+    "test": "NODE_ENV=test vitest run tests/unit",
+    "test:integration": "NODE_ENV=test vitest run tests/integration",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@playwright/test": "^1.63.0",
     "@testcontainers/postgresql": "^10.13.1",
     "@testing-library/react": "^16.0.1",
     "@types/leaflet": "^1.9.22",

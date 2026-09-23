@@ -11,12 +11,12 @@ datasource db {
 /// Demuestra el patrón completo: id cuid, campo único (slug),
 /// auto-referencia (parentId), estado (showInNav) y auditoría/soft-delete.
 model Category {
-  id        String    @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  slug      String    @unique
-  showInNav Boolean   @default(true)
+  slug      String     @unique
+  showInNav Boolean    @default(true)
   parentId  String?
-  parent    Category? @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Restrict)
+  parent    Category?  @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Restrict)
   children  Category[] @relation("CategoryChildren")
   listings  Listing[]
 
@@ -88,31 +88,56 @@ enum SecurityEventOutcome {
   blocked
 }
 
+enum BookingStatus {
+  pending
+  accepted
+  rejected
+  cancelled
+  active
+  completed
+}
+
+enum MessageType {
+  text
+  image
+  system
+}
+
+enum AttachmentType {
+  image
+}
+
 model User {
-  id                    String                  @id @default(cuid())
-  emailNormalized       String                  @unique
-  phoneE164             String?                 @unique
-  accountStatus         AccountStatus           @default(pending)
-  displayName           String?                 @db.VarChar(100)
-  avatarUrl             String?                 @db.VarChar(512)
-  bio                   String?                 @db.Text
-  preferredLocation     String?                 @db.VarChar(160)
-  ratingAverage         Decimal?                @db.Decimal(2, 1)
-  responseTimeHours     Int?
-  transactionCount      Int?                    @default(0)
-  createdAt             DateTime                @default(now()) @db.Timestamptz(6)
-  updatedAt             DateTime                @updatedAt @db.Timestamptz(6)
-  deletedAt             DateTime?               @db.Timestamptz(6)
-  passwordCredential    PasswordCredential?
-  oauthAccounts         OAuthAccount[]
-  verificationStates    VerificationState[]
-  otpChallenges         OtpChallenge[]
-  identityVerifications IdentityVerification[]
-  legalAcceptances      LegalAcceptance[]
-  securityEvents        SecurityEvent[]
-  sessions              Session[]
-  listings              Listing[]
-  reviewsWritten        Review[]
+  id                       String                    @id @default(cuid())
+  emailNormalized          String                    @unique
+  phoneE164                String?                   @unique
+  accountStatus            AccountStatus             @default(pending)
+  displayName              String?                   @db.VarChar(100)
+  avatarUrl                String?                   @db.VarChar(512)
+  bio                      String?                   @db.Text
+  preferredLocation        String?                   @db.VarChar(160)
+  ratingAverage            Decimal?                  @db.Decimal(2, 1)
+  responseTimeHours        Int?
+  transactionCount         Int?                      @default(0)
+  createdAt                DateTime                  @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime                  @updatedAt @db.Timestamptz(6)
+  deletedAt                DateTime?                 @db.Timestamptz(6)
+  passwordCredential       PasswordCredential?
+  oauthAccounts            OAuthAccount[]
+  verificationStates       VerificationState[]
+  otpChallenges            OtpChallenge[]
+  identityVerifications    IdentityVerification[]
+  legalAcceptances         LegalAcceptance[]
+  securityEvents           SecurityEvent[]
+  sessions                 Session[]
+  listings                 Listing[]
+  reviewsWritten           Review[]
+  bookingsAsRenter         Booking[]                 @relation("BookingRenter")
+  bookingsAsOwner          Booking[]                 @relation("BookingOwner")
+  bookingStatusChanges     BookingStatusHistory[]    @relation("BookingStatusChangedBy")
+  conversationParticipants ConversationParticipant[]
+  sentMessages             Message[]                 @relation("MessageSender")
+  uploadedAttachments      AttachmentUpload[]        @relation("AttachmentUploadOwner")
 }
 
 model PasswordCredential {
@@ -139,15 +164,15 @@ model OAuthAccount {
 }
 
 model VerificationState {
-  id              String                     @id @default(cuid())
+  id              String                    @id @default(cuid())
   userId          String
   channel         VerificationChannel
-  status          ContactVerificationStatus  @default(pending)
-  verifiedAt      DateTime?                  @db.Timestamptz(6)
-  lastRequestedAt DateTime?                  @db.Timestamptz(6)
-  createdAt       DateTime                   @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime                   @updatedAt @db.Timestamptz(6)
-  user            User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status          ContactVerificationStatus @default(pending)
+  verifiedAt      DateTime?                 @db.Timestamptz(6)
+  lastRequestedAt DateTime?                 @db.Timestamptz(6)
+  createdAt       DateTime                  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime                  @updatedAt @db.Timestamptz(6)
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([userId, channel])
   @@index([channel, status])
@@ -173,59 +198,59 @@ model OtpChallenge {
 }
 
 model IdentityVerification {
-  id               String                    @id @default(cuid())
-  userId           String
-  provider         String
-  providerReference String                    @unique
-  status           IdentityVerificationStatus @default(not_started)
-  resultCode       String?
-  termsVersion     String
-  startedAt        DateTime?                 @db.Timestamptz(6)
-  completedAt      DateTime?                 @db.Timestamptz(6)
-  createdAt        DateTime                  @default(now()) @db.Timestamptz(6)
-  updatedAt        DateTime                  @updatedAt @db.Timestamptz(6)
-  user             User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id                String                     @id @default(cuid())
+  userId            String
+  provider          String
+  providerReference String                     @unique
+  status            IdentityVerificationStatus @default(not_started)
+  resultCode        String?
+  termsVersion      String
+  startedAt         DateTime?                  @db.Timestamptz(6)
+  completedAt       DateTime?                  @db.Timestamptz(6)
+  createdAt         DateTime                   @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @db.Timestamptz(6)
+  user              User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, status])
 }
 
 model LegalDocument {
-  id             String                  @id @default(cuid())
-  documentType   LegalDocumentType
-  version        String
-  language       String
-  effectiveAt    DateTime                @db.Timestamptz(6)
-  retiredAt      DateTime?               @db.Timestamptz(6)
-  contentHash    String
+  id               String            @id @default(cuid())
+  documentType     LegalDocumentType
+  version          String
+  language         String
+  effectiveAt      DateTime          @db.Timestamptz(6)
+  retiredAt        DateTime?         @db.Timestamptz(6)
+  contentHash      String
   legalAcceptances LegalAcceptance[]
-  createdAt      DateTime                @default(now()) @db.Timestamptz(6)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(6)
 
   @@unique([documentType, version, language])
   @@index([documentType, effectiveAt])
 }
 
 model LegalAcceptance {
-  id              String                @id @default(cuid())
+  id              String                 @id @default(cuid())
   userId          String
   legalDocumentId String
   purpose         LegalAcceptancePurpose
-  acceptedAt      DateTime              @db.Timestamptz(6)
+  acceptedAt      DateTime               @db.Timestamptz(6)
   context         Json?
-  user            User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
-  legalDocument   LegalDocument         @relation(fields: [legalDocumentId], references: [id], onDelete: Restrict)
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  legalDocument   LegalDocument          @relation(fields: [legalDocumentId], references: [id], onDelete: Restrict)
 
   @@index([userId, legalDocumentId, acceptedAt])
 }
 
 model SecurityEvent {
-  id        String              @id @default(cuid())
+  id        String               @id @default(cuid())
   eventType String
   outcome   SecurityEventOutcome
   userId    String?
   requestId String?
   metadata  Json?
-  createdAt DateTime            @default(now()) @db.Timestamptz(6)
-  user      User?               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  createdAt DateTime             @default(now()) @db.Timestamptz(6)
+  user      User?                @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, createdAt])
   @@index([eventType, createdAt])
@@ -235,16 +260,16 @@ model SecurityEvent {
 /// Revocable marcando `revokedAt` o eliminando la fila. Una sesión es válida si
 /// `revokedAt IS NULL` AND `expiresAt > now()`.
 model Session {
-  id         String    @id @default(cuid())
-  token      String    @unique
-  userId     String
-  expiresAt  DateTime  @db.Timestamptz(6)
-  revokedAt  DateTime? @db.Timestamptz(6)
-  ip         String?
-  userAgent  String?
-  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime  @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, revokedAt])
   @@index([expiresAt])
@@ -267,35 +292,37 @@ enum ListingStatus {
 /// Modelo mínimo introducido en 004-public-search para servir resultados de búsqueda;
 /// la feature de listings (§2) lo extenderá con wizard, precios escalonados, etc.
 model Listing {
-  id               String                 @id @default(cuid())
+  id               String                                @id @default(cuid())
   ownerId          String
   categoryId       String
   title            String
-  slug             String                 @unique
-  description      String?                @db.Text
-  pricePerDay      Decimal                @db.Decimal(19, 4)
+  slug             String                                @unique
+  description      String?                               @db.Text
+  pricePerDay      Decimal                               @db.Decimal(19, 4)
   /// Punto geoespacial PostGIS (geometry(Point, 4326)). Prisma no soporta el tipo
   /// nativamente; se gestiona via SQL raw en migraciones y queries. Ver DATABASE.md §5.4.
   location         Unsupported("geometry(Point, 4326)")?
-  lat              Decimal?               @db.Decimal(10, 7)
-  lng              Decimal?               @db.Decimal(10, 7)
+  lat              Decimal?                              @db.Decimal(10, 7)
+  lng              Decimal?                              @db.Decimal(10, 7)
   addressText      String?
   city             String?
-  status           ListingStatus          @default(draft)
-  ratingAverage    Decimal                @default(0) @db.Decimal(3, 2)
-  reviewCount      Int                    @default(0)
-  viewCount        Int                    @default(0)
-  isInstantBooking Boolean                @default(false)
-  createdAt        DateTime               @default(now()) @db.Timestamptz(6)
-  updatedAt        DateTime               @updatedAt @db.Timestamptz(6)
-  deletedAt        DateTime?              @db.Timestamptz(6)
+  status           ListingStatus                         @default(draft)
+  ratingAverage    Decimal                               @default(0) @db.Decimal(3, 2)
+  reviewCount      Int                                   @default(0)
+  viewCount        Int                                   @default(0)
+  isInstantBooking Boolean                               @default(false)
+  createdAt        DateTime                              @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime                              @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime?                             @db.Timestamptz(6)
 
-  owner            User                   @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  category         Category               @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  photos           ListingPhoto[]
-  availability     ListingAvailability[]
-  embedding        ListingEmbedding?
-  reviews          Review[]
+  owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  category      Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  photos        ListingPhoto[]
+  availability  ListingAvailability[]
+  embedding     ListingEmbedding?
+  reviews       Review[]
+  bookings      Booking[]
+  conversations Conversation[]
 
   @@index([status, deletedAt])
   @@index([categoryId, status, deletedAt])
@@ -306,14 +333,14 @@ model Listing {
 
 /// Valoración pública de un listing realizada por un usuario.
 model Review {
-  id         String   @id @default(cuid())
-  listingId  String
-  authorId   String
-  rating     Int
-  comment    String?  @db.Text
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
-  deletedAt  DateTime?
+  id        String    @id @default(cuid())
+  listingId String
+  authorId  String
+  rating    Int
+  comment   String?   @db.Text
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime?
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
   author  User    @relation(fields: [authorId], references: [id], onDelete: Restrict)
@@ -325,29 +352,29 @@ model Review {
 /// Embedding semántico generado por OpenAI para búsqueda pgvector.
 /// El tipo vector no está soportado nativamente por Prisma y se consulta con SQL raw.
 model ListingEmbedding {
-  id         String   @id
-  listingId  String   @unique
+  id         String                     @id
+  listingId  String                     @unique
   model      String
   dimensions Int
   embedding  Unsupported("vector(384)")
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+  createdAt  DateTime                   @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime                   @updatedAt @db.Timestamptz(6)
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 }
 
 /// Foto de un listing. La feature de listings (§2) añadirá hasta 10 con ordenación drag & drop.
 model ListingPhoto {
-  id         String    @id @default(cuid())
-  listingId  String
-  url        String
-  altText    String?
-  order      Int       @default(0)
-  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
-  deletedAt  DateTime? @db.Timestamptz(6)
+  id        String    @id @default(cuid())
+  listingId String
+  url       String
+  altText   String?
+  order     Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
 
-  listing    Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([listingId, order, deletedAt])
 }
@@ -355,15 +382,167 @@ model ListingPhoto {
 /// Bloqueo de calendario de un listing (fecha no disponible).
 /// La feature de listings (§2) añadirá el calendario completo con bloqueos manuales.
 model ListingAvailability {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   listingId   String
-  blockedDate DateTime  @db.Date
+  blockedDate DateTime @db.Date
   reason      String?
-  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
 
-  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([listingId, blockedDate])
   @@index([listingId, blockedDate])
+}
+
+/// Reserva y snapshot financiero de un alquiler.
+model Booking {
+  id                 String        @id @default(cuid())
+  listingId          String
+  renterId           String
+  ownerId            String
+  conversationId     String        @unique
+  startDate          DateTime      @db.Date
+  endDate            DateTime      @db.Date
+  status             BookingStatus @default(pending)
+  pricePerDay        Decimal       @db.Decimal(19, 4)
+  totalDays          Int
+  subtotal           Decimal       @db.Decimal(19, 4)
+  serviceFee         Decimal       @db.Decimal(19, 4)
+  totalPrice         Decimal       @db.Decimal(19, 4)
+  currencyCode       String        @default("EUR") @db.Char(3)
+  idempotencyKey     String
+  rejectionReason    String?       @db.Text
+  lastTransitionById String?
+  createdAt          DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt          DateTime?     @db.Timestamptz(6)
+
+  listing       Listing                @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  renter        User                   @relation("BookingRenter", fields: [renterId], references: [id], onDelete: Restrict)
+  owner         User                   @relation("BookingOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  conversation  Conversation           @relation("BookingConversation", fields: [conversationId], references: [id], onDelete: Restrict)
+  statusHistory BookingStatusHistory[]
+
+  @@unique([renterId, idempotencyKey])
+  @@index([listingId, status, startDate, endDate])
+  @@index([renterId, createdAt])
+  @@index([ownerId, createdAt])
+}
+
+/// Auditoría inmutable de cada transición de estado de una reserva.
+model BookingStatusHistory {
+  id          String         @id @default(cuid())
+  bookingId   String
+  fromStatus  BookingStatus?
+  toStatus    BookingStatus
+  changedById String
+  reason      String?        @db.Text
+  createdAt   DateTime       @default(now()) @db.Timestamptz(6)
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  changedBy User    @relation("BookingStatusChangedBy", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, createdAt])
+  @@index([changedById, createdAt])
+}
+
+/// Hilo privado asociado opcionalmente a un listing y a una reserva.
+model Conversation {
+  id        String    @id @default(cuid())
+  listingId String?
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  listing           Listing?                  @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  booking           Booking?                  @relation("BookingConversation")
+  participants      ConversationParticipant[]
+  messages          Message[]
+  attachmentUploads AttachmentUpload[]
+
+  @@index([listingId, updatedAt])
+  @@index([deletedAt, updatedAt])
+}
+
+/// Usuario que pertenece a una conversación y su cursor de lectura.
+model ConversationParticipant {
+  conversationId    String
+  userId            String
+  lastReadMessageId String?
+  joinedAt          DateTime  @default(now()) @db.Timestamptz(6)
+  lastReadAt        DateTime? @db.Timestamptz(6)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([conversationId, userId])
+  @@index([userId, lastReadAt])
+}
+
+/// Mensaje persistente; el contenido se conserva para poder recuperar el historial.
+model Message {
+  id              String      @id @default(cuid())
+  conversationId  String
+  senderId        String
+  clientMessageId String
+  type            MessageType @default(text)
+  body            String?     @db.Text
+  createdAt       DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?   @db.Timestamptz(6)
+
+  conversation Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User                @relation("MessageSender", fields: [senderId], references: [id], onDelete: Restrict)
+  attachments  MessageAttachment[]
+
+  @@unique([conversationId, senderId, clientMessageId])
+  @@index([conversationId, createdAt, id])
+  @@index([senderId, createdAt])
+}
+
+/// Upload prefirmado confirmado, pendiente de asociarse a un mensaje.
+model AttachmentUpload {
+  id             String    @id @default(cuid())
+  conversationId String
+  uploadedById   String
+  storageKey     String    @unique @db.VarChar(512)
+  publicUrl      String    @db.VarChar(1024)
+  mimeType       String    @db.VarChar(100)
+  byteSize       Int
+  width          Int?
+  height         Int?
+  checksum       String?
+  confirmedAt    DateTime? @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  expiresAt      DateTime  @db.Timestamptz(6)
+
+  conversation Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  uploadedBy   User               @relation("AttachmentUploadOwner", fields: [uploadedById], references: [id], onDelete: Restrict)
+  message      MessageAttachment?
+
+  @@index([conversationId, uploadedById, expiresAt])
+}
+
+/// Metadatos de un archivo almacenado fuera de PostgreSQL.
+model MessageAttachment {
+  id         String         @id @default(cuid())
+  messageId  String
+  uploadId   String?        @unique
+  type       AttachmentType @default(image)
+  storageKey String         @db.VarChar(512)
+  publicUrl  String         @db.VarChar(1024)
+  mimeType   String         @db.VarChar(100)
+  byteSize   Int
+  width      Int?
+  height     Int?
+  checksum   String?
+  createdAt  DateTime       @default(now()) @db.Timestamptz(6)
+  deletedAt  DateTime?      @db.Timestamptz(6)
+
+  message Message           @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  upload  AttachmentUpload? @relation(fields: [uploadId], references: [id], onDelete: Restrict)
+
+  @@index([messageId, createdAt])
+  @@index([storageKey])
 }
