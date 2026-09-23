@@ -3,7 +3,7 @@ import { createBookingE2ESession } from "../fixtures/bookings-e2e.fixtures";
 
 test.describe("booking → conversation → messaging critical flow", () => {
   test("exposes the authenticated entry point and remains stable across 20 isolated sessions", async ({ browser }) => {
-    test.skip(!process.env.E2E_CRITICAL_FLOW_ENABLED, "Requires the reservation/messaging UI and a persistent Socket.io runtime");
+    test.skip(!process.env.E2E_CRITICAL_FLOW_ENABLED, "Requires the reservation/messaging UI and the Serverless tRPC chat flow");
 
     const sessions = Array.from({ length: 20 }, (_, index) => createBookingE2ESession(index));
     let completed = 0;

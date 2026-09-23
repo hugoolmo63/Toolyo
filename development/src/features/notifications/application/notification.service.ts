@@ -8,7 +8,7 @@ export type MessageEmailProvider = Pick<EmailProvider, "sendMessageNotification"
 /**
  * Sends email notifications after the message has been committed.
  * Provider failures are logged and intentionally never propagated to the
- * Socket.io ACK or the message transaction.
+ * tRPC response or the message transaction.
  */
 export async function notifyMessageByEmail(
   db: PrismaClient,

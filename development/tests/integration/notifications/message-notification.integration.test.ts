@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { notifyMessageByEmail, type MessageEmailProvider } from "@/features/notifications/application/notification.service";
 
 describe("offline message notifications", () => {
-  it("sends an email notification asynchronously through the provider", async () => {
+  it("sends an email notification through the provider", async () => {
     const calls: string[] = [];
     const provider: MessageEmailProvider = { sendMessageNotification: async ({ messageId }) => { calls.push(messageId); return { providerMessageId: `fake:${messageId}` }; } };
     const db = { conversationParticipant: { findMany: async () => [{ user: { id: "recipient", emailNormalized: "recipient@toolyo.dev" } }] } } as never;

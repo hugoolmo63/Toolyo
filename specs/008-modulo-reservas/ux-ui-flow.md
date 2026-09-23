@@ -4,7 +4,7 @@
 **Documento**: 009
 **Estado**: Propuesta de navegación y superficies UI
 **Fecha**: 2026-09-23
-**Alcance**: Next.js App Router, tRPC, Socket.io y componentes feature-based
+**Alcance**: Next.js App Router, tRPC, tRPC y componentes feature-based
 
 ## 1. Objetivo
 
@@ -50,8 +50,8 @@ El objetivo es priorizar un vertical slice navegable y coherente antes de constr
 
 1. `ActionButtons` ya contiene los entry-points `Contactar` y `Reservar`, pero actualmente redirige a `/messages` y `/checkout`, rutas que todavía no existen.
 2. El backend de reservas expone `booking.request`, `booking.accept`, `booking.reject`, `booking.list` y `booking.getById`, pero todavía no hay UI consumidora.
-3. El backend de mensajería expone `messaging.listMessages`, `messaging.markRead`, uploads y Socket.io, pero todavía no hay `MessagingShell` ni `MessageComposer`.
-4. El gateway Socket.io se encapsula en `createMessagingGateway(httpServer, prisma)`, pero todavía debe integrarse en un runtime HTTP persistente de Next.js/Node.
+3. El backend de mensajería expone `messaging.listMessages`, `messaging.markRead`, uploads y tRPC, pero todavía no hay `MessagingShell` ni `MessageComposer`.
+4. La mensajería se sirve mediante route handlers tRPC y no requiere un runtime HTTP persistente adicional.
 5. El backend puede producir notificaciones fallback, pero la UI necesita `NotificationBell`, badges, toasts y rehidratación desde `booking.list`.
 6. El flujo visual de reservas no debe inventar una página `/checkout`: para el MVP la solicitud se confirma con un `BookingRequestDialog` y se navega directamente al chat contextual.
 
@@ -74,11 +74,11 @@ El objetivo es priorizar un vertical slice navegable y coherente antes de constr
 | Acción UI | Contrato/evento | Resultado esperado |
 |---|---|---|
 | Cargar historial | `messaging.listMessages` | Página cursorizada de mensajes |
-| Entrar al hilo | `conversation:join` | Room privado `conversation:{id}` tras ABAC |
-| Enviar mensaje | `message:send` | ACK e inserción previa a `message:created` |
-| Recibir mensaje | `message:created` | Inserción optimista reconciliada con ID de servidor |
+| Entrar al hilo | `mensajería tRPC` | Room privado `conversation:{id}` tras ABAC |
+| Enviar mensaje | `messaging.sendMessage` | ACK e inserción previa a `respuesta de messaging.sendMessage` |
+| Recibir mensaje | `respuesta de messaging.sendMessage` | Inserción optimista reconciliada con ID de servidor |
 | Marcar leído | `messaging.markRead` o `conversation:read` | `conversation:read-updated` para participantes |
-| Adjuntar imagen | `createAttachmentUpload` + `confirmAttachment` | Upload confirmado y `attachmentId` en `message:send` |
+| Adjuntar imagen | `createAttachmentUpload` + `confirmAttachment` | Upload confirmado y `attachmentId` en `messaging.sendMessage` |
 
 Contratos detallados:
 
@@ -119,10 +119,10 @@ Contratos detallados:
 │ /messages/[conversationId]  │
 │ Contexto Booking + Chat     │
 └─────────┬───────────────────┘
-          │ conversation:join
+          │ mensajería tRPC
           ▼
 ┌─────────────────────────────┐
-│ message:send / message:     │
+│ messaging.sendMessage / message:     │
 │ created / conversation:read  │
 └─────────────────────────────┘
 ```
@@ -209,10 +209,10 @@ Solicitud enviada · Pendiente de respuesta
 Después, el cliente:
 
 1. Carga historial con `messaging.listMessages`.
-2. Conecta Socket.io.
-3. Ejecuta `conversation:join`.
+2. Empieza el polling corto del chat activo.
+3. Ejecuta `mensajería tRPC`.
 4. Marca el último mensaje visible como leído.
-5. Escucha `message:created`.
+5. Escucha `respuesta de messaging.sendMessage`.
 
 ---
 
@@ -322,7 +322,7 @@ Móvil:
 
 El owner debe tener dos mecanismos:
 
-1. Notificación en tiempo real si hay Socket.io activo.
+1. Notificación en tiempo real si hay chat activo.
 2. Rehidratación desde `booking.list` al abrir dashboard/messages si estuvo offline.
 
 Componentes:
@@ -429,7 +429,7 @@ connecting → connected → reconnecting → connected
 
 Reglas UX:
 
-- `message:created` reconcilia el mensaje optimista usando el ID de servidor.
+- `respuesta de messaging.sendMessage` reconcilia el mensaje optimista usando el ID de servidor.
 - La desconexión no elimina mensajes enviados: el historial se recupera con `listMessages`.
 - `clientMessageId` evita duplicados al reintentar.
 - `conversation:read` se emite cuando el último mensaje visible entra en viewport.
@@ -474,7 +474,7 @@ src/app/
 | `/dashboard/bookings` | Listar solicitudes/reservas por rol y filtros |
 | `/dashboard/bookings/[bookingId]` | Mostrar detalle, timeline, total y conversación |
 | `/messages` | Bandeja master-detail y unread count |
-| `/messages/[conversationId]` | Historial, Socket.io, composer y BookingActionCard |
+| `/messages/[conversationId]` | Historial, tRPC, composer y BookingActionCard |
 
 ---
 
@@ -562,9 +562,9 @@ src/features/notifications/
     → BookingRequestDialog
     → booking.request
     → /messages/[conversationId]
-    → conversation:join
+    → mensajería tRPC
     → listMessages
-    → message:send / message:created
+    → messaging.sendMessage / respuesta de messaging.sendMessage
 ```
 
 Componentes:
@@ -619,7 +619,7 @@ Componentes:
     → AttachmentPicker
     → createAttachmentUpload
     → confirmAttachment
-    → message:send(attachmentIds)
+    → messaging.sendMessage(attachmentIds)
 ```
 
 Componentes:
@@ -714,7 +714,7 @@ Orden recomendado:
 
 1. Implementar I1 sin crear una ruta `/checkout` intermedia.
 2. Integrar `ActionButtons` con `BookingRequestDialog`.
-3. Construir `/messages/[conversationId]` y su cliente Socket.io.
+3. Construir `/messages/[conversationId]` y su cliente tRPC.
 4. Implementar I2 con `/dashboard/bookings` y `BookingActionCard`.
 5. Añadir `/messages` como bandeja master-detail.
 6. Integrar adjuntos y notificaciones visuales en I3/I4.
@@ -724,7 +724,7 @@ Antes de activar E2E completo debe resolverse el bootstrap del gateway:
 ```text
 Next.js + servidor HTTP persistente
         ├── App Router
-        └── Socket.io Gateway
+        └── tRPC Gateway
 ```
 
-La UI no debe considerar el evento Socket.io como única fuente de verdad: al entrar en dashboard, reservas o mensajes siempre debe rehidratarse desde tRPC.
+La UI no debe considerar el evento tRPC como única fuente de verdad: al entrar en dashboard, reservas o mensajes siempre debe rehidratarse desde tRPC.

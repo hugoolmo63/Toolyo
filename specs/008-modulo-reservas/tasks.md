@@ -63,7 +63,7 @@ description: "Task list for the implementation of the reservations and messaging
 
 ---
 
-## Phase 3: Infraestructura y Servidor Socket.io (Mensajería MVP)
+## Phase 3: Infraestructura y Mensajería Serverless (Mensajería MVP)
 
 **Goal**: Añadir Socket.io autenticado, rooms privadas por conversación y lectura de mensajes/estado de lectura mediante tRPC, garantizando persistencia antes de emisión.
 
@@ -74,7 +74,7 @@ description: "Task list for the implementation of the reservations and messaging
 - [X] T030 Implementar `messagingService.listMessages` y `messagingService.markRead` en `development/src/features/messaging/application/messaging.service.ts`, validando que el usuario sea participante y que el `messageId` pertenezca a la conversación.
 - [X] T031 Implementar el router tRPC de mensajería en `development/src/server/api/routers/messaging.router.ts` con `listMessages` y `markRead`, y registrarlo en `development/src/server/api/root.ts`.
 - [X] T032 Implementar el adaptador de autenticación de Socket.io en `development/src/features/messaging/infrastructure/socket-auth.ts`, validando sesión/JWT, usuario activo, expiración y origen permitido sin aceptar `userId` del cliente.
-- [X] T033 Implementar el servidor/gateway Socket.io en `development/src/server/socket/messaging-gateway.ts`, inicializando el servidor sobre el runtime Node elegido, gestionando handshake, errores con `requestId` y cierre seguro.
+- [X] T033 Implementar el servicios tRPC de mensajería en `development/src/server/socket/messaging-gateway.ts`, inicializando el servidor sobre el runtime Node elegido, gestionando handshake, errores con `requestId` y cierre seguro.
 - [X] T034 Implementar rooms privados `conversation:${conversationId}` y autorización de membresía para `conversation:join` en `development/src/server/socket/messaging-gateway.ts`; impedir acceso a usuarios externos y documentar la estrategia multi-instancia futura.
 - [X] T035 Implementar `message:send` en `development/src/server/socket/messaging-gateway.ts`, delegando persistencia al servicio, usando `clientMessageId` para deduplicación, emitiendo `message:created` solo después del commit y devolviendo ACK tipado.
 - [X] T036 Implementar `conversation:read` y `conversation:read-updated` en `development/src/server/socket/messaging-gateway.ts`, delegando `markRead` al servicio y emitiendo únicamente a miembros autorizados.

@@ -1,6 +1,6 @@
 import { createTRPCRouter, authedProcedure } from "../trpc";
-import { GetUnreadCountSchema, ListMessagesSchema, MarkReadSchema } from "@/features/messaging/shared/messaging.schema";
-import { getUnreadCount, listMessages, markRead } from "@/features/messaging/application/messaging.service";
+import { GetUnreadCountSchema, ListMessagesSchema, MarkReadSchema, MessageSendSchema } from "@/features/messaging/shared/messaging.schema";
+import { getUnreadCount, listMessages, markRead, sendMessage } from "@/features/messaging/application/messaging.service";
 import { mapErrorToTRPC } from "@/server/lib/errors/map-error";
 import { logger } from "@/server/lib/logger";
 import { CreateAttachmentUploadSchema, ConfirmAttachmentSchema } from "@/features/messaging/shared/attachment.schema";
@@ -11,6 +11,7 @@ async function safely<T>(operation: string, userId: string, action: () => Promis
 }
 
 export const messagingRouter = createTRPCRouter({
+  sendMessage: authedProcedure.input(MessageSendSchema).mutation(({ ctx, input }) => safely("messaging.sendMessage", ctx.session.userId, () => sendMessage(ctx.prisma, ctx.session.userId, input))),
   listMessages: authedProcedure.input(ListMessagesSchema).query(({ ctx, input }) => safely("messaging.listMessages", ctx.session.userId, () => listMessages(ctx.prisma, ctx.session.userId, input))),
   markRead: authedProcedure.input(MarkReadSchema).mutation(({ ctx, input }) => safely("messaging.markRead", ctx.session.userId, () => markRead(ctx.prisma, ctx.session.userId, input))),
   getUnreadCount: authedProcedure.input(GetUnreadCountSchema).query(({ ctx, input }) => safely("messaging.getUnreadCount", ctx.session.userId, () => getUnreadCount(ctx.prisma, ctx.session.userId, input.conversationId))),

@@ -1,22 +1,22 @@
 # Research: Módulo 5 — Mensajería
 
-## Decisión: Socket.io sobre WebSocket nativo
+## Decisión: tRPC + polling limitado Serverless
 
-**Rationale**: el requisito explícito pide WebSockets/Socket.io; Socket.io aporta handshake autenticado, rooms, ACK, reconexión y fallback, que reducen código accidental en CHAT-001. Se encapsula detrás de `socket-io.gateway.ts` para que el dominio no dependa de la librería.
+**Rationale**: el equipo prioriza Serverless, coste adicional cero y ausencia de custom server. tRPC ofrece contratos tipados, autorización y persistencia; React Query usa actualización optimista y polling corto solo dentro del chat activo.
 
-**Alternatives considered**: `ws`/WebSocket nativo (menor abstracción, pero requiere implementar reconexión, ACK y rooms); SSE (no soporta de forma natural el envío bidireccional); polling (no cumple tiempo real).
+**Alternatives considered**: WebSocket persistente (requieren proceso persistente); SSE (mantiene conexión persistente); polling global (coste innecesario).
 
-## Decisión: persistir antes de emitir
+## Decisión: persistir antes de responder y notificar
 
-**Rationale**: PostgreSQL es la fuente de verdad y permite recuperar mensajes cuando un socket cae. El servicio valida y persiste dentro de una transacción; solo después del commit emite `message.created`. La entrega en tiempo real es una optimización, no el mecanismo de durabilidad.
+**Rationale**: PostgreSQL es la fuente de verdad. El servicio persiste mensaje y adjuntos dentro de una transacción; después responde por tRPC y dispara el email de forma asíncrona. Una caída del proveedor email nunca revierte el mensaje.
 
 **Alternatives considered**: emitir primero (menor latencia, pero puede anunciar mensajes que fallan al persistir); cola antes de DB (más complejidad y no necesaria para la primera iteración).
 
-## Decisión: tRPC para historial y mutaciones HTTP, Socket.io para eventos
+## Decisión: tRPC para todas las operaciones
 
-**Rationale**: el proyecto ya usa tRPC + Zod y sus convenciones exigen routers delgados y validación end-to-end. El socket se limita a comandos/eventos de baja latencia; `messaging.listMessages`, `getConversation` y upload presigned se exponen por tRPC.
+**Rationale**: `messaging.listMessages`, `sendMessage`, `markRead`, `getUnreadCount` y uploads se exponen por tRPC con Zod, autorización ABAC y tipos end-to-end.
 
-**Alternatives considered**: duplicar toda la API en eventos Socket.io (contratos menos visibles, peor cache/paginación); REST (introduce una tercera convención no usada en el backend actual).
+**Alternatives considered**: duplicar la API en eventos WebSocket; REST adicional; ambas introducen contratos y operación innecesarios.
 
 ## Decisión: adjuntos fuera de PostgreSQL
 

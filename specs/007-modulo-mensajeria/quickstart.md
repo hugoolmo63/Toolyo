@@ -28,7 +28,7 @@ La suite debe comprobar: creación de conversación con dos miembros, rechazo de
 
 ## Validación en tiempo real
 
-Ejecutar el servidor de desarrollo y dos clientes autenticados (arrendador y arrendatario). Un cliente se une a la conversación, el otro emite `message:send`; ambos deben recibir `message:created` con el mismo `message.id`. Repetir con el receptor desconectado: al reconectar, `messaging.listMessages` debe devolver el mensaje persistido.
+Ejecutar el servidor de desarrollo y dos clientes autenticados. El primer cliente llama a `messaging.sendMessage`; el segundo consulta `messaging.listMessages` mediante polling corto mientras el chat está activo. Ambos deben observar el mismo `message.id`. Repetir con el segundo cliente fuera del chat: el mensaje debe permanecer persistido y el destinatario debe recibir el aviso por email.
 
 ## Validación E2E
 

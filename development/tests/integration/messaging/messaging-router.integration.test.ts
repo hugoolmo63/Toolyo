@@ -65,4 +65,15 @@ describe("messaging tRPC integration", () => {
     await participantCaller.messaging.markRead({ conversationId, messageId: (await prisma.message.findFirstOrThrow({ where: { conversationId }, orderBy: { createdAt: "desc" } })).id });
     await expect(participantCaller.messaging.getUnreadCount({ conversationId })).resolves.toEqual({ count: 0 });
   });
+
+  it("persists and deduplicates messages through tRPC", async () => {
+    const participantCaller = await callerFor(participantId);
+    const input = { conversationId, clientMessageId: "trpc-send-1", body: "Mensaje por tRPC", attachmentIds: [] };
+    const first = await participantCaller.messaging.sendMessage(input);
+    const second = await participantCaller.messaging.sendMessage(input);
+    expect(first.deduplicated).toBe(false);
+    expect(second.deduplicated).toBe(true);
+    expect(second.message.id).toBe(first.message.id);
+    expect(await prisma.message.count({ where: { conversationId, clientMessageId: input.clientMessageId } })).toBe(1);
+  });
 });

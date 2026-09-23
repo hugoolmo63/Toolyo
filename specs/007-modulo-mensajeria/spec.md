@@ -4,13 +4,13 @@
 
 ## 1. Objetivo y alcance
 
-Toolyo debe permitir comunicación privada entre arrendador y arrendatario, vinculada al listing y, cuando exista, a la reserva. El sistema combina Socket.io para la experiencia en tiempo real con PostgreSQL/Prisma como fuente de verdad del historial. El mensaje se persiste antes de emitirse: una desconexión nunca debe causar pérdida de un mensaje aceptado.
+Toolyo debe permitir comunicación privada entre arrendador y arrendatario, vinculada al listing y, cuando exista, a la reserva. El sistema usa tRPC/Prisma como fuente de verdad del historial y polling corto únicamente dentro del chat activo. El mensaje se persiste antes de responder y el email de aviso se dispara después del commit: una desconexión nunca debe causar pérdida de un mensaje aceptado.
 
 Requisitos funcionales:
 
 | ID | Alcance | Entrega |
 |---|---|---|
-| CHAT-001 | Chat tiempo real | Socket.io, rooms privadas, ACK, reconexión y autorización. |
+| CHAT-001 | Chat interactivo | `sendMessage` tRPC, actualización optimista, polling limitado y autorización. |
 | CHAT-002 | Historial persistente | Conversation/Message, paginación por cursor, unread/read y recuperación. |
 | CHAT-003 | Notificaciones | Iteración posterior, job push/email fuera del camino crítico. |
 | CHAT-004 | Imágenes | Upload prefirmado a S3/R2 y metadatos `MessageAttachment`. |
@@ -21,17 +21,15 @@ Requisitos funcionales:
 
 ```text
 Cliente web/móvil
-   ├── tRPC + Zod ── historial, conversaciones, uploads ──┐
-   └── Socket.io ── join/send/read/events ─────────────────┤
+   └── tRPC + Zod ── historial, envío, lectura y uploads ──┐
                                                           ▼
               Messaging Service + autorización ABAC
                     ├── Prisma → PostgreSQL
-                    ├── Socket.io Gateway → rooms privadas
-                    ├── Redis (rate limit/presencia/multi-node)
-                    └── S3/R2 (bytes de imágenes)
+                     ├── Email provider (avisos asíncronos)
+                     └── S3/R2 (bytes de imágenes)
 ```
 
-La primera entrega instala `socket.io`/`socket.io-client`, crea el gateway y registra el router `messagingRouter`. Los routers son delgados; las reglas viven en `messaging.service.ts`. El gateway no escribe directamente en Prisma: llama al servicio y emite solo tras éxito.
+La primera entrega registra `messagingRouter` con `sendMessage`, `listMessages`, `markRead` y `getUnreadCount`. Los routers son delgados; las reglas viven en `messaging.service.ts`. La UI usa actualización optimista y polling limitado mientras el usuario está dentro del chat.
 
 ## 3. Esquema Prisma propuesto
 
@@ -58,14 +56,12 @@ Modelos requeridos:
 
 Los contratos canónicos están en [`specs/007-modulo-mensajeria/contracts/messaging-events.md`](contracts/messaging-events.md). En resumen:
 
-- Socket.io cliente → servidor: `conversation:join`, `message:send`, `conversation:read`.
-- Socket.io servidor → cliente: `message:created`, `message:acknowledged`, `conversation:read-updated`, `socket:error`.
-- tRPC: `listConversations`, `getConversation`, `listMessages`, `createConversation`, `markRead`, `createAttachmentUpload`, `confirmAttachment`.
+- tRPC: `sendMessage`, `listMessages`, `markRead`, `getUnreadCount`, `createAttachmentUpload`, `confirmAttachment`.
 - Todos los comandos se autentican, validan con Zod y autorizan por membresía; el servidor deriva identidad y timestamps.
 
 ## 5. Plan iterativo
 
-1. **Base CHAT-001/CHAT-002**: schema + migración, repositorio, servicio de autorización, gateway Socket.io, handshake, rooms, envío persistente-before-broadcast, ACK e idempotencia.
+1. **Base CHAT-001/CHAT-002**: schema + migración, repositorio, servicio de autorización, `sendMessage` tRPC, email asíncrono, actualización optimista e idempotencia.
 2. **Historial robusto**: cursores, unread/read, reconexión, orden estable y pruebas de integración con PostgreSQL.
 3. **CHAT-004**: presigned uploads, límites, MIME/magic bytes, checksum y adjuntos.
 4. **CHAT-003**: push/email mediante job idempotente con preferencias y rate limits.

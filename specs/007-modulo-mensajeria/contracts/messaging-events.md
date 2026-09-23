@@ -1,87 +1,60 @@
-# Contratos de Mensajería — CHAT-001 / CHAT-002
+# Contrato Serverless de Mensajería — CHAT-001 / CHAT-002
 
-Todos los contratos requieren sesión autenticada. Los IDs, fechas y `senderId` se verifican en servidor. Los nombres son canónicos y deben compartirse desde TypeScript/Zod para web y futuros clientes móviles.
+Todos los procedimientos requieren sesión autenticada. La identidad, permisos y timestamps se derivan en servidor. No existe una conexión global persistente: la UI consulta tRPC y puede hacer polling corto únicamente mientras el usuario está dentro del chat activo.
 
-## Socket.io handshake
+## Procedimientos tRPC
 
-Cliente conecta con `auth: { sessionToken }` o cookies de sesión HttpOnly según el adaptador. El servidor valida sesión, expiración, usuario activo y origen permitido. El socket se rechaza con `UNAUTHORIZED` o `FORBIDDEN`; nunca se acepta un `userId` declarado por cliente.
+### `messaging.sendMessage`
 
-## Cliente → servidor
-
-### `conversation:join`
-
-```json
-{ "conversationId": "clx..." }
+```ts
+{ conversationId: string; clientMessageId: string; body?: string; attachmentIds: string[] }
 ```
 
-Respuesta ACK: `{ "ok": true, "conversationId": "clx..." }` o `{ "ok": false, "code": "FORBIDDEN" }`. Solo agrega el socket a `conversation:{id}` tras comprobar membresía.
+Valida membresía, deduplica por `(conversationId, senderId, clientMessageId)`, persiste mensaje y adjuntos en una transacción y devuelve el payload con ID de servidor. Después del commit dispara email de forma asíncrona; un fallo del proveedor no revierte la persistencia ni la respuesta tRPC.
 
-### `message:send`
+### `messaging.listMessages`
 
-```json
-{
-  "conversationId": "clx...",
-  "clientMessageId": "client-generated-uuid",
-  "body": "¿Está disponible el producto?",
-  "attachmentIds": []
-}
+```ts
+{ conversationId: string; cursor?: string; limit?: number }
 ```
 
-Reglas: `body` opcional solo si existe al menos un adjunto; máximo 4000 caracteres; `attachmentIds` pertenecen a uploads confirmados del mismo usuario/conversación; máximo 5; no se acepta `senderId`, `createdAt` ni `messageId`.
+Devuelve `{ items, nextCursor }` ordenado por `createdAt DESC, id DESC`. Solo participantes autorizados pueden consultar el historial.
 
-ACK exitoso: `{ "ok": true, "message": MessageCreatedPayload, "deduplicated": false }`. Un reintento con la misma clave devuelve el mensaje existente y `deduplicated: true`.
+### `messaging.markRead`
 
-### `conversation:read`
-
-```json
-{ "conversationId": "clx...", "messageId": "clx..." }
+```ts
+{ conversationId: string; messageId: string }
 ```
 
-Solo avanza el cursor de lectura si el mensaje pertenece al hilo. ACK devuelve `lastReadMessageId` y `lastReadAt` del servidor.
+Actualiza el cursor de lectura del participante autorizado.
 
-## Servidor → cliente
+### `messaging.getUnreadCount`
 
-### `message:created`
-
-```json
-{
-  "id": "clx-server-id",
-  "conversationId": "clx...",
-  "senderId": "clx-user-id",
-  "body": "¿Está disponible el producto?",
-  "attachments": [],
-  "createdAt": "2026-09-22T12:00:00.000Z"
-}
+```ts
+{ conversationId?: string }
 ```
 
-Se emite al room solo después de confirmar PostgreSQL. El receptor debe tratar `id` como deduplicador.
+Devuelve `{ count }` para badges y consultas ligeras desde `/messages`, dashboard o navegación global.
 
-### `message:acknowledged`
+### Adjuntos
 
-Opcional para UX de entrega: `{ "messageId": "clx...", "conversationId": "clx..." }`. No significa leído; leído usa `conversation:read`.
+- `messaging.createAttachmentUpload({ conversationId, mimeType, byteSize, checksum? })` devuelve URL prefirmada y `attachmentId`.
+- `messaging.confirmAttachment({ attachmentId })` verifica los metadatos.
+- Solo un adjunto confirmado puede referenciarse en `messaging.sendMessage`.
 
-### `conversation:read-updated`
+## Cliente web
 
-`{ "conversationId": "clx...", "userId": "clx...", "messageId": "clx...", "readAt": "..." }`. Solo se emite a miembros autorizados y no expone información adicional.
+```text
+/messages/[conversationId]
+    ├── listMessages al entrar
+    ├── sendMessage con actualización optimista
+    ├── polling corto opcional mientras el chat está activo
+    └── markRead al avanzar el viewport
 
-### `socket:error`
-
-```json
-{ "code": "VALIDATION_ERROR|UNAUTHORIZED|FORBIDDEN|NOT_FOUND|RATE_LIMITED|CONFLICT|INTERNAL", "requestId": "..." }
+Header / dashboard
+    └── getUnreadCount bajo demanda o con polling espaciado
 ```
 
-No incluye stack traces, tokens ni detalles de Prisma.
+## Errores
 
-## Contratos tRPC/HTTP
-
-- `messaging.listConversations({ cursor?, limit? })` → conversaciones del usuario con último mensaje y unread count.
-- `messaging.getConversation({ conversationId })` → metadatos mínimos y participantes públicos.
-- `messaging.listMessages({ conversationId, cursor?, limit? })` → `{ items: MessageCreatedPayload[], nextCursor: string | null }`, orden descendente estable.
-- `messaging.createConversation({ listingId?, bookingId?, participantId })` → conversación o existente idempotente; el servidor determina owner/renter.
-- `messaging.markRead({ conversationId, messageId })` → estado de lectura validado.
-- `messaging.createAttachmentUpload({ conversationId, mimeType, byteSize, checksum? })` → URL prefirmada y `attachmentId` temporal.
-- `messaging.confirmAttachment({ attachmentId })` → metadatos verificados; solo después puede referenciarse en `message:send`.
-
-## Semántica de errores
-
-`UNAUTHORIZED` sesión ausente/expirada; `FORBIDDEN` no miembro; `NOT_FOUND` recurso inexistente o no visible; `VALIDATION_ERROR` payload inválido; `CONFLICT` idempotency key con contenido incompatible; `RATE_LIMITED` exceso de mensajes/uploads. Todos incluyen `requestId` para correlación.
+`UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION_ERROR`, `CONFLICT`, `RATE_LIMITED`. Las respuestas no incluyen tokens, stack traces ni detalles internos.
