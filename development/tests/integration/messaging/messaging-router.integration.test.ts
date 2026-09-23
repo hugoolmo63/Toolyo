@@ -56,4 +56,13 @@ describe("messaging tRPC integration", () => {
     const outsiderCaller = await callerFor(outsiderId);
     await expect(outsiderCaller.messaging.listMessages({ conversationId })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("provides a thin unread count query without opening a socket", async () => {
+    const participantCaller = await callerFor(participantId);
+    await prisma.message.create({ data: { conversationId, senderId: outsiderId, clientMessageId: "unread-1", body: "No leído" } });
+    await prisma.message.create({ data: { conversationId, senderId: outsiderId, clientMessageId: "unread-2", body: "Otro no leído" } });
+    await expect(participantCaller.messaging.getUnreadCount({ conversationId })).resolves.toEqual({ count: 2 });
+    await participantCaller.messaging.markRead({ conversationId, messageId: (await prisma.message.findFirstOrThrow({ where: { conversationId }, orderBy: { createdAt: "desc" } })).id });
+    await expect(participantCaller.messaging.getUnreadCount({ conversationId })).resolves.toEqual({ count: 0 });
+  });
 });

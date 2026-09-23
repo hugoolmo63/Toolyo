@@ -23,6 +23,8 @@ export const ListMessagesSchema = z.object({
 
 export const MarkReadSchema = ConversationReadSchema;
 
+export const GetUnreadCountSchema = z.object({ conversationId: id.optional() });
+
 export type MessageSendInput = z.infer<typeof MessageSendSchema>;
 export type ListMessagesInput = z.infer<typeof ListMessagesSchema>;
 export type MarkReadInput = z.infer<typeof MarkReadSchema>;

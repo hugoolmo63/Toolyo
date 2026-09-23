@@ -1,23 +1,33 @@
 import type { PrismaClient } from "@prisma/client";
 import { logger } from "@/server/lib/logger";
-import { isUserActiveInConversation } from "@/features/messaging/infrastructure/presence.service";
+import { getEmailProvider, type EmailProvider } from "@/server/integrations/email/email.provider";
 import type { MessageNotification } from "../shared/notification.schema";
 
-export interface NotificationChannel {
-  send(input: MessageNotification & { email: string }): Promise<{ providerMessageId: string }>;
-}
+export type MessageEmailProvider = Pick<EmailProvider, "sendMessageNotification">;
 
-export const consoleNotificationChannel: NotificationChannel = {
-  async send(input) {
-    logger.info("notification.message.fallback", { recipientUserId: input.recipientUserId, conversationId: input.conversationId, messageId: input.messageId });
-    return { providerMessageId: `console-notification:${input.messageId}` };
-  },
-};
+/**
+ * Sends email notifications after the message has been committed.
+ * Provider failures are logged and intentionally never propagated to the
+ * Socket.io ACK or the message transaction.
+ */
+export async function notifyMessageByEmail(
+  db: PrismaClient,
+  input: MessageNotification,
+  provider: MessageEmailProvider = getEmailProvider(),
+): Promise<{ sent: number; failed: number }> {
+  const recipients = await db.conversationParticipant.findMany({
+    where: { conversationId: input.conversationId, userId: { not: input.senderUserId } },
+    select: { user: { select: { id: true, emailNormalized: true } } },
+  });
 
-export async function notifyMessageIfOffline(db: PrismaClient, input: MessageNotification, channel: NotificationChannel = consoleNotificationChannel): Promise<{ sent: boolean; reason: "socket-active" | "fallback-sent" }> {
-  if (isUserActiveInConversation(input.recipientUserId, input.conversationId)) return { sent: false, reason: "socket-active" };
-  const recipient = await db.user.findUnique({ where: { id: input.recipientUserId }, select: { emailNormalized: true } });
-  if (!recipient) return { sent: false, reason: "fallback-sent" };
-  await channel.send({ ...input, email: recipient.emailNormalized });
-  return { sent: true, reason: "fallback-sent" };
+  const results = await Promise.allSettled(recipients.map(({ user }) => provider.sendMessageNotification({
+    to: user.emailNormalized,
+    conversationId: input.conversationId,
+    messageId: input.messageId,
+    preview: input.preview,
+  })));
+
+  const failed = results.filter((result) => result.status === "rejected").length;
+  if (failed > 0) logger.warn("notification.message.email.failed", { conversationId: input.conversationId, messageId: input.messageId, failed });
+  return { sent: results.length - failed, failed };
 }

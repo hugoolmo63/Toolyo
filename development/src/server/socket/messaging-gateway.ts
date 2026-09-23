@@ -6,8 +6,7 @@ import { assertConversationAccess, markRead, sendMessage } from "@/features/mess
 import { ConversationJoinSchema, ConversationReadSchema, MessageSendSchema } from "@/features/messaging/shared/messaging.schema";
 import { mapErrorToTRPC } from "@/server/lib/errors/map-error";
 import { logger } from "@/server/lib/logger";
-import { markSocketActive, markSocketInactive } from "@/features/messaging/infrastructure/presence.service";
-import { notifyMessageIfOffline } from "@/features/notifications/application/notification.service";
+import { notifyMessageByEmail } from "@/features/notifications/application/notification.service";
 
 export const conversationRoom = (conversationId: string) => `conversation:${conversationId}`;
 
@@ -44,7 +43,6 @@ export function createMessagingGateway(httpServer: HttpServer, prisma: PrismaCli
         const input = ConversationJoinSchema.parse(payload);
         await assertConversationAccess(prisma, input.conversationId, identity.userId);
         await socket.join(conversationRoom(input.conversationId));
-        markSocketActive(identity.userId, input.conversationId, socket.id);
         ack?.({ ok: true, data: { conversationId: input.conversationId } });
       } catch (error) {
         ack?.(errorResponse(socket, error));
@@ -56,11 +54,8 @@ export function createMessagingGateway(httpServer: HttpServer, prisma: PrismaCli
         const input = MessageSendSchema.parse(payload);
         const result = await sendMessage(prisma, identity.userId, input);
         io.to(conversationRoom(input.conversationId)).emit("message:created", result.message);
-        const participants = await prisma.conversationParticipant.findMany({ where: { conversationId: input.conversationId, userId: { not: identity.userId } }, select: { userId: true } });
         if (!result.deduplicated) {
-          for (const participant of participants) {
-            void notifyMessageIfOffline(prisma, { recipientUserId: participant.userId, conversationId: input.conversationId, messageId: result.message.id, preview: result.message.body ?? "Imagen adjunta" }).catch((error) => logger.warn("notification.message.failed", { error, conversationId: input.conversationId, messageId: result.message.id }));
-          }
+          void notifyMessageByEmail(prisma, { senderUserId: identity.userId, recipientUserId: "conversation-participants", conversationId: input.conversationId, messageId: result.message.id, preview: result.message.body ?? "Imagen adjunta" }).catch((error) => logger.warn("notification.message.email.failed", { error, conversationId: input.conversationId, messageId: result.message.id }));
         }
         ack?.({ ok: true, data: result });
       } catch (error) {
@@ -80,11 +75,6 @@ export function createMessagingGateway(httpServer: HttpServer, prisma: PrismaCli
       }
     });
 
-    socket.on("disconnect", () => {
-      for (const room of socket.rooms) {
-        if (room.startsWith("conversation:")) markSocketInactive(identity.userId, room.slice("conversation:".length), socket.id);
-      }
-    });
   });
 
   return io;

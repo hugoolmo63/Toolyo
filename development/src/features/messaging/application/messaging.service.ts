@@ -1,6 +1,6 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/server/lib/errors/domain-errors";
-import { isConversationParticipant, listMessages as listMessageRows, markConversationRead, findMessageByClientId, createMessage, toMessagePayload } from "../infrastructure/messaging.repository";
+import { countUnreadMessages, isConversationParticipant, listMessages as listMessageRows, markConversationRead, findMessageByClientId, createMessage, toMessagePayload } from "../infrastructure/messaging.repository";
 import { attachConfirmedUploads } from "./attachment.service";
 import type { ListMessagesInput, MarkReadInput, MessageSendInput } from "../shared/messaging.schema";
 
@@ -49,4 +49,8 @@ export async function markRead(db: PrismaClient, userId: string, input: MarkRead
   const result = await markConversationRead(db, input.conversationId, userId, input.messageId);
   if (!result) throw new NotFoundError("Mensaje no encontrado");
   return { conversationId: result.conversationId, userId: result.userId, messageId: result.lastReadMessageId, readAt: result.lastReadAt?.toISOString() ?? null };
+}
+
+export async function getUnreadCount(db: PrismaClient, userId: string, conversationId?: string) {
+  return { count: await countUnreadMessages(db, userId, conversationId) };
 }

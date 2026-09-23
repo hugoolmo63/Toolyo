@@ -39,6 +39,26 @@ export async function markConversationRead(db: MessagingDb, conversationId: stri
   return db.conversationParticipant.update({ where: { conversationId_userId: { conversationId, userId } }, data: { lastReadMessageId: message.id, lastReadAt: new Date() }, select: { conversationId: true, userId: true, lastReadMessageId: true, lastReadAt: true } });
 }
 
+export async function countUnreadMessages(db: MessagingDb, userId: string, conversationId?: string): Promise<number> {
+  const participants = await db.conversationParticipant.findMany({
+    where: { userId, ...(conversationId ? { conversationId } : {}) },
+    select: { conversationId: true, lastReadAt: true },
+  });
+
+  let total = 0;
+  for (const participant of participants) {
+    total += await db.message.count({
+      where: {
+        conversationId: participant.conversationId,
+        senderId: { not: userId },
+        deletedAt: null,
+        ...(participant.lastReadAt ? { createdAt: { gt: participant.lastReadAt } } : {}),
+      },
+    });
+  }
+  return total;
+}
+
 export function toMessagePayload(message: Prisma.MessageGetPayload<{ include: typeof messageInclude }>) {
   return {
     id: message.id,
