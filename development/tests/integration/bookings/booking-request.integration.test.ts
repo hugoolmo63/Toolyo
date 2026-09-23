@@ -31,7 +31,9 @@ beforeAll(async () => {
 beforeEach(async () => {
   await prisma.messageAttachment.deleteMany();
   await prisma.message.deleteMany();
+  await prisma.$executeRawUnsafe('ALTER TABLE "BookingStatusHistory" DISABLE TRIGGER booking_status_history_immutable');
   await prisma.bookingStatusHistory.deleteMany();
+  await prisma.$executeRawUnsafe('ALTER TABLE "BookingStatusHistory" ENABLE TRIGGER booking_status_history_immutable');
   await prisma.conversationParticipant.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.conversation.deleteMany();
