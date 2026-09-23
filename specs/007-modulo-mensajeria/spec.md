@@ -1,6 +1,6 @@
 # Módulo 5: Mensajería — CHAT-001 a CHAT-006
 
-**Estado**: especificación y plan de implementación | **Fecha**: 2026-09-22 | **Plan técnico**: [`specs/007-modulo-mensajeria/plan.md`](../../specs/007-modulo-mensajeria/plan.md)
+**Estado**: especificación y plan de implementación | **Fecha**: 2026-09-22 | **Plan técnico**: [`specs/007-modulo-mensajeria/plan.md`](plan.md)
 
 ## 1. Objetivo y alcance
 
@@ -35,7 +35,7 @@ La primera entrega instala `socket.io`/`socket.io-client`, crea el gateway y reg
 
 ## 3. Esquema Prisma propuesto
 
-El diseño completo está en [`specs/007-modulo-mensajeria/data-model.md`](../../specs/007-modulo-mensajeria/data-model.md). Resumen de relaciones:
+El diseño completo está en [`specs/007-modulo-mensajeria/data-model.md`](data-model.md). Resumen de relaciones:
 
 ```text
 User 1──N ConversationParticipant N──1 Conversation
@@ -56,7 +56,7 @@ Modelos requeridos:
 
 ## 4. Contratos de API y eventos
 
-Los contratos canónicos están en [`specs/007-modulo-mensajeria/contracts/messaging-events.md`](../../specs/007-modulo-mensajeria/contracts/messaging-events.md). En resumen:
+Los contratos canónicos están en [`specs/007-modulo-mensajeria/contracts/messaging-events.md`](contracts/messaging-events.md). En resumen:
 
 - Socket.io cliente → servidor: `conversation:join`, `message:send`, `conversation:read`.
 - Socket.io servidor → cliente: `message:created`, `message:acknowledged`, `conversation:read-updated`, `socket:error`.
@@ -87,4 +87,4 @@ Los contratos canónicos están en [`specs/007-modulo-mensajeria/contracts/messa
 - Reintentar el mismo `clientMessageId` no crea duplicados.
 - Un tercer usuario recibe `FORBIDDEN` y no puede entrar al room ni consultar historial.
 - La API devuelve páginas reproducibles con cursor y no expone email, teléfono, tokens ni stack traces.
-- Los tests unitarios, integración y E2E definidos en [`quickstart.md`](../../specs/007-modulo-mensajeria/quickstart.md) pasan.
+- Los tests unitarios, integración y E2E definidos en [`quickstart.md`](quickstart.md) pasan.
