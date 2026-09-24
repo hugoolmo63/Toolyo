@@ -1,17 +1,22 @@
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "@prisma/client";
+import { startTestDatabase, stopTestDatabase, type StartedTestDatabase } from "../support/postgres-testcontainer";
 
-const prisma = new PrismaClient();
+let database: StartedTestDatabase | undefined;
+let prisma: PrismaClient;
 
 describe("reviews foundational persistence", () => {
   const bookingId = "reviews-foundational-completed-at";
 
   beforeAll(async () => {
+    database = await startTestDatabase();
+    prisma = new PrismaClient({ datasources: { db: { url: database.connectionString } } });
     await prisma.booking.deleteMany({ where: { id: bookingId } }).catch(() => undefined);
-  });
+  }, 120_000);
 
   afterAll(async () => {
-    await prisma.$disconnect();
+    await prisma?.$disconnect();
+    await stopTestDatabase(database);
   });
 
   it("rejects changing Booking.completedAt after completion", async () => {
