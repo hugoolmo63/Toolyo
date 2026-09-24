@@ -39,7 +39,7 @@ No hay violaciones que requieran Complexity Tracking.
 ## Project Structure
 
 ```text
-specs/004-user-profile/
+specs/005-public-user-profile/
 ├── spec.md
 ├── plan.md
 ├── research.md

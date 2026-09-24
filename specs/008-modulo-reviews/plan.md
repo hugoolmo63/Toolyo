@@ -40,7 +40,7 @@ Implementar reviews bidireccionales vinculadas a reservas `completed`, con venta
 ### Documentation (this feature)
 
 ```text
-specs/006-modulo-reviews/
+specs/008-modulo-reviews/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
 ├── data-model.md        # Phase 1 output (/speckit-plan command)
@@ -92,4 +92,4 @@ development/
 4. Reportes, moderación y trazabilidad.
 5. Formularios, accesibilidad, E2E y rendimiento.
 
-El benchmark debe escribir sus métricas en `specs/006-modulo-reviews/benchmark-results.json` y fallar si p95 >= 500 ms o la tasa de errores >= 0,1%.
+El benchmark debe escribir sus métricas en `specs/008-modulo-reviews/benchmark-results.json` y fallar si p95 >= 500 ms o la tasa de errores >= 0,1%.

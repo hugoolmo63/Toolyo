@@ -1,6 +1,6 @@
 # Tasks: Reviews y Reputación
 
-**Input**: Design documents from `/specs/006-modulo-reviews/`
+**Input**: Design documents from `/specs/008-modulo-reviews/`
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/review-router.md`, `quickstart.md`
 
@@ -9,7 +9,7 @@
 **Purpose**: Preparar la estructura de Reviews, fixtures y datos sintéticos.
 
 - [X] T001 Crear la estructura feature-based en `development/src/features/reviews/{application,domain,infrastructure,presentation,shared}` y las carpetas `development/tests/{unit,integration,e2e}/reviews`.
-- [X] T002 [P] Revisar dependencias y scripts de Prisma, tRPC, Zod, Vitest, Testcontainers y Playwright en `development/package.json` y documentar faltantes en `specs/006-modulo-reviews/plan.md`.
+- [X] T002 [P] Revisar dependencias y scripts de Prisma, tRPC, Zod, Vitest, Testcontainers y Playwright en `development/package.json` y documentar faltantes en `specs/008-modulo-reviews/plan.md`.
 - [X] T003 [P] Añadir fixtures deterministas de usuarios, listings y reservas `completed` en `development/tests/fixtures/review.fixtures.ts`.
 - [X] T004 [P] Añadir datos sintéticos de reviews y estados de moderación en `development/prisma/seed.ts` sin duplicar seeds existentes.
 
@@ -55,7 +55,7 @@
 - [X] T020 [US1] Crear `review.submit` y registrar `reviewRouter` en `development/src/server/api/routers/review.router.ts` y `development/src/server/api/root.ts`.
 - [X] T021 [US1] Crear formulario renter con estados loading/error/éxito en `development/src/features/reviews/presentation/review-form.tsx`.
 - [X] T022 [US1] Añadir la entrada de review en `development/src/app/(app)/dashboard/bookings/[bookingId]/review/page.tsx`.
-- [X] T023 [US1] Ejecutar tests unitarios e integración de US1 y registrar el resultado en `specs/006-modulo-reviews/quickstart.md`.
+- [X] T023 [US1] Ejecutar tests unitarios e integración de US1 y registrar el resultado en `specs/008-modulo-reviews/quickstart.md`.
 
 **Checkpoint**: El renter puede emitir una única review válida y recibe el estado de visibilidad.
 
@@ -125,9 +125,9 @@
 - [X] T050 [P] Crear E2E renter → owner → reputación pública en `development/tests/e2e/reviews.spec.ts`.
 - [X] T051 [P] Crear E2E de ventana expirada, review única, reporte y estado oculto en `development/tests/e2e/reviews-edge-cases.spec.ts`.
 - [X] T052 [P] Verificar accesibilidad de formularios en `development/tests/e2e/reviews-accessibility.spec.ts`.
-- [X] T053 Crear benchmark de agregados en `development/tests/performance/reviews/reviews.performance.test.ts` con 10.000 reviews `PUBLISHED` distribuidas entre 1.000 listings/usuarios y 50 peticiones concurrentes; validar p95 < 500 ms y tasa de errores < 0,1%, y escribir métricas en `specs/006-modulo-reviews/benchmark-results.json`.
-- [X] T054 Actualizar mensajes de estado y documentación en `development/src/features/reviews/presentation/review-status-message.tsx` y `specs/006-modulo-reviews/quickstart.md`.
-- [X] T055 Ejecutar Prisma, tests unitarios, integración, typecheck y Playwright; hacer fallar la validación si T053 incumple p95 < 500 ms o la tasa de errores >= 0,1%, y registrar resultados en `specs/006-modulo-reviews/quickstart.md`.
+- [X] T053 Crear benchmark de agregados en `development/tests/performance/reviews/reviews.performance.test.ts` con 10.000 reviews `PUBLISHED` distribuidas entre 1.000 listings/usuarios y 50 peticiones concurrentes; validar p95 < 500 ms y tasa de errores < 0,1%, y escribir métricas en `specs/008-modulo-reviews/benchmark-results.json`.
+- [X] T054 Actualizar mensajes de estado y documentación en `development/src/features/reviews/presentation/review-status-message.tsx` y `specs/008-modulo-reviews/quickstart.md`.
+- [X] T055 Ejecutar Prisma, tests unitarios, integración, typecheck y Playwright; hacer fallar la validación si T053 incumple p95 < 500 ms o la tasa de errores >= 0,1%, y registrar resultados en `specs/008-modulo-reviews/quickstart.md`.
 
 ---
 

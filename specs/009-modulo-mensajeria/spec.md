@@ -1,6 +1,6 @@
 # Módulo 5: Mensajería — CHAT-001 a CHAT-006
 
-**Estado**: especificación y plan de implementación | **Fecha**: 2026-09-22 | **Plan técnico**: [`specs/007-modulo-mensajeria/plan.md`](plan.md)
+**Estado**: especificación y plan de implementación | **Fecha**: 2026-09-22 | **Plan técnico**: [`specs/009-modulo-mensajeria/plan.md`](plan.md)
 
 ## 1. Objetivo y alcance
 
@@ -33,7 +33,7 @@ La primera entrega registra `messagingRouter` con `sendMessage`, `listMessages`,
 
 ## 3. Esquema Prisma propuesto
 
-El diseño completo está en [`specs/007-modulo-mensajeria/data-model.md`](data-model.md). Resumen de relaciones:
+El diseño completo está en [`specs/009-modulo-mensajeria/data-model.md`](data-model.md). Resumen de relaciones:
 
 ```text
 User 1──N ConversationParticipant N──1 Conversation
@@ -54,7 +54,7 @@ Modelos requeridos:
 
 ## 4. Contratos de API y eventos
 
-Los contratos canónicos están en [`specs/007-modulo-mensajeria/contracts/messaging-events.md`](contracts/messaging-events.md). En resumen:
+Los contratos canónicos están en [`specs/009-modulo-mensajeria/contracts/messaging-events.md`](contracts/messaging-events.md). En resumen:
 
 - tRPC: `sendMessage`, `listMessages`, `markRead`, `getUnreadCount`, `createAttachmentUpload`, `confirmAttachment`.
 - Todos los comandos se autentican, validan con Zod y autorizan por membresía; el servidor deriva identidad y timestamps.

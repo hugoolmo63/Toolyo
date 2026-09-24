@@ -1,12 +1,12 @@
 # Feature Specification: Módulo Administrativo (Backoffice)
 
-**Feature Branch**: `009-modulo-backoffice`
+**Feature Branch**: `012-modulo-backoffice`
 
 **Created**: 2026-09-24
 
 **Status**: Draft
 
-**Input**: User description: "Crea el directorio specs/009-modulo-backoffice/ y genera el archivo spec.md con los requisitos del Módulo Administrativo (ADMIN-001 al ADMIN-008: Autenticación 2FA/RBAC, gestión de usuarios/KYC, aprobación de listings, mediación de disputas, moderación de reviews, reportes/analytics, gestión de categorías y CMS/FAQ). Genera también checklists/requirements.md para iniciar el flujo SpecKit."
+**Input**: User description: "Crea el directorio specs/012-modulo-backoffice/ y genera el archivo spec.md con los requisitos del Módulo Administrativo (ADMIN-001 al ADMIN-008: Autenticación 2FA/RBAC, gestión de usuarios/KYC, aprobación de listings, mediación de disputas, moderación de reviews, reportes/analytics, gestión de categorías y CMS/FAQ). Genera también checklists/requirements.md para iniciar el flujo SpecKit."
 
 ## Clarifications
 

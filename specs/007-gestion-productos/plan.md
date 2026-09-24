@@ -2,7 +2,7 @@
 
 **Branch**: `006-gestion-productos-alquiler` | **Date**: 2026-09-21 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/006-gestion-productos-alquiler/spec.md`
+**Input**: Feature specification from `/specs/007-gestion-productos/spec.md`
 
 ## Summary
 
@@ -94,7 +94,7 @@ Los errores se mapean a `UNAUTHORIZED`, `NOT_FOUND`, `BAD_REQUEST`, `CONFLICT` y
 ### Documentation (this feature)
 
 ```text
-specs/006-gestion-productos-alquiler/
+specs/007-gestion-productos/
 ├── plan.md
 ├── research.md
 ├── data-model.md

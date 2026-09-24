@@ -82,8 +82,8 @@ El objetivo es priorizar un vertical slice navegable y coherente antes de constr
 
 Contratos detallados:
 
-- [Contrato de reservas](../../specs/008-modulo-reservas/contracts/booking-router.md)
-- [Contrato de eventos de mensajería](../../specs/007-modulo-mensajeria/contracts/messaging-events.md)
+- [Contrato de reservas](../../specs/010-modulo-reservas/contracts/booking-router.md)
+- [Contrato de eventos de mensajería](../../specs/009-modulo-mensajeria/contracts/messaging-events.md)
 
 ---
 

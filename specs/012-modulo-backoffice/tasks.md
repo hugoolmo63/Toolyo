@@ -4,7 +4,7 @@ description: "Task list for Módulo Administrativo (Backoffice)"
 
 # Tasks: Módulo Administrativo (Backoffice)
 
-**Input**: Design documents from `/specs/009-modulo-backoffice/`
+**Input**: Design documents from `/specs/012-modulo-backoffice/`
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/admin-router.md`, `quickstart.md`
 
@@ -138,10 +138,10 @@ description: "Task list for Módulo Administrativo (Backoffice)"
 ### Final validation and polish
 
 - [X] T052 [P] [US4] Añadir la vista de auditoría con filtros, paginación, estados vacío/error y accesibilidad en `development/src/features/admin/presentation/audit-log-panel.tsx` y `development/src/app/admin/audit/page.tsx`
-- [X] T053 [P] Actualizar documentación de endpoints, roles y seguridad en `development/README.md` y enlazar `specs/009-modulo-backoffice/quickstart.md`
+- [X] T053 [P] Actualizar documentación de endpoints, roles y seguridad en `development/README.md` y enlazar `specs/012-modulo-backoffice/quickstart.md`
 - [X] T054 [P] Revisar rate limits, headers, cookies, no exposición de secretos y logs sensibles en `development/src/middleware.ts`, `development/src/server/api/trpc.ts`, `development/src/server/auth/rate-limit.service.ts` y `development/src/server/lib/logger.ts`
-- [X] T055 Ejecutar el quickstart completo, lint, tests unitarios/integración, build y E2E; corregir regresiones en `development/` según `specs/009-modulo-backoffice/quickstart.md`
-- [X] T056 Confirmar que el diff no implementa listings, disputas, analytics, categorías ni CMS/FAQ y documentar esos límites en `specs/009-modulo-backoffice/plan.md`
+- [X] T055 Ejecutar el quickstart completo, lint, tests unitarios/integración, build y E2E; corregir regresiones en `development/` según `specs/012-modulo-backoffice/quickstart.md`
+- [X] T056 Confirmar que el diff no implementa listings, disputas, analytics, categorías ni CMS/FAQ y documentar esos límites en `specs/012-modulo-backoffice/plan.md`
 - [X] T057 [P] Añadir benchmark de 100 operaciones administrativas representativas y verificar que el p95 es inferior a 800 ms para SC-004 en `development/tests/integration/admin/admin-performance.test.ts`
 
 **Final Checkpoint**: MVP listo para análisis: las cuatro historias tienen tests independientes, las decisiones administrativas son transaccionales y auditables, y el alcance diferido no se ha implementado accidentalmente.

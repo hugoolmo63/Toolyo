@@ -2,7 +2,7 @@
 
 **Branch**: `009-login-contextual` | **Date**: 2026-09-22 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/009-login-contextual/spec.md`
+**Input**: Feature specification from `/specs/011-login-contextual/spec.md`
 
 ## Summary
 
@@ -54,7 +54,7 @@ Enfoque técnico: provider de diálogo por React Context en `AppProviders`, elem
 ### Documentation (this feature)
 
 ```text
-specs/009-login-contextual/
+specs/011-login-contextual/
 ├── plan.md              # Este archivo
 ├── research.md          # Decisiones de diseño (Phase 0)
 ├── data-model.md        # Entidades y contratos de datos (Phase 1)

@@ -1,8 +1,8 @@
 # Implementation Plan: Módulo Administrativo (Backoffice)
 
-**Branch**: `009-modulo-backoffice` | **Date**: 2026-09-24 | **Spec**: [spec.md](./spec.md)
+**Branch**: `012-modulo-backoffice` | **Date**: 2026-09-24 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `/specs/009-modulo-backoffice/spec.md`
+**Input**: Feature specification from `/specs/012-modulo-backoffice/spec.md`
 
 **Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
 
@@ -58,7 +58,7 @@ No se detectan violaciones constitucionales.
 ### Documentation (this feature)
 
 ```text
-specs/009-modulo-backoffice/
+specs/012-modulo-backoffice/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
 ├── data-model.md        # Phase 1 output (/speckit-plan command)

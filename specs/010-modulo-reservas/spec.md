@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Crea la estructura de especificación en specs/008-modulo-reservas/ (plan.md, data-model.md, research.md, contracts/booking-router.md). Define el modelo Booking en data-model.md incluyendo campos de fechas, estado del ciclo de vida, desglose financiero y relaciones con Listing, User y Conversation. Especifica los endpoints tRPC necesarios para solicitar, aceptar, rechazar y listar reservas. Asegúrate de conectar la creación de una reserva con el inicio de una Conversation para habilitar la mensajería del Módulo 5."
+**Input**: User description: "Crea la estructura de especificación en specs/010-modulo-reservas/ (plan.md, data-model.md, research.md, contracts/booking-router.md). Define el modelo Booking en data-model.md incluyendo campos de fechas, estado del ciclo de vida, desglose financiero y relaciones con Listing, User y Conversation. Especifica los endpoints tRPC necesarios para solicitar, aceptar, rechazar y listar reservas. Asegúrate de conectar la creación de una reserva con el inicio de una Conversation para habilitar la mensajería del Módulo 5."
 
 ## User Scenarios & Testing
 

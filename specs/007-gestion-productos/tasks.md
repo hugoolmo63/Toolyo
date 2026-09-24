@@ -5,7 +5,7 @@ description: "Tareas de implementación para la gestión de productos de alquile
 
 # Tasks: Gestión de productos para alquiler
 
-**Input**: Design documents from `/specs/006-gestion-productos-alquiler/`
+**Input**: Design documents from `/specs/007-gestion-productos/`
 
 **Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/listing-management.md](contracts/listing-management.md), [quickstart.md](quickstart.md)
 
@@ -146,7 +146,7 @@ description: "Tareas de implementación para la gestión de productos de alquile
 - [X] T047 [P] Añadir pruebas de accesibilidad axe-core para panel, formulario y diálogo en `development/tests/e2e/listing-management/listing-management.a11y.spec.ts`.
 - [X] T048 [P] Revisar logging estructurado de mutaciones y errores sin incluir datos sensibles en `development/src/server/api/routers/listing-management.router.ts` y `development/src/features/listing-management/application/listing-management.service.ts`.
 - [X] T049 [P] Revisar límites de rate limiting para lecturas y mutaciones privadas en `development/src/server/auth/rate-limit.service.ts` y configuración de entorno correspondiente.
-- [X] T050 Ejecutar la validación completa descrita en `specs/006-gestion-productos-alquiler/quickstart.md` y corregir fallos de integración, lint o build.
+- [X] T050 Ejecutar la validación completa descrita en `specs/007-gestion-productos/quickstart.md` y corregir fallos de integración, lint o build.
 - [X] T051 Revisar el diff final contra `spec.md`, `data-model.md` y `contracts/listing-management.md`, incluyendo autorización, soft delete, estados, errores y criterios de éxito.
 
 ---

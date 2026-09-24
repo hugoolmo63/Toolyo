@@ -2,7 +2,7 @@
 
 **Branch**: `006-public-user-profile` | **Date**: 2026-09-18 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/006-public-user-profile/spec.md`
+**Input**: Feature specification from `/specs/005-public-user-profile/spec.md`
 
 **Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
 
@@ -53,7 +53,7 @@ No hay violaciones constitucionales que requieran Complexity Tracking.
 ### Documentation (this feature)
 
 ```text
-specs/006-public-user-profile/
+specs/005-public-user-profile/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
 ├── data-model.md        # Phase 1 output (/speckit-plan command)

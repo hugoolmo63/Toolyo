@@ -6,9 +6,9 @@ description: "Task list for the implementation of the reservations and messaging
 
 # Tasks: Módulo de Reservas y Mensajería MVP
 
-**Input**: Design documents from `/Users/hugoolmo63/Documents/projects/Toolyo/specs/008-modulo-reservas/`
+**Input**: Design documents from `/Users/hugoolmo63/Documents/projects/Toolyo/specs/010-modulo-reservas/`
 
-**Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/booking-router.md`; messaging contracts from `specs/007-modulo-mensajeria/contracts/messaging-events.md`.
+**Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/booking-router.md`; messaging contracts from `specs/009-modulo-mensajeria/contracts/messaging-events.md`.
 
 **Tests**: Included because the feature specification explicitly requires unit and integration tests for booking transactions and Socket.io persistence/emission behavior.
 

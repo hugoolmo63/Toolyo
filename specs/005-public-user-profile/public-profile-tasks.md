@@ -5,7 +5,7 @@ description: "Implementation tasks for the public user profile"
 
 # Tasks: Vista Pública del Perfil de Usuario
 
-**Input**: Design documents from `/specs/006-public-user-profile/`
+**Input**: Design documents from `/specs/005-public-user-profile/`
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/profile-public.md`, `quickstart.md`
 
@@ -18,7 +18,7 @@ description: "Implementation tasks for the public user profile"
 **Purpose**: Prepare the feature folders and shared public-profile contracts without changing existing behavior.
 
 - [X] T001 Create the public-profile source folders `development/src/components/profile/`, `development/src/features/users/domain/`, `development/src/features/users/shared/`, and `development/tests/unit/user-profile/`.
-- [X] T002 [P] Add the serializable public profile DTO and child types in `development/src/features/users/domain/public-user-profile.ts` following `specs/006-public-user-profile/data-model.md`.
+- [X] T002 [P] Add the serializable public profile DTO and child types in `development/src/features/users/domain/public-user-profile.ts` following `specs/005-public-user-profile/data-model.md`.
 - [X] T003 [P] Add public-profile input/output schemas and coordinate validation in `development/src/features/users/shared/public-user-profile.schema.ts`.
 - [X] T004 [P] Add the public-profile test fixtures and factories in `development/tests/unit/user-profile/fixtures.ts` without using real personal data.
 
@@ -120,7 +120,7 @@ description: "Implementation tasks for the public user profile"
 - [ ] T035 [P] Add privacy regression assertions that public responses never contain email, phone, credentials, sessions, KYC, security events, exact address, or raw private metadata in `development/tests/integration/user-profile/public-profile-privacy.integration.test.ts`.
 - [X] T036 Run `npx tsc --noEmit` and resolve all type errors introduced by the public profile components and DTOs from `/Users/hugoolmo63/Documents/projects/Toolyo/development`.
 - [X] T037 Run `npm test -- --reporter=dot` and resolve all unit-test regressions from `/Users/hugoolmo63/Documents/projects/Toolyo/development`.
-- [ ] T038 Run the scenarios in `specs/006-public-user-profile/quickstart.md`, including manual no-data/map-failure cases, and document any environment limitation in `specs/006-public-user-profile/quickstart.md`.
+- [ ] T038 Run the scenarios in `specs/005-public-user-profile/quickstart.md`, including manual no-data/map-failure cases, and document any environment limitation in `specs/005-public-user-profile/quickstart.md`.
 - [ ] T039 Review the final diff for compliance with `constitution/SECURITY.md`, `constitution/FRONTEND.md`, `constitution/DATABASE.md`, and `constitution/TESTING.md` before implementation handoff.
 
 ---
