@@ -4,6 +4,6 @@ export function assertBookingParticipant(actorId: string, renterId: string, owne
   if (actorId !== renterId && actorId !== ownerId) throw new ForbiddenError("No participas en esta reserva");
 }
 
-export function assertModerator(role: "user" | "admin") {
-  if (role !== "admin") throw new ForbiddenError("Se requiere rol de moderación");
+export function assertModerator(role: "user" | "admin" | "ADMIN" | "MODERATOR") {
+  if (role !== "admin" && role !== "ADMIN" && role !== "MODERATOR") throw new ForbiddenError("Se requiere rol de moderación");
 }

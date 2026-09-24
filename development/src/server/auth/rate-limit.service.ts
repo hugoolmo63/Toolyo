@@ -14,3 +14,7 @@ export function consumeRateLimit(key: string, limit: number, windowMs: number, n
 export function resetRateLimits(): void {
   buckets.clear();
 }
+
+export function consumeTotpRateLimit(userId: string, now = Date.now()) {
+  return consumeRateLimit(`totp:${userId}`, 5, 60_000, now);
+}

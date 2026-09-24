@@ -6,6 +6,7 @@ import { consumeRateLimit } from "./rate-limit.service";
 import { createSession } from "./session.service";
 import { recordSecurityEvent } from "../services/security-event.service";
 import type { LoginResult } from "@/types/auth";
+import { createPending2faChallenge } from "./admin-2fa-challenge.service";
 
 const LOGIN_RATE_LIMIT = 5;
 const LOGIN_RATE_WINDOW_MS = 60 * 1000;
@@ -57,6 +58,7 @@ export async function loginWithPassword(
     include: {
       passwordCredential: true,
       verificationStates: true,
+      totpCredential: true,
     },
   });
 
@@ -106,10 +108,20 @@ export async function loginWithPassword(
     throw invalidCredentials();
   }
 
-  // Login successful — create session
   const emailVerificationStatus =
     user.verificationStates.find((s) => s.channel === "email")?.status ?? "pending";
 
+  if ((user.role === "ADMIN" || user.role === "MODERATOR") && user.totpCredential?.isEnabled) {
+    const challenge = createPending2faChallenge({ userId: user.id, rememberMe: input.rememberMe, ip: input.ip, userAgent: input.userAgent });
+    await recordSecurityEvent(prisma, { eventType: "login_pending_2fa", outcome: "success", userId: user.id, requestId: input.requestId, metadata: { ip: input.ip ?? "unknown" } });
+    return {
+      result: { userId: user.id, accountStatus: user.accountStatus, emailVerificationStatus: emailVerificationStatus as "pending" | "verified" | "blocked", redirectTo: "/auth?tab=login&twoFactor=required", sessionState: "PENDING_2FA", challengeId: challenge.challengeId, role: user.role },
+      sessionToken: "",
+      ttlSeconds: 0,
+    };
+  }
+
+  // Login successful — create session
   const session = await createSession(prisma, {
     userId: user.id,
     rememberMe: input.rememberMe,
