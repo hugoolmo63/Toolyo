@@ -77,6 +77,8 @@ jobs:
     env:
       NODE_ENV: test
       CI: true
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
       TEST_POSTGRES_IMAGE: toolyo-postgres:15-pgvector-postgis
       STORAGE_PROVIDER: local
       STORAGE_PUBLIC_BASE_URL: http://localhost:3000/uploads
@@ -101,6 +103,29 @@ jobs:
       - name: Build PostgreSQL test image
         working-directory: .
         run: docker build --tag toolyo-postgres:15-pgvector-postgis --file scripts/Dockerfile.postgres-test scripts
+
+      - name: Verify PostgreSQL test extensions
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_name=toolyo-postgres-extension-check
+          docker rm -f "$container_name" >/dev/null 2>&1 || true
+          docker run --detach --name "$container_name" \
+            --env POSTGRES_USER=test \
+            --env POSTGRES_PASSWORD=test \
+            --env POSTGRES_DB=test \
+            toolyo-postgres:15-pgvector-postgis >/dev/null
+          cleanup() { docker rm -f "$container_name" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          for attempt in $(seq 1 30); do
+            if docker exec "$container_name" pg_isready -U test -d test >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+          docker exec "$container_name" psql -v ON_ERROR_STOP=1 -U test -d test -c \
+            "CREATE EXTENSION IF NOT EXISTS vector; CREATE EXTENSION IF NOT EXISTS pg_trgm; CREATE EXTENSION IF NOT EXISTS postgis; SELECT extname FROM pg_extension WHERE extname IN ('vector', 'pg_trgm', 'postgis') ORDER BY extname;"
 
       - run: npm run test:integration
         env:
