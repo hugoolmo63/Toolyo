@@ -1,13 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/trpc-react";
+import { isPrivatePathname } from "@/lib/private-paths";
 
-export function LogoutButton() {
+export function LogoutButton({ className = "btn btn-ghost btn-sm" }: { className?: string }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const utils = api.useUtils();
   const logoutMutation = api.auth.logout.useMutation({
-    onSuccess: () => {
-      router.push("/auth?tab=login");
+    onSuccess: async () => {
+      await utils.auth.getSession.invalidate();
+      // En zona privada hay que salir (middleware echaría al usuario de todos
+      // modos); en página pública se permanece en contexto (FR-008).
+      if (isPrivatePathname(pathname)) {
+        router.push("/auth?tab=login");
+      }
       router.refresh();
     },
   });
@@ -15,7 +23,7 @@ export function LogoutButton() {
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-sm"
+      className={className}
       onClick={() => logoutMutation.mutate()}
       disabled={logoutMutation.isPending}
     >

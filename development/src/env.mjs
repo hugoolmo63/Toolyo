@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-const isTestOrCi = process.env.NODE_ENV === "test" || process.env.CI === "true";
+const isTestOrCi =
+  process.env.NODE_ENV === "test" ||
+  process.env.CI === "true" ||
+  process.env.SKIP_ENV_VALIDATION === "true";
 const testDatabaseUrl = "postgresql://test:test@localhost:5432/test?schema=public";
 const testStorageDefaults = {
   STORAGE_PUBLIC_BASE_URL: "http://localhost:3000/uploads",

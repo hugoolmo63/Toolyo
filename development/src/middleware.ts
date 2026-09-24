@@ -27,6 +27,7 @@ export const config = {
     // Protege el route group (app) — todo bajo /dashboard, /profile, etc.
     "/dashboard/:path*",
     "/profile/:path*",
+    "/messages/:path*",
     // Excluye rutas públicas, auth, API y legales
   ],
 };

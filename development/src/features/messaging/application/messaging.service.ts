@@ -1,9 +1,9 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/server/lib/errors/domain-errors";
-import { countUnreadMessages, isConversationParticipant, listMessages as listMessageRows, markConversationRead, findMessageByClientId, createMessage, toMessagePayload } from "../infrastructure/messaging.repository";
+import { countUnreadMessages, isConversationParticipant, listMessages as listMessageRows, markConversationRead, findMessageByClientId, createMessage, toMessagePayload, findPublishedListing, findListingConversation, createListingConversation, getConversationSummary, listUserConversations } from "../infrastructure/messaging.repository";
 import { attachConfirmedUploads } from "./attachment.service";
 import { notifyMessageByEmail } from "@/features/notifications/application/notification.service";
-import type { ListMessagesInput, MarkReadInput, MessageSendInput } from "../shared/messaging.schema";
+import type { ConversationGetOrCreateInput, ConversationListInput, ListMessagesInput, MarkReadInput, MessageSendInput } from "../shared/messaging.schema";
 
 function decodeCursor(cursor?: string): { createdAt: Date; id: string } | undefined {
   if (!cursor) return undefined;
@@ -22,6 +22,66 @@ function encodeCursor(createdAt: Date, id: string): string {
 
 export async function assertConversationAccess(db: PrismaClient, conversationId: string, userId: string): Promise<void> {
   if (!(await isConversationParticipant(db, conversationId, userId))) throw new ForbiddenError("No perteneces a esta conversación");
+}
+
+interface ConversationSummaryRow {
+  id: string;
+  listing: { id: string; title: string; slug: string } | null;
+  participants: { userId: string; lastReadAt: Date | null; user: { id: string; displayName: string | null } }[];
+  booking?: { id: string; status: string } | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+function toConversationSummary(row: ConversationSummaryRow, userId: string) {
+  const me = row.participants.find((participant) => participant.userId === userId);
+  const other = row.participants.find((participant) => participant.userId !== userId);
+  return {
+    id: row.id,
+    listing: row.listing,
+    participants: row.participants.map((participant) => participant.user),
+    me: me?.user ?? null,
+    otherParticipant: other?.user ?? null,
+    booking: row.booking ?? null,
+    lastReadAt: me?.lastReadAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function getOrCreateListingConversation(db: PrismaClient, userId: string, input: ConversationGetOrCreateInput) {
+  const listing = await findPublishedListing(db, input.listingId);
+  if (!listing) throw new NotFoundError("Listing no encontrado o no disponible");
+  if (listing.ownerId === userId) throw new ForbiddenError("No puedes iniciar una conversación sobre tu propio listing");
+
+  const existing = await findListingConversation(db, listing.id, userId, listing.ownerId);
+  if (existing) return { conversationId: existing.id, created: false };
+
+  const conversation = await createListingConversation(db, listing.id, [userId, listing.ownerId]);
+  return { conversationId: conversation.id, created: true };
+}
+
+export async function getConversation(db: PrismaClient, userId: string, conversationId: string) {
+  await assertConversationAccess(db, conversationId, userId);
+  const row = await getConversationSummary(db, conversationId);
+  if (!row) throw new NotFoundError("Conversación no encontrada");
+  return toConversationSummary(row, userId);
+}
+
+export async function listConversations(db: PrismaClient, userId: string, input: ConversationListInput) {
+  const rows = await listUserConversations(db, userId, input.limit);
+  return rows.map((row) => {
+    const summary = toConversationSummary(row, userId);
+    const lastMessage = row.messages[0];
+    const me = row.participants.find((participant) => participant.userId === userId);
+    return {
+      ...summary,
+      lastMessage: lastMessage
+        ? { id: lastMessage.id, senderId: lastMessage.senderId, body: lastMessage.body, createdAt: lastMessage.createdAt.toISOString() }
+        : null,
+      hasUnread: Boolean(lastMessage && lastMessage.senderId !== userId && (!me?.lastReadAt || lastMessage.createdAt > me.lastReadAt)),
+    };
+  });
 }
 
 export async function sendMessage(db: PrismaClient, userId: string, input: MessageSendInput) {

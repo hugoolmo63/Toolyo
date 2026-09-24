@@ -547,10 +547,13 @@ if (opts.seedFile) {
   }
   ok("Carga de datos completada.");
 } else {
+    log("Aplicando migraciones (prisma migrate deploy)...");
+
+    // migrate deploy aplica también triggers/funciones de los .sql (p.ej.
+    // booking_status_history_immutable), que `db push` ignora.
+    await composeRun([], ["npx", "prisma", "migrate", "deploy"]);
+
     log("Ejecutando seed por defecto (prisma db seed)...");
-
-    await composeRun([], ["npx", "prisma", "db", "push", "--accept-data-loss", "--skip-generate"]);
-
     await composeRun([], ["npx", "prisma", "db", "seed"]);
     ok("Seed por defecto completado.");
   }

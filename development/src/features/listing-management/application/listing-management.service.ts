@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient, type ListingStatus } from "@prisma/client";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/lib/errors/domain-errors";
 import { noActiveCommitments, type ActiveCommitmentsPort } from "./active-commitments.port";
+import { transformersListingEmbedding, type ListingEmbeddingPort } from "./listing-embedding.port";
 import type { ListingManagementDetail, PaginatedListings } from "../domain/listing-management";
 import {
   createListing,
@@ -36,12 +37,12 @@ export async function getMine(db: PrismaClient, ownerId: string, listingId: stri
   return mapDetail(listing, noActiveCommitments.countForListing ? await noActiveCommitments.countForListing(listingId) : { pendingRequests: 0, activeRentals: 0 });
 }
 
-export async function create(db: PrismaClient, ownerId: string, input: CreateListingManagementInput) {
+export async function create(db: PrismaClient, ownerId: string, input: CreateListingManagementInput, embeddings: ListingEmbeddingPort = transformersListingEmbedding) {
   await assertCategory(db, input.categoryId);
   if (input.publish) assertPublishable(input);
   const baseSlug = slugify(input.title);
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const listing = await createListing(tx, {
       owner: { connect: { id: ownerId } },
       category: { connect: { id: input.categoryId } },
@@ -58,9 +59,13 @@ export async function create(db: PrismaClient, ownerId: string, input: CreateLis
     });
     return { listingId: listing.id, slug: listing.slug, status: listing.status };
   });
+  if (result.status === "published") {
+    await embeddings.syncForListing(db, { id: result.listingId, title: input.title, description: input.description ?? null });
+  }
+  return result;
 }
 
-export async function update(db: PrismaClient, ownerId: string, input: UpdateListingManagementInput) {
+export async function update(db: PrismaClient, ownerId: string, input: UpdateListingManagementInput, embeddings: ListingEmbeddingPort = transformersListingEmbedding) {
   const existing = await findMine(db, ownerId, input.listingId);
   if (!existing) throw new NotFoundError("Producto no encontrado");
   if (input.categoryId) await assertCategory(db, input.categoryId);
@@ -73,18 +78,26 @@ export async function update(db: PrismaClient, ownerId: string, input: UpdateLis
   if (input.lat !== undefined) data.lat = input.lat == null ? null : new Prisma.Decimal(input.lat);
   if (input.lng !== undefined) data.lng = input.lng == null ? null : new Prisma.Decimal(input.lng);
   if (input.addressText !== undefined) data.addressText = input.addressText;
-  return db.$transaction(async (tx) => {
-    const result = await updateListing(tx, input.listingId, data);
+  const result = await db.$transaction(async (tx) => {
+    const updated = await updateListing(tx, input.listingId, data);
     if (input.photos !== undefined) await replacePhotos(tx, input.listingId, input.photos);
-    return { id: result.id, updatedAt: result.updatedAt.toISOString(), status: result.status };
+    return { id: updated.id, updatedAt: updated.updatedAt.toISOString(), status: updated.status };
   });
+  const title = input.title ?? existing.title;
+  const description = input.description ?? existing.description;
+  if (existing.status === "published" && (title !== existing.title || description !== existing.description)) {
+    await embeddings.syncForListing(db, { id: result.id, title, description });
+  }
+  return result;
 }
 
-export async function publish(db: PrismaClient, ownerId: string, listingId: string) {
+export async function publish(db: PrismaClient, ownerId: string, listingId: string, embeddings: ListingEmbeddingPort = transformersListingEmbedding) {
   const listing = await findMine(db, ownerId, listingId);
   if (!listing) throw new NotFoundError("Producto no encontrado");
   assertPublishable({ title: listing.title, categoryId: listing.categoryId, pricePerDay: listing.pricePerDay.toString(), photos: listing.photos.map((photo) => ({ url: photo.url, altText: photo.altText ?? undefined, order: photo.order })) });
-  return updateListing(db, listingId, { status: "published" });
+  const result = await updateListing(db, listingId, { status: "published" });
+  await embeddings.syncForListing(db, { id: listingId, title: listing.title, description: listing.description });
+  return result;
 }
 
 export async function remove(db: PrismaClient, ownerId: string, input: RemoveListingInput, commitments: ActiveCommitmentsPort = noActiveCommitments) {

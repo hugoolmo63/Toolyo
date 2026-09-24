@@ -4,6 +4,14 @@ const id = z.string().trim().min(1).max(120);
 
 export const ConversationJoinSchema = z.object({ conversationId: id });
 
+export const ConversationGetOrCreateSchema = z.object({ listingId: id });
+
+export const ConversationGetSchema = z.object({ conversationId: id });
+
+export const ConversationListSchema = z.object({
+  limit: z.number().int().min(1).max(50).default(20),
+});
+
 export const MessageSendSchema = z.object({
   conversationId: id,
   clientMessageId: z.string().trim().min(8).max(120),
@@ -28,3 +36,6 @@ export const GetUnreadCountSchema = z.object({ conversationId: id.optional() });
 export type MessageSendInput = z.infer<typeof MessageSendSchema>;
 export type ListMessagesInput = z.infer<typeof ListMessagesSchema>;
 export type MarkReadInput = z.infer<typeof MarkReadSchema>;
+export type ConversationGetOrCreateInput = z.infer<typeof ConversationGetOrCreateSchema>;
+export type ConversationGetInput = z.infer<typeof ConversationGetSchema>;
+export type ConversationListInput = z.infer<typeof ConversationListSchema>;

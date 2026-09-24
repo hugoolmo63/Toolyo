@@ -6,10 +6,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LoginSchema, type LoginInput } from "@/lib/validations/auth";
 import { api } from "@/lib/trpc-react";
 
-export function LoginForm() {
+interface LoginFormProps {
+  /** "page" (default): redirige al callback tras login. "dialog": sin navegación — invalida sesión, refresca RSC y llama onSuccess (007-login-contextual). */
+  variant?: "page" | "dialog";
+  onSuccess?: () => void;
+}
+
+export function LoginForm({ variant = "page", onSuccess }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const utils = api.useUtils();
   const callback = searchParams.get("callback") ?? "/dashboard";
+  const isDialog = variant === "dialog";
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
@@ -17,7 +25,13 @@ export function LoginForm() {
   });
 
   const loginMutation = api.auth.loginWithPassword.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      if (isDialog) {
+        await utils.auth.getSession.invalidate();
+        router.refresh();
+        onSuccess?.();
+        return;
+      }
       router.push(data.callback);
       router.refresh();
     },
@@ -34,7 +48,7 @@ export function LoginForm() {
     <form className="auth-form" onSubmit={form.handleSubmit(submit)} noValidate>
       <div className="form-intro">
         <p className="form-kicker">Bienvenido de nuevo</p>
-        <h1>Inicia sesión.</h1>
+        <h1 id={isDialog ? "login-dialog-title" : undefined}>Inicia sesión.</h1>
         <p>Accede a tu cuenta para continuar.</p>
       </div>
       <label htmlFor="login-email">Email</label>
@@ -79,7 +93,9 @@ export function LoginForm() {
       </button>
       <p className="auth-switch">
         ¿Aún no estás registrado?{" "}
-        <a href="/auth?tab=register">¡No tardes!</a>
+        <a href="/auth?tab=register" onClick={isDialog ? onSuccess : undefined}>
+          ¡No tardes!
+        </a>
       </p>
     </form>
   );

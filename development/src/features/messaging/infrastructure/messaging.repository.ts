@@ -7,6 +7,69 @@ const messageInclude = {
   attachments: { where: { deletedAt: null }, orderBy: { createdAt: "asc" as const } },
 } as const;
 
+const conversationInclude = {
+  listing: { select: { id: true, title: true, slug: true } },
+  participants: { include: { user: { select: { id: true, displayName: true } } } },
+} as const;
+
+export async function findPublishedListing(db: MessagingDb, listingId: string) {
+  return db.listing.findFirst({
+    where: { id: listingId, status: "published", deletedAt: null },
+    select: { id: true, ownerId: true, title: true, slug: true },
+  });
+}
+
+export async function findListingConversation(db: MessagingDb, listingId: string, userId: string, ownerId: string) {
+  return db.conversation.findFirst({
+    where: {
+      listingId,
+      deletedAt: null,
+      AND: [
+        { participants: { some: { userId } } },
+        { participants: { some: { userId: ownerId } } },
+      ],
+    },
+    select: { id: true },
+  });
+}
+
+export async function createListingConversation(db: MessagingDb, listingId: string, userIds: [string, string]) {
+  return db.conversation.create({
+    data: {
+      listingId,
+      participants: { create: userIds.map((userId) => ({ userId })) },
+    },
+    select: { id: true },
+  });
+}
+
+export async function getConversationSummary(db: MessagingDb, conversationId: string) {
+  return db.conversation.findFirst({
+    where: { id: conversationId, deletedAt: null },
+    include: {
+      ...conversationInclude,
+      booking: { select: { id: true, status: true } },
+    },
+  });
+}
+
+export async function listUserConversations(db: MessagingDb, userId: string, limit: number) {
+  return db.conversation.findMany({
+    where: { deletedAt: null, participants: { some: { userId } } },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+    include: {
+      ...conversationInclude,
+      messages: {
+        where: { deletedAt: null },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: 1,
+        select: { id: true, senderId: true, body: true, createdAt: true },
+      },
+    },
+  });
+}
+
 export async function isConversationParticipant(db: MessagingDb, conversationId: string, userId: string): Promise<boolean> {
   const participant = await db.conversationParticipant.findUnique({ where: { conversationId_userId: { conversationId, userId } }, select: { userId: true } });
   return participant !== null;

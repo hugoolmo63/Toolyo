@@ -1,26 +1,14 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { PublicHeader } from "@/components/public-header";
 
 /**
- * Layout público — header mínimo sin nav de usuario logado.
+ * Layout público — header mínimo con zona de sesión (007-login-contextual).
  * La landing de búsqueda es accesible sin sesión (004-public-search FR-001).
  */
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="public-layout">
-      <header className="public-header">
-        <Link href="/" className="public-logo" aria-label="Toolyo inicio">
-          Toolyo
-        </Link>
-        <nav className="public-nav">
-          <Link href="/auth?tab=login" className="public-nav-link">
-            Iniciar sesión
-          </Link>
-          <Link href="/auth?tab=register" className="public-nav-link public-nav-cta">
-            Crear cuenta
-          </Link>
-        </nav>
-      </header>
+      <PublicHeader />
       <main className="public-main">{children}</main>
     </div>
   );

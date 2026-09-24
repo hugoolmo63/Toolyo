@@ -9,7 +9,7 @@ const navigation = [
   { href: "/dashboard", label: "Resumen", icon: "⌂", enabled: true },
   { href: "/dashboard/products", label: "Mis productos", icon: "▣", enabled: true },
   { href: "/dashboard/bookings", label: "Mis alquileres", icon: "◷", enabled: false },
-  { href: "/dashboard/messages", label: "Mensajes", icon: "✉", enabled: false },
+  { href: "/messages", label: "Mensajes", icon: "✉", enabled: true },
 ];
 
 export function ClientDashboardShell({ children }: { children: ReactNode }) {

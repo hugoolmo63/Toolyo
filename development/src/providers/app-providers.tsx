@@ -4,6 +4,7 @@ import { api } from "@/lib/trpc-react";
 import { createApiClient } from "@/lib/trpc-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { AuthDialogProvider } from "./auth-dialog-provider";
 
 /**
  * Compose de contextos del cliente (FRONTEND.md §2.1).
@@ -23,7 +24,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <api.Provider client={trpcClient} queryClient={queryClient}>
-        {children}
+        <AuthDialogProvider>{children}</AuthDialogProvider>
       </api.Provider>
     </QueryClientProvider>
   );

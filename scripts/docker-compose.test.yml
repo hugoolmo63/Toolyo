@@ -51,6 +51,14 @@ services:
       KYC_PROVIDER: "disabled"
       OTP_SECRET: "test-otp-secret-change-me"
       RATE_LIMIT_STORE: "memory"
+      # Object storage (messaging attachments) — provider local en entorno de test
+      STORAGE_PROVIDER: "local"
+      STORAGE_PUBLIC_BASE_URL: "http://localhost:${HOST_PORT}/uploads"
+      STORAGE_BUCKET: "toolyo-test"
+      STORAGE_REGION: "test"
+      STORAGE_ENDPOINT: "http://localhost:9000"
+      STORAGE_ACCESS_KEY_ID: "test-access-key"
+      STORAGE_SECRET_ACCESS_KEY: "test-secret-key"
     ports:
       - "${HOST_PORT}:3000"
     healthcheck:
@@ -71,6 +79,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://toolyo:toolyo@db:5432/toolyo?schema=public"
       NODE_ENV: "production"
+      SKIP_ENV_VALIDATION: "true"
     working_dir: /app
     profiles:
       - seed

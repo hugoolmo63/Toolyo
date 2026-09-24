@@ -13,6 +13,7 @@ import {
   useSearchParamsState,
   useUpdateSearchParams,
 } from "@/hooks/use-search-params";
+import { PublicHeader } from "@/components/public-header";
 import type { SearchResultsPage, MapPin } from "@/types/search";
 
 /**
@@ -133,7 +134,9 @@ export function SearchPage({ initialResults }: SearchPageProps) {
   const pins: MapPin[] = mapBounds.data ?? [];
 
   return (
-    <div className="search-page">
+    <>
+      <PublicHeader />
+      <div className="search-page">
       <header className="search-header">
         <h1 className="search-title">Encuentra lo que necesitas, alquila con confianza</h1>
         <p className="search-subtitle">
@@ -191,6 +194,7 @@ export function SearchPage({ initialResults }: SearchPageProps) {
           isMobile={isMobile}
         />
       </main>
-    </div>
+      </div>
+    </>
   );
 }
