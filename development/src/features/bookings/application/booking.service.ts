@@ -53,9 +53,13 @@ export async function requestBooking(db: PrismaClient, renterId: string, input: 
     if (overlap.length > 0) throw new BookingAvailabilityConflictError();
 
     const financials = calculateFinancialBreakdown(listing.pricePerDay, { startDate, endDate }, SERVICE_FEE_RATE);
-    const conversation =
-      (await findListingConversation(tx, listing.id, renterId, listing.ownerId)) ??
-      (await createConversation(tx, listing.id, renterId, listing.ownerId));
+    // Reuse an unassigned contact conversation for the first booking. Once a
+    // conversation is linked to a booking, create a new one because
+    // Booking.conversationId is unique; idempotency above prevents duplicates.
+    const contactConversation = await findListingConversation(tx, listing.id, renterId, listing.ownerId);
+    const conversation = contactConversation && !contactConversation.booking
+      ? contactConversation
+      : await createConversation(tx, listing.id, renterId, listing.ownerId);
     const booking = await createBooking(tx, {
       listingId: listing.id,
       renterId,

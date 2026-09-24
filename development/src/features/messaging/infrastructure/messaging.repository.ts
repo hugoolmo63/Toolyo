@@ -29,7 +29,7 @@ export async function findListingConversation(db: MessagingDb, listingId: string
         { participants: { some: { userId: ownerId } } },
       ],
     },
-    select: { id: true },
+    select: { id: true, booking: { select: { id: true } } },
   });
 }
 
