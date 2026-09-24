@@ -13,6 +13,7 @@ import { Calendar } from "./calendar";
 import { PriceTable } from "./price-table";
 import { ActionButtons } from "./action-buttons";
 import dynamic from "next/dynamic";
+import type { ReputationAggregate } from "@/features/reviews/presentation/reputation-summary";
 
 const ListingLocationMap = dynamic(() => import("./listing-location-map").then((module) => module.ListingLocationMap), { ssr: false });
 
@@ -23,9 +24,10 @@ const ListingLocationMap = dynamic(() => import("./listing-location-map").then((
  */
 interface ListingDetailPageProps {
   listing: ListingDetailDTO;
+  reputation?: ReputationAggregate;
 }
 
-export function ListingDetailPage({ listing }: ListingDetailPageProps) {
+export function ListingDetailPage({ listing, reputation }: ListingDetailPageProps) {
   return (
     <div className="listing-detail-page">
       <Gallery photos={listing.photos} title={listing.title} />
@@ -55,7 +57,7 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
             availability={listing.availability}
           />
 
-          <ReviewsSection listing={listing} />
+          <ReviewsSection listing={listing} reputation={reputation} />
           <SimilarListings listing={listing} />
         </div>
 

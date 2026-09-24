@@ -39,8 +39,8 @@ export async function createTRPCContext(opts: { prisma: PrismaClient; request?: 
     if (token) {
       const claims = await validateSession(opts.prisma, token);
       if (claims) {
-        // TODO: derive role from user data when RBAC is fully implemented
-        session = { userId: claims.userId, role: "user" };
+        const user = await opts.prisma.user.findUnique({ where: { id: claims.userId }, select: { role: true } });
+        session = { userId: claims.userId, role: user?.role === "admin" ? "admin" : "user" };
         sessionToken = token;
       }
     }
@@ -95,6 +95,11 @@ export const authedProcedure = t.procedure.use(({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({ ctx: { ...ctx, session: ctx.session } });
+});
+
+export const adminProcedure = authedProcedure.use(({ ctx, next }) => {
+  if (ctx.session.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+  return next({ ctx });
 });
 
 export const createTRPCRouter = t.router;

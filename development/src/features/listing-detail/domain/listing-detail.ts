@@ -33,6 +33,7 @@ export interface ListingReviewDTO {
   id: string;
   author: { id: string; displayName: string | null; avatarUrl: string | null };
   rating: number;
+  status: "published" | "under_review";
   comment: string | null;
   createdAt: string;
 }

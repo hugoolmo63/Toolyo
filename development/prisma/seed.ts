@@ -445,6 +445,8 @@ async function main() {
           update: {
             authorId,
             rating: 3 + ((listingIndex + reviewIndex) % 3),
+            overallRating: 3 + ((listingIndex + reviewIndex) % 3),
+            status: "published",
             comment: reviewComments[(listingIndex + reviewIndex) % reviewComments.length],
             deletedAt: null,
           },
@@ -453,6 +455,8 @@ async function main() {
             listingId: id,
             authorId,
             rating: 3 + ((listingIndex + reviewIndex) % 3),
+            overallRating: 3 + ((listingIndex + reviewIndex) % 3),
+            status: "published",
             comment: reviewComments[(listingIndex + reviewIndex) % reviewComments.length],
             createdAt: new Date(Date.now() - (listingIndex + reviewIndex) * 86_400_000),
           },
@@ -574,7 +578,9 @@ async function main() {
 
   await prisma.messageAttachment.deleteMany({ where: { id: { startsWith: "seed-attachment-" } } });
   await prisma.message.deleteMany({ where: { id: { startsWith: "seed-message-" } } });
+  await prisma.$executeRawUnsafe('ALTER TABLE "BookingStatusHistory" DISABLE TRIGGER booking_status_history_immutable');
   await prisma.bookingStatusHistory.deleteMany({ where: { bookingId } });
+  await prisma.$executeRawUnsafe('ALTER TABLE "BookingStatusHistory" ENABLE TRIGGER booking_status_history_immutable');
   await prisma.conversationParticipant.deleteMany({ where: { conversationId: bookingConversationId } });
   await prisma.booking.deleteMany({ where: { id: bookingId } });
   await prisma.conversation.deleteMany({ where: { id: bookingConversationId } });

@@ -22,7 +22,7 @@ export function UserProfileReviews({ reviews }: { reviews: PublicReview[] }) {
         </Link>
         <ReviewStars rating={review.rating} />
         <p>Producto: <Link href={`/listings/${review.listing.slug}`} className="profile-review-listing-link">{review.listing.title}</Link></p>
-        <p>{review.comment ?? "Sin comentario"}</p><time dateTime={review.createdAt}>{new Date(review.createdAt).toLocaleDateString("es-ES")}</time>
+        <p>{review.comment ?? "Sin comentario"}</p>{review.status === "under_review" && <p className="review-moderation-status" role="status">Esta reseña está siendo revisada y sigue visible mientras se resuelve el reporte.</p>}<time dateTime={review.createdAt}>{new Date(review.createdAt).toLocaleDateString("es-ES")}</time>
       </article>)}</div>
       {visibleCount < reviews.length && <button type="button" className="reviews-load-more" onClick={() => setVisibleCount((count) => count + 10)}>Cargar más</button>}
     </>}

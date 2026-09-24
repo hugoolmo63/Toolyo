@@ -53,6 +53,7 @@ export interface RawAvailabilityRow {
 export interface RawListingReviewRow {
   id: string;
   rating: number;
+  status: "published" | "under_review";
   comment: string | null;
   createdAt: Date;
   authorId: string;
@@ -62,10 +63,10 @@ export interface RawListingReviewRow {
 
 export async function findReviewsByListingId(prisma: PrismaClient, listingId: string): Promise<RawListingReviewRow[]> {
   return prisma.review.findMany({
-    where: { listingId, deletedAt: null },
+    where: { listingId, status: { in: ["published", "under_review"] }, deletedAt: null },
     orderBy: { createdAt: "desc" },
-    select: { id: true, rating: true, comment: true, createdAt: true, authorId: true, author: { select: { displayName: true, avatarUrl: true } } },
-  }).then((rows) => rows.map((row) => ({ id: row.id, rating: row.rating, comment: row.comment, createdAt: row.createdAt, authorId: row.authorId, authorDisplayName: row.author.displayName, authorAvatarUrl: row.author.avatarUrl })));
+    select: { id: true, rating: true, status: true, comment: true, createdAt: true, authorId: true, author: { select: { displayName: true, avatarUrl: true } } },
+  }).then((rows) => rows.map((row) => ({ id: row.id, rating: row.rating, status: row.status as "published" | "under_review", comment: row.comment, createdAt: row.createdAt, authorId: row.authorId, authorDisplayName: row.author.displayName, authorAvatarUrl: row.author.avatarUrl })));
 }
 
 
@@ -149,6 +150,7 @@ export async function findListingBySlug(
       SELECT AVG("rating") AS "ratingAverage", COUNT(*)::int AS "reviewCount"
       FROM "Review" AS listing_review
       WHERE listing_review."listingId" = "Listing"."id"
+        AND listing_review."status" = 'published'
         AND listing_review."deletedAt" IS NULL
     ) AS review_stats ON TRUE
     WHERE ${Prisma.raw(BASE_WHERE)} AND "Listing"."slug" = ${slug}

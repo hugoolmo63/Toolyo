@@ -36,6 +36,11 @@ enum AccountStatus {
   deleted
 }
 
+enum UserRole {
+  user
+  admin
+}
+
 enum VerificationChannel {
   email
   phone
@@ -107,11 +112,37 @@ enum AttachmentType {
   image
 }
 
+enum ReviewDirection {
+  renter_to_owner
+  owner_to_renter
+}
+
+enum ReviewStatus {
+  hidden
+  published
+  under_review
+  removed
+}
+
+enum ReviewReportReason {
+  offensive
+  inappropriate
+  false
+  irrelevant
+}
+
+enum ReviewReportStatus {
+  open
+  resolved
+  dismissed
+}
+
 model User {
   id                       String                    @id @default(cuid())
   emailNormalized          String                    @unique
   phoneE164                String?                   @unique
   accountStatus            AccountStatus             @default(pending)
+  role                     UserRole                  @default(user)
   displayName              String?                   @db.VarChar(100)
   avatarUrl                String?                   @db.VarChar(512)
   bio                      String?                   @db.Text
@@ -132,6 +163,9 @@ model User {
   sessions                 Session[]
   listings                 Listing[]
   reviewsWritten           Review[]
+  reviewsReceived          Review[]                  @relation("Reviewee")
+  reviewReports            ReviewReport[]            @relation("ReviewReporter")
+  resolvedReviewReports    ReviewReport[]            @relation("ReviewResolver")
   bookingsAsRenter         Booking[]                 @relation("BookingRenter")
   bookingsAsOwner          Booking[]                 @relation("BookingOwner")
   bookingStatusChanges     BookingStatusHistory[]    @relation("BookingStatusChangedBy")
@@ -333,20 +367,71 @@ model Listing {
 
 /// Valoración pública de un listing realizada por un usuario.
 model Review {
-  id        String    @id @default(cuid())
-  listingId String
-  authorId  String
-  rating    Int
-  comment   String?   @db.Text
-  createdAt DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
-  deletedAt DateTime?
+  id            String           @id @default(cuid())
+  /// Nullable for compatibility with legacy listing reviews; new review submissions require it.
+  bookingId     String?
+  listingId     String
+  authorId      String
+  /// Nullable for compatibility with legacy listing reviews; new submissions require both fields.
+  revieweeId    String?
+  direction     ReviewDirection?
+  status        ReviewStatus     @default(hidden)
+  /// Campo legado usado por las vistas de listing existentes.
+  rating        Int              @default(0)
+  overallRating Int              @default(0)
+  comment       String?          @db.Text
+  submittedAt   DateTime         @default(now()) @db.Timestamptz(6)
+  expiresAt     DateTime?        @db.Timestamptz(6)
+  publishedAt   DateTime?        @db.Timestamptz(6)
+  createdAt     DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime         @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?        @db.Timestamptz(6)
 
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  author  User    @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  booking        Booking?              @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  author         User                  @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  reviewee       User?                 @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Restrict)
+  categoryScores ReviewCategoryScore[]
+  reports        ReviewReport[]
+  Listing        Listing               @relation(fields: [listingId], references: [id])
 
-  @@index([listingId, deletedAt, createdAt])
-  @@index([authorId, createdAt])
+  @@unique([bookingId, authorId, direction])
+  @@index([listingId, status, deletedAt, createdAt])
+  @@index([revieweeId, status, createdAt])
+  @@index([bookingId, status])
+  @@index([status, expiresAt, deletedAt])
+}
+
+model ReviewCategoryScore {
+  id       String @id @default(cuid())
+  reviewId String
+  category String @db.VarChar(64)
+  rating   Int
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, category])
+  @@index([category, rating])
+}
+
+model ReviewReport {
+  id           String             @id @default(cuid())
+  reviewId     String
+  reporterId   String
+  reason       ReviewReportReason
+  description  String?            @db.Text
+  status       ReviewReportStatus @default(open)
+  resolution   String?            @db.Text
+  resolvedById String?
+  createdAt    DateTime           @default(now()) @db.Timestamptz(6)
+  resolvedAt   DateTime?          @db.Timestamptz(6)
+
+  review     Review @relation(fields: [reviewId], references: [id], onDelete: Restrict)
+  reporter   User   @relation("ReviewReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  resolvedBy User?  @relation("ReviewResolver", fields: [resolvedById], references: [id], onDelete: Restrict)
+
+  @@unique([reviewId, reporterId, reason, status])
+  @@index([reviewId, status, createdAt])
+  @@index([reporterId, status, createdAt])
 }
 
 /// Embedding semántico generado por OpenAI para búsqueda pgvector.
@@ -405,6 +490,7 @@ model Booking {
   startDate          DateTime      @db.Date
   endDate            DateTime      @db.Date
   status             BookingStatus @default(pending)
+  completedAt        DateTime?     @db.Timestamptz(6)
   pricePerDay        Decimal       @db.Decimal(19, 4)
   totalDays          Int
   subtotal           Decimal       @db.Decimal(19, 4)
@@ -423,6 +509,7 @@ model Booking {
   owner         User                   @relation("BookingOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   conversation  Conversation           @relation("BookingConversation", fields: [conversationId], references: [id], onDelete: Restrict)
   statusHistory BookingStatusHistory[]
+  reviews       Review[]
 
   @@unique([renterId, idempotencyKey])
   @@index([listingId, status, startDate, endDate])
