@@ -73,6 +73,22 @@ export function UserMenu() {
           >
             Ir a mi panel
           </Link>
+          <Link
+            href="/dashboard/bookings"
+            role="menuitem"
+            className="user-menu-item"
+            onClick={() => setMenuOpen(false)}
+          >
+            Mis reservas
+          </Link>
+          <Link
+            href="/messages"
+            role="menuitem"
+            className="user-menu-item"
+            onClick={() => setMenuOpen(false)}
+          >
+            Mensajes
+          </Link>
           <LogoutButton className="user-menu-item user-menu-item-button" />
         </div>
       )}

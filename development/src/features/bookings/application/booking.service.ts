@@ -5,6 +5,7 @@ import { assertValidDateRange, parseCalendarDate } from "../domain/date-range";
 import { calculateFinancialBreakdown } from "../domain/financial-breakdown";
 import type { BookingAcceptInput, BookingListInput, BookingRejectInput, BookingRequestInput } from "../shared/booking.schema";
 import { createBooking, createConversation, createStatusHistory, findBookingByIdempotency, findBookingForActor, findOverlappingBookings, getListing, listBookings, updateBookingStatus } from "../infrastructure/booking.repository";
+import { findListingConversation } from "@/features/messaging/infrastructure/messaging.repository";
 
 const SERVICE_FEE_RATE = new Prisma.Decimal("0.10");
 
@@ -52,7 +53,9 @@ export async function requestBooking(db: PrismaClient, renterId: string, input: 
     if (overlap.length > 0) throw new BookingAvailabilityConflictError();
 
     const financials = calculateFinancialBreakdown(listing.pricePerDay, { startDate, endDate }, SERVICE_FEE_RATE);
-    const conversation = await createConversation(tx, listing.id, renterId, listing.ownerId);
+    const conversation =
+      (await findListingConversation(tx, listing.id, renterId, listing.ownerId)) ??
+      (await createConversation(tx, listing.id, renterId, listing.ownerId));
     const booking = await createBooking(tx, {
       listingId: listing.id,
       renterId,

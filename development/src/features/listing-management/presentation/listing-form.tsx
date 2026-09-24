@@ -65,7 +65,7 @@ export function ListingForm({ categories, initialListing }: { categories: Catego
           <input className="input" type="number" step="any" {...form.register("lng", { setValueAs: (value) => value === "" ? null : Number(value) })} />
         </label>
       </div>
-      <ListingPhotoEditor photos={photos} setValue={form.setValue} />
+      <ListingPhotoEditor photos={photos} setValue={form.setValue} errors={form.formState.errors.photos} />
       {errorMessage && <p role="alert" className="form-error">{errorMessage}</p>}
       <div className="form-actions">
         <button type="submit" className="btn btn-primary" disabled={isPending}>

@@ -832,3 +832,27 @@ dialog.login-dialog .auth-form { margin: 0 auto; }
 .chat-input { flex: 1; resize: none; padding: var(--ps-space-2) var(--ps-space-3); border: 1px solid var(--ps-neutral-300); border-radius: var(--ps-radius-md); font-family: inherit; font-size: var(--ps-text-sm); }
 .chat-input:focus { outline: none; border-color: var(--ps-primary-500); box-shadow: var(--ps-shadow-focus); }
 .chat-send { padding: 0 var(--ps-space-5); }
+
+/* Bookings — diálogo de solicitud */
+.booking-dialog-listing { margin: 0 0 var(--ps-space-3) !important; font-weight: 600; color: var(--ps-neutral-900) !important; }
+.booking-dialog-dates { display: flex; gap: var(--ps-space-6); margin: 0 0 var(--ps-space-4); }
+.booking-dialog-dates div { display: grid; gap: 2px; }
+.booking-dialog-dates dt { font-size: var(--ps-text-xs); font-weight: 600; color: var(--ps-neutral-500); text-transform: uppercase; letter-spacing: 0.04em; }
+.booking-dialog-dates dd { margin: 0; font-size: var(--ps-text-sm); color: var(--ps-neutral-900); }
+.booking-summary { margin: 0 0 var(--ps-space-4); padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-neutral-200); border-radius: var(--ps-radius-md); background: var(--ps-neutral-50); display: grid; gap: var(--ps-space-2); }
+.booking-summary-row { display: flex; justify-content: space-between; gap: var(--ps-space-3); font-size: var(--ps-text-sm); color: var(--ps-neutral-700); }
+.booking-summary-row dd { margin: 0; font-variant-numeric: tabular-nums; }
+.booking-summary-total { padding-top: var(--ps-space-2); border-top: 1px solid var(--ps-neutral-200); font-weight: 700; color: var(--ps-neutral-900); }
+
+/* Bookings — panel */
+.booking-filters { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); margin-bottom: var(--ps-space-4); }
+.booking-filter { display: inline-flex; align-items: center; min-height: 32px; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-neutral-300); border-radius: var(--ps-radius-full); font-size: var(--ps-text-xs); font-weight: 600; color: var(--ps-neutral-700); text-decoration: none; background: var(--ps-surface-0); }
+.booking-filter:hover { border-color: var(--ps-primary-300); color: var(--ps-primary-700); }
+.booking-filter.is-active { border-color: var(--ps-primary-500); background: var(--ps-primary-50); color: var(--ps-primary-700); }
+.booking-item .conversation-item-meta { flex-direction: column; align-items: flex-end; }
+
+/* Bookings — banner de contexto en el chat */
+.booking-context-banner { display: flex; align-items: center; justify-content: space-between; gap: var(--ps-space-3); padding: var(--ps-space-3) var(--ps-space-4); margin-bottom: var(--ps-space-3); border: 1px solid var(--ps-neutral-200); border-radius: var(--ps-radius-md); background: var(--ps-neutral-50); }
+.booking-context-banner-text { display: grid; gap: 2px; min-width: 0; }
+.booking-context-banner-title { margin: 0; font-size: var(--ps-text-sm); font-weight: 600; color: var(--ps-neutral-900); }
+.booking-context-banner-dates { margin: 0; font-size: var(--ps-text-xs); color: var(--ps-neutral-600); }

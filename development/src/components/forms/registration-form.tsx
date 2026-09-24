@@ -3,16 +3,25 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 import { RegistrationSchema, type RegistrationInput } from "@/lib/validations/auth";
 import { api } from "@/lib/trpc-react";
 import type { LegalRegistrationDocument } from "@/types/auth";
 import { SsoButtons } from "./sso-buttons";
 
+// En checkboxes RHF devuelve el atributo `value` al marcarlos y `false` al
+// no marcarlos (setValueAs no se aplica a checkboxes en esta versión).
+// El mensaje de tipo cubre el caso "no aceptado" (boolean false).
+const RegistrationFormSchema = RegistrationSchema.extend({
+  termsDocumentId: z.string({ invalid_type_error: "Debes aceptar los Términos y Condiciones." }).min(1, "Debes aceptar los Términos y Condiciones.").cuid(),
+  privacyDocumentId: z.string({ invalid_type_error: "Debes aceptar la Política de Privacidad." }).min(1, "Debes aceptar la Política de Privacidad.").cuid(),
+});
+
 export function RegistrationForm({ legalDocuments }: { legalDocuments: LegalRegistrationDocument[] }) {
   const router = useRouter();
   const termsDocumentId = legalDocuments.find((document) => document.documentType === "terms")?.id ?? "";
   const privacyDocumentId = legalDocuments.find((document) => document.documentType === "privacy")?.id ?? "";
-  const form = useForm<RegistrationInput>({ resolver: zodResolver(RegistrationSchema), defaultValues: { email: "", password: "", termsDocumentId, privacyDocumentId, marketingAccepted: false } });
+  const form = useForm<RegistrationInput>({ resolver: zodResolver(RegistrationFormSchema), defaultValues: { email: "", password: "", termsDocumentId: "", privacyDocumentId: "", marketingAccepted: false } });
   const registerMutation = api.auth.registerWithPassword.useMutation({
     onSuccess: (data, variables) => {
       router.push(`/verify?email=${encodeURIComponent(variables.email)}&challengeId=${data.challengeId}`);
@@ -41,8 +50,10 @@ export function RegistrationForm({ legalDocuments }: { legalDocuments: LegalRegi
       <input id="registration-password" type="password" autoComplete="new-password" {...form.register("password")} aria-invalid={Boolean(form.formState.errors.password)} aria-describedby="registration-password-error" />
       <p className="field-hint">Mínimo 12 caracteres.</p>
       {form.formState.errors.password && <p className="field-error" id="registration-password-error" role="alert">{form.formState.errors.password.message}</p>}
-      <label className="check-row" htmlFor="terms-accepted"><input id="terms-accepted" type="checkbox" {...form.register("termsDocumentId", { setValueAs: (checked) => checked ? termsDocumentId : "" })} /><span>Acepto los <a href="/legal/terms">Términos y Condiciones</a>.</span></label>
-      <label className="check-row" htmlFor="privacy-accepted"><input id="privacy-accepted" type="checkbox" {...form.register("privacyDocumentId", { setValueAs: (checked) => checked ? privacyDocumentId : "" })} /><span>He leído la <a href="/legal/privacy">Política de Privacidad</a>.</span></label>
+      <label className="check-row" htmlFor="terms-accepted"><input id="terms-accepted" type="checkbox" value={termsDocumentId} {...form.register("termsDocumentId")} aria-invalid={Boolean(form.formState.errors.termsDocumentId)} aria-describedby="terms-accepted-error" /><span>Acepto los <a href="/legal/terms">Términos y Condiciones</a>.</span></label>
+      {form.formState.errors.termsDocumentId && <p className="field-error" id="terms-accepted-error" role="alert">{form.formState.errors.termsDocumentId.message}</p>}
+      <label className="check-row" htmlFor="privacy-accepted"><input id="privacy-accepted" type="checkbox" value={privacyDocumentId} {...form.register("privacyDocumentId")} aria-invalid={Boolean(form.formState.errors.privacyDocumentId)} aria-describedby="privacy-accepted-error" /><span>He leído la <a href="/legal/privacy">Política de Privacidad</a>.</span></label>
+      {form.formState.errors.privacyDocumentId && <p className="field-error" id="privacy-accepted-error" role="alert">{form.formState.errors.privacyDocumentId.message}</p>}
       <label className="check-row optional" htmlFor="marketing-accepted"><input id="marketing-accepted" type="checkbox" {...form.register("marketingAccepted")} /><span>Quiero recibir novedades y oportunidades de Toolyo.</span></label>
       {form.formState.errors.root && <p className="form-error" role="alert">{form.formState.errors.root.message}</p>}
       <button className="auth-submit" type="submit" disabled={registerMutation.isPending}>{registerMutation.isPending ? "Creando cuenta..." : "Crear cuenta"}</button>

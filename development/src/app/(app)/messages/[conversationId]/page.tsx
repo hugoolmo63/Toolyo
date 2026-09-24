@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createServerApi } from "@/lib/server-api";
 import { ChatThread } from "@/features/messaging/presentation/chat-thread";
+import { BookingContextBanner } from "@/features/messaging/presentation/booking-context-banner";
 
 /**
  * Chat de una conversación — Server Component (007-modulo-mensajeria).
@@ -53,6 +54,8 @@ export default async function ConversationPage({ params }: ConversationPageProps
           </span>
         )}
       </div>
+
+      {conversation.booking && <BookingContextBanner booking={conversation.booking} />}
 
       <ChatThread
         conversationId={conversation.id}

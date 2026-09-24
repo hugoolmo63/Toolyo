@@ -70,6 +70,15 @@ describe("booking.request integration", () => {
     expect(await prisma.conversation.count()).toBe(1);
   });
 
+  it("reuses the existing contact conversation when requesting a booking", async () => {
+    const caller = await callerFor(renterId);
+    const contact = await caller.messaging.getOrCreateConversation({ listingId });
+    const result = await caller.booking.request({ listingId, startDate: "2030-09-01", endDate: "2030-09-03", idempotencyKey: "request-integration-5" });
+    expect(result.conversationId).toBe(contact.conversationId);
+    expect(await prisma.conversation.count()).toBe(1);
+    expect(await prisma.conversationParticipant.count({ where: { conversationId: result.conversationId } })).toBe(2);
+  });
+
   it("rejects an overlapping request without creating a partial conversation", async () => {
     const caller = await callerFor(renterId);
     await caller.booking.request({ listingId, startDate: "2030-08-01", endDate: "2030-08-04", idempotencyKey: "request-integration-3" });

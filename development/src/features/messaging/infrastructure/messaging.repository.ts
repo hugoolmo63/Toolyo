@@ -48,7 +48,7 @@ export async function getConversationSummary(db: MessagingDb, conversationId: st
     where: { id: conversationId, deletedAt: null },
     include: {
       ...conversationInclude,
-      booking: { select: { id: true, status: true } },
+      booking: { select: { id: true, status: true, startDate: true, endDate: true, totalPrice: true, currencyCode: true } },
     },
   });
 }

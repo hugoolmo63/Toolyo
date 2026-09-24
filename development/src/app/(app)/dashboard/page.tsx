@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createServerApi } from "@/lib/server-api";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/forms/logout-button";
@@ -20,6 +21,8 @@ export default async function DashboardPage() {
       <section className="dashboard-section">
         <p>Estado de tu cuenta: <strong>{onboarding.accountStatus}</strong></p>
         <p>Email: <strong>{onboarding.email}</strong></p>
+        <p><Link href="/dashboard/bookings" className="dashboard-link">Mis reservas →</Link></p>
+        <p><Link href="/messages" className="dashboard-link">Mensajes →</Link></p>
       </section>
 
       <section className="dashboard-section">
