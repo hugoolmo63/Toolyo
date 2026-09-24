@@ -59,7 +59,12 @@ export async function findBookingForActor(db: BookingDb, bookingId: string, user
 export async function updateBookingStatus(db: BookingDb, bookingId: string, status: BookingStatus, actorId: string, rejectionReason?: string) {
   return db.booking.update({
     where: { id: bookingId },
-    data: { status, lastTransitionById: actorId, rejectionReason: rejectionReason ?? null },
+    data: {
+      status,
+      lastTransitionById: actorId,
+      rejectionReason: rejectionReason ?? null,
+      ...(status === "completed" ? { completedAt: new Date() } : {}),
+    },
     include: bookingInclude,
   });
 }

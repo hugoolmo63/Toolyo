@@ -1,6 +1,6 @@
 import type { ListingDetailDTO } from "@/types/listing-detail";
 import { EmptySection } from "./empty-section";
-import { ListingReviewsList } from "./listing-reviews-list";
+import { ReputationSummary, type ReputationAggregate } from "@/features/reviews/presentation/reputation-summary";
 
 /**
  * ReviewsSection — sección de reviews con puntuación media y distribución.
@@ -10,10 +10,13 @@ import { ListingReviewsList } from "./listing-reviews-list";
  */
 interface ReviewsSectionProps {
   listing: ListingDetailDTO;
+  reputation?: ReputationAggregate;
 }
 
-export function ReviewsSection({ listing }: ReviewsSectionProps) {
-  if (listing.reviews.length === 0) {
+export function ReviewsSection({ listing, reputation }: ReviewsSectionProps) {
+  const visibleReviews = listing.reviews;
+  const publicReputation = reputation ?? { averageRating: listing.ratingAverage || null, reviewCount: visibleReviews.length, categories: [] };
+  if (visibleReviews.length === 0 && publicReputation.reviewCount === 0) {
     return (
       <EmptySection
         title="Reviews"
@@ -25,18 +28,7 @@ export function ReviewsSection({ listing }: ReviewsSectionProps) {
   return (
     <section id="reviews" className="reviews-section" aria-labelledby="reviews-heading">
       <h2 id="reviews-heading">Reviews</h2>
-      <div className="reviews-summary">
-        <span
-          className="reviews-average"
-          aria-label={`Valoración media ${listing.ratingAverage.toFixed(1)} de 5`}
-        >
-          ★ {listing.ratingAverage.toFixed(1)}
-        </span>
-        <span className="reviews-count">
-          {listing.reviews.length} reseña{listing.reviews.length !== 1 ? "s" : ""}
-        </span>
-      </div>
-      <ListingReviewsList reviews={listing.reviews} />
+      <ReputationSummary reputation={publicReputation} reviews={visibleReviews.map((review) => ({ id: review.id, rating: review.rating, status: review.status, comment: review.comment, authorName: review.author.displayName }))} heading="Reviews" />
     </section>
   );
 }

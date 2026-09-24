@@ -5,5 +5,5 @@ COPY init-extensions.sql /docker-entrypoint-initdb.d/01-extensions.sql
 COPY init-test-db.sql /docker-entrypoint-initdb.d/10-extensions.sql
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgis postgresql-15-postgis-3 \
+    && apt-get install -y --no-install-recommends postgresql-contrib postgis postgresql-15-postgis-3 \
     && rm -rf /var/lib/apt/lists/*

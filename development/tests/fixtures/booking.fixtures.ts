@@ -21,6 +21,7 @@ export async function createBookingFixture(
       startDate: overrides.startDate ?? new Date("2030-06-01T00:00:00.000Z"),
       endDate: overrides.endDate ?? new Date("2030-06-04T00:00:00.000Z"),
       status: overrides.status ?? "pending",
+      completedAt: overrides.completedAt,
       pricePerDay: overrides.pricePerDay ?? new Prisma.Decimal("25.0000"),
       totalDays: overrides.totalDays ?? 3,
       subtotal: overrides.subtotal ?? new Prisma.Decimal("75.0000"),

@@ -18,7 +18,7 @@ export async function getPublicUserProfile(
     preferredLocation: record.preferredLocation,
     createdAt: record.createdAt.toISOString(),
     ratingAverage: (() => {
-      const ratings = record.listings.flatMap((listing) => (listing.reviews ?? []).map((review) => review.rating));
+      const ratings = record.listings.flatMap((listing) => (listing.reviews ?? []).filter((review) => review.status === "published").map((review) => review.rating));
       return ratings.length ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 10) / 10 : null;
     })(),
     transactionCount: record.transactionCount ?? 0,
@@ -38,6 +38,7 @@ export async function getPublicUserProfile(
       author: { id: review.authorId, displayName: review.author.displayName, avatarUrl: review.author.avatarUrl },
       listing: { id: listing.id, title: listing.title, slug: listing.slug },
       rating: review.rating,
+      status: (review.status === "under_review" ? "under_review" : "published") as "published" | "under_review",
       comment: review.comment,
       createdAt: review.createdAt.toISOString(),
     }))).sort((first, second) => second.createdAt.localeCompare(first.createdAt)),

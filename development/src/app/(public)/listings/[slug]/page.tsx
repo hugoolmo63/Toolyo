@@ -3,6 +3,7 @@ import { prisma } from "@/server/db/client";
 import { getListingBySlug, incrementView } from "@/features/listing-detail/application/listing-detail.service";
 import { ListingDetailPage } from "@/features/listing-detail/presentation";
 import { logger } from "@/server/lib/logger";
+import { getPublishedListingAggregate } from "@/features/reviews/infrastructure/review.repository";
 
 /**
  * Página de detalle del producto — Server Component (005-listing-detail).
@@ -22,10 +23,12 @@ export default async function ListingPage({ params }: ListingPageProps) {
     notFound();
   }
 
+  const reputation = await getPublishedListingAggregate(prisma, listing!.id);
+
   // Incremento de vistas fire-and-forget (no bloquea el render)
   void incrementView(prisma, listing!.id, null, null).catch((err) => {
     logger.warn("incrementView failed in page", { slug: params.slug, error: String(err) });
   });
 
-  return <ListingDetailPage listing={listing!} />;
+  return <ListingDetailPage listing={listing!} reputation={reputation} />;
 }

@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-09-24T10:23:41.943Z",
+  "reviewCount": 10000,
+  "concurrentRequests": 50,
+  "elapsedMs": 68.07,
+  "p95Ms": 1.36,
+  "errors": 0,
+  "errorRate": 0,
+  "thresholds": {
+    "p95MsLt": 500,
+    "errorRateLt": 0.001
+  },
+  "passed": true
+}

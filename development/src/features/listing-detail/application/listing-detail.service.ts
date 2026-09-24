@@ -83,7 +83,7 @@ function mapDetailToDTO(
     photos: photos.map(mapPhotoToDTO),
     availability,
     priceTiers,
-    reviews: reviews.map((review) => ({ id: review.id, author: { id: review.authorId, displayName: review.authorDisplayName, avatarUrl: review.authorAvatarUrl }, rating: review.rating, comment: review.comment, createdAt: review.createdAt.toISOString() })),
+    reviews: reviews.map((review) => ({ id: review.id, author: { id: review.authorId, displayName: review.authorDisplayName, avatarUrl: review.authorAvatarUrl }, rating: review.rating, status: review.status, comment: review.comment, createdAt: review.createdAt.toISOString() })),
   };
 }
 

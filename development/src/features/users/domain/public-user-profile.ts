@@ -5,6 +5,7 @@ export type PublicReview = {
   author: { id: string; displayName: string | null; avatarUrl: string | null };
   listing: { id: string; title: string; slug: string };
   rating: number;
+  status?: "published" | "under_review";
   comment: string | null;
   createdAt: string;
 };
