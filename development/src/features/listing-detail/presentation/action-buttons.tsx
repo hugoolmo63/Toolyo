@@ -6,6 +6,7 @@ import { useSession } from "@/lib/hooks/use-session";
 import { useAuthDialog } from "@/providers/auth-dialog-provider";
 import { BookingRequestDialog } from "@/features/bookings/presentation/booking-request-dialog";
 import type { ListingDetailDTO } from "@/types/listing-detail";
+import { Button } from "@/components/ui";
 
 /**
  * ActionButtons — botones "Contactar" y "Reservar" con gating de login.
@@ -65,17 +66,19 @@ export function ActionButtons({ listing }: ActionButtonsProps) {
           {message}
         </p>
       )}
-      <button
+      <Button
         type="button"
+        variant="secondary"
         className="action-btn action-btn-contact"
         onClick={handleContact}
         disabled={sessionLoading}
         aria-label="Contactar con el arrendador"
       >
         Contactar
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="primary"
         className="action-btn action-btn-book"
         onClick={handleBook}
         disabled={sessionLoading}
@@ -83,7 +86,7 @@ export function ActionButtons({ listing }: ActionButtonsProps) {
         data-testid="booking-request-open"
       >
         Reservar
-      </button>
+      </Button>
       {bookingRange && (
         <BookingRequestDialog
           listing={{ id: listing.id, title: listing.title, pricePerDay: listing.pricePerDay }}
