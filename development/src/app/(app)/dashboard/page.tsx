@@ -33,7 +33,7 @@ export default async function DashboardPage() {
             <strong>Email</strong>
             <p>{onboarding.email === "verified" ? "Verificado" : "Pendiente — verifica tu email para desbloquear todas las funciones."}</p>
             {onboarding.email !== "verified" && (
-              <p><a href="/verify" className="dashboard-link">Verificar email →</a></p>
+              <p><Link href="/verify" className="dashboard-link">Verificar email →</Link></p>
             )}
           </div>
         </div>
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
               {onboarding.identity === "retry_required" && "Reintento requerido — revisa los requisitos."}
             </p>
             {onboarding.identity !== "verified" && (
-              <p><a href="/kyc" className="dashboard-link">Iniciar KYC →</a></p>
+              <p><Link href="/kyc" className="dashboard-link">Iniciar KYC →</Link></p>
             )}
           </div>
         </div>
