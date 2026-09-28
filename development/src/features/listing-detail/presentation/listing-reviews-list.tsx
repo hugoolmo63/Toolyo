@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import type { ListingReviewDTO } from "../domain/listing-detail";
 
@@ -15,7 +16,7 @@ export function ListingReviewsList({ reviews }: { reviews: ListingReviewDTO[] })
     <div className="listing-reviews-list">
       {visibleReviews.map((review) => <article key={review.id} className="listing-review-card">
         <Link href={`/users/${review.author.id}`} className="listing-review-author">
-          {review.author.avatarUrl ? <img src={review.author.avatarUrl} alt="" /> : <span aria-hidden="true">{review.author.displayName?.slice(0, 1) ?? "U"}</span>}
+          {review.author.avatarUrl ? <Image src={review.author.avatarUrl} alt="" width={32} height={32} unoptimized /> : <span aria-hidden="true">{review.author.displayName?.slice(0, 1) ?? "U"}</span>}
           <strong>{review.author.displayName ?? "Usuario"}</strong>
         </Link>
         <ReviewStars rating={review.rating} />
