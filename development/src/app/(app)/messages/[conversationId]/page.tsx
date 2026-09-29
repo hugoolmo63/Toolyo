@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createServerApi } from "@/lib/server-api";
 import { ChatThread } from "@/features/messaging/presentation/chat-thread";
 import { BookingContextBanner } from "@/features/messaging/presentation/booking-context-banner";
+import { BookingActionCard } from "@/features/bookings/presentation/booking-action-card";
 
 /**
  * Chat de una conversación — Server Component (007-modulo-mensajeria).
@@ -56,6 +57,13 @@ export default async function ConversationPage({ params }: ConversationPageProps
       </div>
 
       {conversation.booking && <BookingContextBanner booking={conversation.booking} />}
+
+      {conversation.booking && conversation.booking.ownerId === conversation.me.id && (
+        <BookingActionCard
+          booking={conversation.booking}
+          listingTitle={conversation.listing?.title}
+        />
+      )}
 
       <ChatThread
         conversationId={conversation.id}

@@ -856,3 +856,11 @@ dialog.login-dialog .auth-form { margin: 0 auto; }
 .booking-context-banner-text { display: grid; gap: 2px; min-width: 0; }
 .booking-context-banner-title { margin: 0; font-size: var(--ps-text-sm); font-weight: 600; color: var(--ps-neutral-900); }
 .booking-context-banner-dates { margin: 0; font-size: var(--ps-text-xs); color: var(--ps-neutral-600); }
+
+/* Bookings — decisión del arrendador (aceptar/rechazar) */
+.booking-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); }
+.booking-action-card { display: grid; gap: var(--ps-space-2); padding: var(--ps-space-3) var(--ps-space-4); margin-bottom: var(--ps-space-3); border: 1px solid var(--ps-primary-200); border-radius: var(--ps-radius-md); background: var(--ps-primary-50); }
+.booking-action-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ps-space-3); }
+.booking-action-card-title { margin: 0; font-size: var(--ps-text-sm); font-weight: 600; color: var(--ps-neutral-900); }
+.booking-action-card-detail { margin: 0; font-size: var(--ps-text-xs); color: var(--ps-neutral-600); }
+.dialog-body .field { margin-top: var(--ps-space-3); }

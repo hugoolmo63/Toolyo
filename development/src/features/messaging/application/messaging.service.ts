@@ -28,7 +28,7 @@ interface ConversationSummaryRow {
   id: string;
   listing: { id: string; title: string; slug: string } | null;
   participants: { userId: string; lastReadAt: Date | null; user: { id: string; displayName: string | null } }[];
-  booking?: { id: string; status: string; startDate: Date; endDate: Date; totalPrice: Prisma.Decimal; currencyCode: string } | null;
+  booking?: { id: string; status: string; startDate: Date; endDate: Date; totalPrice: Prisma.Decimal; currencyCode: string; renterId: string; ownerId: string; rejectionReason: string | null } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +50,9 @@ function toConversationSummary(row: ConversationSummaryRow, userId: string) {
           endDate: row.booking.endDate.toISOString().slice(0, 10),
           totalPrice: row.booking.totalPrice.toString(),
           currencyCode: row.booking.currencyCode,
+          renterId: row.booking.renterId,
+          ownerId: row.booking.ownerId,
+          rejectionReason: row.booking.rejectionReason,
         }
       : null,
     lastReadAt: me?.lastReadAt?.toISOString() ?? null,

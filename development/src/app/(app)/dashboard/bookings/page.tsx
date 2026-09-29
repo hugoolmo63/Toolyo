@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerApi } from "@/lib/server-api";
 import { BookingStatusBadge } from "@/features/bookings/presentation/booking-status-badge";
 import { formatEur } from "@/features/bookings/presentation/booking-summary";
+import { OwnerBookingActions } from "@/features/bookings/presentation/owner-booking-actions";
 
 /**
  * Panel de reservas — Server Component (008-modulo-reservas, §5.2/§7).
@@ -60,6 +61,7 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
     cursor: searchParams.cursor,
     limit: 20,
   });
+  const me = await api.userProfile.getMe().catch(() => null);
 
   const buildQuery = (overrides: { role?: Role; status?: Status; cursor?: string }) => {
     const params = new URLSearchParams();
@@ -153,6 +155,9 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
                     >
                       Ver conversación →
                     </Link>
+                  )}
+                  {booking.status === "pending" && me && booking.ownerId === me.id && (
+                    <OwnerBookingActions bookingId={booking.id} />
                   )}
                 </div>
               </div>
