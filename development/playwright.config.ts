@@ -11,6 +11,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     ...devices["Desktop Chrome"],
+    launchOptions: { slowMo: Number(process.env.E2E_SLOWMO ?? 0) },
   },
   webServer: process.env.E2E_BASE_URL ? undefined : {
     command: "npm run dev -- --hostname 127.0.0.1",

@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Browser, type BrowserContext } from "@playwright/test";
+import { test, expect, type Page, type Browser, type BrowserContext, type TestInfo } from "@playwright/test";
 
 /**
  * Batería de tests de navegación (spec 010-navigation-test-suite).
@@ -201,12 +201,12 @@ const TEST_EMAIL = "test@test.com";
 const TEST_PASSWORD = "passwordpassword123";
 
 /** Login contextual desde la landing: Entrar → diálogo → sesión activa. */
-async function loginViaDialog(page: Page) {
+async function loginViaDialog(page: Page, email = TEST_EMAIL, password = TEST_PASSWORD) {
   await checkPublicRoute(page, "/", ".public-header");
   await page.locator(".public-nav-button").click();
   await expect(page.locator("dialog.login-dialog[open]")).toBeVisible();
-  await page.locator("#login-email").fill(TEST_EMAIL);
-  await page.locator("#login-password").fill(TEST_PASSWORD);
+  await page.locator("#login-email").fill(email);
+  await page.locator("#login-password").fill(password);
   await page.locator(".auth-submit").click();
   // El submit del login puede tardar varios segundos (mutación + rerender)
   await expect(page.locator(".user-menu-trigger")).toBeVisible({ timeout: 15000 });
@@ -240,10 +240,10 @@ test.describe("flujos de usuario", () => {
   });
 
   /** Nueva página autenticada con la sesión compartida y vídeo de evidencia. */
-  async function authedPage(browser: Browser) {
+  async function authedPage(browser: Browser, testInfo: TestInfo) {
     const context = await browser.newContext({
       storageState: sessionState,
-      recordVideo: { dir: "test-results", size: { width: 1280, height: 720 } },
+      recordVideo: { dir: testInfo.outputPath(), size: { width: 1280, height: 720 } },
     });
     return { context, page: await context.newPage() };
   }
@@ -264,8 +264,8 @@ test.describe("flujos de usuario", () => {
     await expect(page.locator(".public-nav-button")).toBeVisible();
   });
 
-  test("publicar producto → aparece en el panel → retirar", async ({ browser }) => {
-    const { context, page } = await authedPage(browser);
+  test("publicar producto → aparece en el panel → retirar", async ({ browser }, testInfo) => {
+    const { context, page } = await authedPage(browser, testInfo);
     try {
 
     const title = `E2E Nav ${Date.now()}`;
@@ -297,8 +297,8 @@ test.describe("flujos de usuario", () => {
     }
   });
 
-  test("buscar → contactar → enviar mensaje al arrendador", async ({ browser }) => {
-    const { context, page } = await authedPage(browser);
+  test("buscar → contactar → enviar mensaje al arrendador", async ({ browser }, testInfo) => {
+    const { context, page } = await authedPage(browser, testInfo);
     try {
     const hrefs = await discoverListingHrefs(page);
     expect(hrefs.length, "no se encontraron anuncios en / — ¿falta el seed?").toBeGreaterThan(0);
@@ -330,8 +330,8 @@ test.describe("flujos de usuario", () => {
     }
   });
 
-  test("buscar → reservar → solicitud aterriza en chat contextual", async ({ browser }) => {
-    const { context, page } = await authedPage(browser);
+  test("buscar → reservar → solicitud aterriza en chat contextual", async ({ browser }, testInfo) => {
+    const { context, page } = await authedPage(browser, testInfo);
     try {
     const hrefs = await discoverListingHrefs(page);
     expect(hrefs.length, "no se encontraron anuncios en / — ¿falta el seed?").toBeGreaterThan(0);
@@ -365,8 +365,8 @@ test.describe("flujos de usuario", () => {
     }
   });
 
-  test("arrendador consulta su reserva pendiente y su contexto", async ({ browser }) => {
-    const { context, page } = await authedPage(browser);
+  test("arrendador consulta su reserva pendiente y su contexto", async ({ browser }, testInfo) => {
+    const { context, page } = await authedPage(browser, testInfo);
     try {
     // test@test.com es owner de seed-booking-1 (pending) según el seed
     await page.goto("/dashboard/bookings?role=owner");
@@ -379,6 +379,88 @@ test.describe("flujos de usuario", () => {
     await expect(page.locator(".booking-context-banner")).toBeVisible();
     } finally {
       await context.close();
+    }
+  });
+
+  test("publicar anuncio → verificar en el listing → registro, contacto y respuesta del arrendador", async ({ browser }, testInfo) => {
+    const stamp = Date.now();
+    const title = `E2E Bicicleta urbana ${stamp}`;
+    const description = "Bicicleta publicada por la batería de navegación E2E.";
+    const renterEmail = `e2e-nav-renter-${stamp}@test.com`;
+    const renterPassword = "passwordpassword123";
+
+    const { context: ownerContext, page: owner } = await authedPage(browser, testInfo);
+    let renterContext: BrowserContext | undefined;
+    try {
+    // Arrendador (usuario del seed): publica el anuncio
+    await owner.goto("/dashboard/products/new");
+    await owner.locator("input[name='title']").fill(title);
+    await owner.locator("textarea[name='description']").fill(description);
+    await owner.locator("select[name='categoryId']").selectOption({ index: 1 });
+    await owner.locator("input[name='pricePerDay']").fill("12");
+    await owner.locator("input[name='city']").fill("Madrid");
+    await owner.locator("input[name='addressText']").fill("Calle de prueba 1");
+    await owner.getByRole("button", { name: "Añadir imagen" }).click();
+    await owner.locator(".photo-row input").first().fill(`https://picsum.photos/seed/e2e-nav-${stamp}/800/600.jpg`);
+    await owner.getByRole("button", { name: "Publicar al crear" }).click();
+    await expect(owner).toHaveURL(/\/dashboard\/products\/.+/);
+    await expect(owner.locator(".listing-detail-private")).toContainText(title);
+
+    // El arrendador consulta la ficha pública: búsqueda → resultado → detalle
+    await owner.goto(`/search?q=${encodeURIComponent(title)}`);
+    const ownerResult = owner.locator(".result-card", { hasText: title }).first();
+    await expect(ownerResult, "el anuncio recién publicado no aparece en la búsqueda").toBeVisible();
+    await ownerResult.locator(".result-card-link").click();
+    await expect(owner).toHaveURL(/\/listings\//);
+    await expect(owner.locator(".listing-title")).toContainText(title);
+    await expect(owner.locator(".listing-description-text")).toContainText(description);
+
+    // Otra persona se registra (el registro deja la cuenta pendiente de OTP)
+    renterContext = await browser.newContext({
+      recordVideo: { dir: testInfo.outputPath(), size: { width: 1280, height: 720 } },
+    });
+    const renter = await renterContext.newPage();
+    await renter.goto("/auth?tab=register");
+    await renter.locator("#registration-email").fill(renterEmail);
+    await renter.locator("#registration-password").fill(renterPassword);
+    await renter.locator("#terms-accepted").check();
+    await renter.locator("#privacy-accepted").check();
+    await renter.getByRole("button", { name: "Crear cuenta" }).click();
+    await expect(renter).toHaveURL(/\/verify/);
+
+    // El login no exige verificar el email: crea sesión y solo redirige a /verify
+    await loginViaDialog(renter, renterEmail, renterPassword);
+
+    // La nueva persona busca el anuncio y escribe al arrendador
+    await renter.goto(`/search?q=${encodeURIComponent(title)}`);
+    const renterResult = renter.locator(".result-card", { hasText: title }).first();
+    await expect(renterResult, "la nueva persona no encuentra el anuncio en la búsqueda").toBeVisible();
+    await renterResult.locator(".result-card-link").click();
+    await expect(renter.locator(".listing-title")).toContainText(title);
+    await renter.locator(".action-btn-contact").click();
+    await expect(renter).toHaveURL(/\/messages\/[^?]+$/);
+    await expect(renter.locator(".chat-thread")).toBeVisible();
+    await renter.locator(".chat-input").fill("Hola buenos dias");
+    await renter.locator(".chat-send").click();
+    await expect(renter.locator(".chat-message.is-mine").last()).toContainText("Hola buenos dias");
+
+    // El arrendador abre la conversación y responde
+    await owner.goto("/messages");
+    const conversation = owner.locator(".conversation-item", { hasText: title }).first();
+    await expect(conversation, "el arrendador no ve la conversación del interesado").toBeVisible();
+    await conversation.click();
+    await expect(owner.locator(".chat-thread")).toBeVisible();
+    await expect(owner.locator(".chat-message").last()).toContainText("Hola buenos dias");
+    await owner.locator(".chat-input").fill("que tal");
+    await owner.locator(".chat-send").click();
+    await expect(owner.locator(".chat-message.is-mine").last()).toContainText("que tal");
+
+    // La otra persona ve la respuesta
+    await renter.reload();
+    await expect(renter.locator(".chat-message").last()).toContainText("que tal");
+    } finally {
+      await renterContext?.close();
+      await ownerContext.close();
     }
   });
 });

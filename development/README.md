@@ -114,6 +114,12 @@ E2E_BASE_URL=http://localhost:3100 npm run test:e2e -- navigation
 
 Cada test graba un vídeo de evidencia en `test-results/<nombre-del-test>/video.webm`, conserve o falle. En fallo también quedan screenshot y trace.
 
+Para que la evidencia en vídeo sea más legible, `E2E_SLOWMO` ralentiza cada acción del navegador los milisegundos indicados (por defecto `0`, sin cambios):
+
+```bash
+E2E_SLOWMO=500 E2E_BASE_URL=http://localhost:3100 npm run test:e2e -- navigation
+```
+
 ## Cheat Sheet
 
 Consulta [CHEATSHEET.md](CHEATSHEET.md) para una referencia rápida de comandos de npm, Prisma, Docker y depuración.
