@@ -167,6 +167,7 @@ async function main() {
       where: { emailNormalized: owner.email },
       update: {
         accountStatus: "active",
+        role: "user",
         displayName: owner.name,
         avatarUrl: owner.avatarUrl,
         bio: owner.bio,
@@ -177,6 +178,7 @@ async function main() {
       create: {
         emailNormalized: owner.email,
         accountStatus: "active",
+        role: "user",
         displayName: owner.name,
         avatarUrl: owner.avatarUrl,
         bio: owner.bio,
@@ -207,16 +209,30 @@ async function main() {
     where: { emailNormalized: "test@test.com" },
     update: {
       accountStatus: "active",
+      role: "user",
       displayName: "Usuario de prueba",
       passwordCredential: { upsert: { update: { passwordHash: testUserPasswordHash }, create: { passwordHash: testUserPasswordHash } } },
     },
     create: {
       emailNormalized: "test@test.com",
       accountStatus: "active",
+      role: "user",
       displayName: "Usuario de prueba",
       passwordCredential: { create: { passwordHash: testUserPasswordHash } },
     },
     select: { id: true },
+  });
+
+  const adminPasswordHash = await hashPassword("AdminPassword123!");
+  await prisma.user.upsert({
+    where: { emailNormalized: "admin@toolyo.dev" },
+    update: { accountStatus: "active", role: "ADMIN", displayName: "Toolyo Admin", passwordCredential: { upsert: { update: { passwordHash: adminPasswordHash }, create: { passwordHash: adminPasswordHash } } } },
+    create: { emailNormalized: "admin@toolyo.dev", accountStatus: "active", role: "ADMIN", displayName: "Toolyo Admin", passwordCredential: { create: { passwordHash: adminPasswordHash } } },
+  });
+  await prisma.user.upsert({
+    where: { emailNormalized: "moderator@toolyo.dev" },
+    update: { accountStatus: "active", role: "MODERATOR", displayName: "Toolyo Moderator", passwordCredential: { upsert: { update: { passwordHash: adminPasswordHash }, create: { passwordHash: adminPasswordHash } } } },
+    create: { emailNormalized: "moderator@toolyo.dev", accountStatus: "active", role: "MODERATOR", displayName: "Toolyo Moderator", passwordCredential: { create: { passwordHash: adminPasswordHash } } },
   });
 
   await prisma.verificationState.upsert({

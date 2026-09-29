@@ -8,7 +8,7 @@ import { LogoutButton } from "@/components/forms/logout-button";
 const navigation = [
   { href: "/dashboard", label: "Resumen", icon: "⌂", enabled: true },
   { href: "/dashboard/products", label: "Mis productos", icon: "▣", enabled: true },
-  { href: "/dashboard/bookings", label: "Mis alquileres", icon: "◷", enabled: false },
+  { href: "/dashboard/bookings", label: "Mis alquileres", icon: "◷", enabled: true },
   { href: "/messages", label: "Mensajes", icon: "✉", enabled: true },
 ];
 
@@ -33,7 +33,14 @@ export function ClientDashboardShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="client-dashboard-sidebar-footer">
-          <span className="client-dashboard-nav-item is-disabled" aria-disabled="true" title="Disponible próximamente"><span aria-hidden="true">◉</span>Mi perfil<small>Próximamente</small></span>
+          <Link
+            href="/profile"
+            className={`client-dashboard-nav-item${pathname.startsWith("/profile") ? " is-active" : ""}`}
+            aria-current={pathname.startsWith("/profile") ? "page" : undefined}
+          >
+            <span aria-hidden="true">◉</span>
+            Mi perfil
+          </Link>
           <LogoutButton />
         </div>
       </aside>

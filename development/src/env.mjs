@@ -37,6 +37,10 @@ const envSchema = z.object({
   SESSION_COOKIE_NAME: z.string().min(1).default("toolyo_session"),
   SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
   SESSION_REMEMBER_TTL_SECONDS: z.coerce.number().int().positive().default(2592000),
+  TOTP_ISSUER: z.string().min(1).default("Toolyo"),
+  TOTP_WINDOW: z.coerce.number().int().min(0).max(2).default(1),
+  TOTP_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(5),
+  TOTP_ENCRYPTION_KEY: z.string().min(32).optional(),
   // Búsqueda pública (004-public-search)
   MAP_TILES_URL: z
     .string()

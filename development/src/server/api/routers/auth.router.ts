@@ -59,13 +59,13 @@ export const authRouter = createTRPCRouter({
         ip: undefined,
         userAgent: undefined,
       });
-      // Set session cookie via context for responseMeta
-      ctx.setCookie(serializeSessionCookie(sessionToken, ttlSeconds));
+      if (result.sessionState !== "PENDING_2FA") ctx.setCookie(serializeSessionCookie(sessionToken, ttlSeconds));
       return { ...result, callback: validateCallback(input.callback, result.redirectTo) };
     } catch (error) {
       throw mapErrorToTRPC(error);
     }
   }),
+
 
   logout: publicProcedure.mutation(async ({ ctx }) => {
     // Idempotent: if no session, just clear cookie and return success

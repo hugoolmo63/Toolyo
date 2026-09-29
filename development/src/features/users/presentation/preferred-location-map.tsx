@@ -75,7 +75,7 @@ export function PreferredLocationMap({
       layerRef.current = null;
       markerRef.current = null;
     };
-  }, [readOnly]);
+  }, [coordinates.lat, coordinates.lng, onChange, readOnly, value]);
 
   if (loadError) return <p className="form-error">No se pudo cargar el mapa.</p>;
   return (

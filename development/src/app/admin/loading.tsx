@@ -1,0 +1,1 @@
+export default function AdminLoading() { return <main aria-busy="true">Cargando backoffice...</main>; }

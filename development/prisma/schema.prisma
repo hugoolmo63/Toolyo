@@ -38,7 +38,8 @@ enum AccountStatus {
 
 enum UserRole {
   user
-  admin
+  ADMIN
+  MODERATOR
 }
 
 enum VerificationChannel {
@@ -158,6 +159,7 @@ model User {
   verificationStates       VerificationState[]
   otpChallenges            OtpChallenge[]
   identityVerifications    IdentityVerification[]
+  kycReviews               IdentityVerification[]  @relation("KycReviewer")
   legalAcceptances         LegalAcceptance[]
   securityEvents           SecurityEvent[]
   sessions                 Session[]
@@ -165,6 +167,8 @@ model User {
   reviewsWritten           Review[]
   reviewsReceived          Review[]                  @relation("Reviewee")
   reviewReports            ReviewReport[]            @relation("ReviewReporter")
+  totpCredential           TotpCredential?
+  adminAuditLogs           AdminAuditLog[]         @relation("AdminAuditActor")
   resolvedReviewReports    ReviewReport[]            @relation("ReviewResolver")
   bookingsAsRenter         Booking[]                 @relation("BookingRenter")
   bookingsAsOwner          Booking[]                 @relation("BookingOwner")
@@ -238,11 +242,17 @@ model IdentityVerification {
   providerReference String                     @unique
   status            IdentityVerificationStatus @default(not_started)
   resultCode        String?
+  reviewedById      String?
+  reviewedAt        DateTime?                  @db.Timestamptz(6)
+  reviewReason      String?                    @db.Text
   termsVersion      String
   startedAt         DateTime?                  @db.Timestamptz(6)
   completedAt       DateTime?                  @db.Timestamptz(6)
+  reviewedBy        User?                      @relation("KycReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
   createdAt         DateTime                   @default(now()) @db.Timestamptz(6)
   updatedAt         DateTime                   @updatedAt @db.Timestamptz(6)
+  @@index([status, createdAt])
+  @@index([reviewedById, reviewedAt])
   user              User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, status])
@@ -288,6 +298,54 @@ model SecurityEvent {
 
   @@index([userId, createdAt])
   @@index([eventType, createdAt])
+}
+
+/// Credencial TOTP cifrada; nunca debe incluirse en selects de usuario ni logs.
+model TotpCredential {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  secretCiphertext String    @db.Text
+  keyVersion       String    @db.VarChar(64)
+  isEnabled        Boolean   @default(false)
+  setupStartedAt   DateTime? @db.Timestamptz(6)
+  enabledAt        DateTime? @db.Timestamptz(6)
+  lastUsedAt       DateTime? @db.Timestamptz(6)
+  failedAttempts   Int       @default(0)
+  lockedUntil      DateTime? @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+enum AdminAuditOutcome {
+  success
+  denied
+  validation_error
+  failure
+}
+
+/// Append-only administrative audit record. Application role must not update/delete rows.
+model AdminAuditLog {
+  id           String             @id @default(cuid())
+  actorId      String?
+  actorRole    UserRole?
+  procedure    String             @db.VarChar(160)
+  action       String             @db.VarChar(120)
+  resourceType String?            @db.VarChar(80)
+  resourceId   String?            @db.VarChar(128)
+  outcome      AdminAuditOutcome
+  reason       String?            @db.Text
+  requestId    String?            @db.VarChar(128)
+  clientIp     String?            @db.VarChar(64)
+  userAgent    String?            @db.VarChar(512)
+  metadata     Json?
+  createdAt    DateTime           @default(now()) @db.Timestamptz(6)
+  actor        User?              @relation("AdminAuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([actorId, createdAt])
+  @@index([procedure, outcome, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([createdAt])
 }
 
 /// Sesión opaca respaldada por DB — token aleatorio en cookie HttpOnly (003-login).

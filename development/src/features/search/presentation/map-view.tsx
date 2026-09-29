@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import type { MapPin } from "@/types/search";
 
 /**
@@ -133,9 +134,12 @@ export function MapView({
             ✕
           </button>
           {selectedPin.primaryPhotoUrl && (
-            <img
+            <Image
               src={selectedPin.primaryPhotoUrl}
               alt={selectedPin.title}
+              width={320}
+              height={160}
+              unoptimized
               className="map-preview-image"
             />
           )}

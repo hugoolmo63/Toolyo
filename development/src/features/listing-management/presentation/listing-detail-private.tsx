@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/trpc-react";
 import { ListingStatusBadge } from "./listing-status-badge";
@@ -25,7 +26,7 @@ export function ListingDetailPrivate({ listing }: { listing: ListingDetail }) {
       {listing.photos.length > 0 && (
         <div className="detail-photos">
           {listing.photos.map((photo) => (
-            <img key={photo.id} src={photo.url} alt={photo.altText ?? ""} width={180} height={120} className="detail-photo" />
+            <Image key={photo.id} src={photo.url} alt={photo.altText ?? ""} width={180} height={120} unoptimized className="detail-photo" />
           ))}
         </div>
       )}

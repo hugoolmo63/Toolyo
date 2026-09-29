@@ -100,8 +100,8 @@ Los tests de integración requieren Docker y utilizan la imagen PostgreSQL de pr
 
 Las especificaciones ejecutables organizadas por módulos se encuentran en `specs/`:
 
-- [`specs/007-modulo-mensajeria/`](specs/007-modulo-mensajeria/): especificación funcional, contratos tRPC Serverless, modelo de datos, investigación y guía de validación de mensajería.
-- [`specs/008-modulo-reservas/`](specs/008-modulo-reservas/): ciclo de vida de reservas, contratos `bookingRouter`, modelo `Booking`, auditoría inmutable, tareas de implementación y mapa UX/UI [`ux-ui-flow.md`](specs/008-modulo-reservas/ux-ui-flow.md).
+- [`specs/009-modulo-mensajeria/`](specs/009-modulo-mensajeria/): especificación funcional, contratos tRPC Serverless, modelo de datos, investigación y guía de validación de mensajería.
+- [`specs/010-modulo-reservas/`](specs/010-modulo-reservas/): ciclo de vida de reservas, contratos `bookingRouter`, modelo `Booking`, auditoría inmutable, tareas de implementación y mapa UX/UI [`ux-ui-flow.md`](specs/010-modulo-reservas/ux-ui-flow.md).
 - [`docs/04-especificaciones-funcionales.md`](docs/04-especificaciones-funcionales.md): requisitos funcionales globales del producto.
 - [`constitution/`](constitution/): principios obligatorios de backend, base de datos, seguridad, frontend, diseño y testing.
 

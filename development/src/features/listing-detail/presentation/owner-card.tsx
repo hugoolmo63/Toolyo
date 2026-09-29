@@ -1,5 +1,6 @@
 import type { OwnerDTO } from "@/types/listing-detail";
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * OwnerCard — perfil público del arrendador.
@@ -20,12 +21,12 @@ export function OwnerCard({ owner }: OwnerCardProps) {
       <div className="owner-card-body">
         <Link href={`/users/${owner.id}`} className="owner-avatar" aria-label={`Ver perfil de ${displayName}`}>
           {owner.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={owner.avatarUrl}
               alt={displayName}
               width={64}
               height={64}
+              unoptimized
             />
           ) : (
             <div className="owner-avatar-placeholder" aria-hidden="true">
