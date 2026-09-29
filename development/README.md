@@ -97,10 +97,22 @@ Para enviar el correo real de verificación, configura `EMAIL_PROVIDER="resend"`
 ```bash
 npm test
 npm run test:integration
+npm run test:e2e          # suite E2E completa (Playwright)
+npm run test:e2e -- navigation   # solo la batería de navegación
 npx tsc --noEmit
 ```
 
 La integración PostgreSQL requiere que la base de datos de `docker-compose.yml` esté disponible. Los documentos KYC no se almacenan en Toolyo por defecto; solo se conserva el resultado minimizado y la referencia del proveedor.
+
+### Batería de navegación (smoke E2E)
+
+`tests/e2e/navigation.spec.ts` verifica que todas las rutas públicas cargan, que la navegación principal funciona y que las rutas protegidas redirigen a `/auth`. Además recorre journeys autenticados completos con el usuario del seed (`test@test.com`): login contextual → panel → logout, publicar producto → retirarlo, contactar al arrendador → enviar mensaje, solicitar reserva → aterrizar en el chat contextual, y consultar la reserva pendiente como arrendador. Los journeys crean datos de prueba en el entorno (mensajes, solicitudes, productos `E2E` que se retiran al final). Sin `E2E_BASE_URL`, Playwright arranca (o reutiliza) el dev server en `127.0.0.1:3000` automáticamente; para apuntar a otro entorno (p. ej. el Docker de `scripts/deploy-test.mjs`):
+
+```bash
+E2E_BASE_URL=http://localhost:3100 npm run test:e2e -- navigation
+```
+
+Cada test graba un vídeo de evidencia en `test-results/<nombre-del-test>/video.webm`, conserve o falle. En fallo también quedan screenshot y trace.
 
 ## Cheat Sheet
 
