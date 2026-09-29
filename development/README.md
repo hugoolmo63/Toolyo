@@ -67,7 +67,7 @@ La feature `005-listing-detail` añade:
 - Calendario de disponibilidad interactivo con selección de rango de fechas (recogida y devolución) que marca fechas bloqueadas; el rango se refleja en la URL (`?start=...&end=...`) para ser compartible y restaurable.
 - Tabla de precios derivados por defecto desde `pricePerDay` (tramos 1d/3d/7d con descuentos 0%/5%/10%) y total estimado que se recalcula al cambiar el rango.
 - Perfil público del arrendador (nombre, avatar, badge verificado, rating, tiempo de respuesta, número de transacciones — los campos no disponibles se muestran como "N/A" hasta la feature de perfil §1.2).
-- Botones "Contactar" y "Reservar" como entry-points con gating de login no bloqueante que preservan el contexto (listing + rango) en el callback; enrutan a `/messages` y `/checkout` (futuros módulos §5 y §4) o muestran "próximamente" si no existen.
+- Botones "Contactar" y "Reservar" como entry-points con gating de login no bloqueante que preservan el contexto del listing y el rango seleccionado; "Contactar" enruta a `/messages` y "Reservar" abre `BookingRequestDialog`, que solicita la reserva y navega al chat contextual.
 - Sección de reviews con estado vacío "Aún no hay reviews" (las reviews reales llegan con el módulo §6).
 - Productos similares de misma categoría y/o zona (hasta 6 tarjetas compactas).
 - Información de seguro (informativa, condicional a la verificación del arrendador) y reglas del arrendador con defaults (Flexible + horarios genéricos) hasta que la feature de listings §2 introduzca campos configurables.

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ListingStatusBadge } from "./listing-status-badge";
 import { ListingDeleteDialog } from "./listing-delete-dialog";
 
@@ -15,7 +16,7 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
   return (
     <article className="listing-card-item">
       {listing.primaryPhotoUrl ? (
-        <img src={listing.primaryPhotoUrl} alt="" width={96} height={72} className="listing-card-thumb" />
+        <Image src={listing.primaryPhotoUrl} alt="" width={96} height={72} unoptimized className="listing-card-thumb" />
       ) : (
         <div aria-label="Sin imagen" className="listing-card-thumb-empty">Sin imagen</div>
       )}

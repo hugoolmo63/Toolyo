@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import type { PublicReview } from "@/features/users/domain/public-user-profile";
 
@@ -17,7 +18,7 @@ export function UserProfileReviews({ reviews }: { reviews: PublicReview[] }) {
     {reviews.length === 0 ? <p className="user-profile-empty">Aún no hay reseñas.</p> : <>
       <div className="user-profile-review-list">{visibleReviews.map((review) => <article key={review.id} className="user-profile-review">
         <Link href={`/users/${review.author.id}`} className="profile-review-author">
-          {review.author.avatarUrl ? <img src={review.author.avatarUrl} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <span aria-hidden="true">{review.author.displayName?.slice(0, 1) ?? "U"}</span>}
+          {review.author.avatarUrl ? <Image src={review.author.avatarUrl} alt="" width={32} height={32} unoptimized onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <span aria-hidden="true">{review.author.displayName?.slice(0, 1) ?? "U"}</span>}
           <strong>{review.author.displayName ?? "Usuario"}</strong>
         </Link>
         <ReviewStars rating={review.rating} />

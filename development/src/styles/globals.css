@@ -130,6 +130,8 @@ a {
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--ps-space-2); min-height: 40px; padding: 0 var(--ps-space-4); border: 1px solid transparent; border-radius: var(--ps-radius-md); font-family: inherit; font-size: var(--ps-text-sm); font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color var(--ps-duration-base) var(--ps-ease-in-out), color var(--ps-duration-base) var(--ps-ease-in-out), border-color var(--ps-duration-base) var(--ps-ease-in-out); }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.button-spinner { width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: ps-spin 700ms linear infinite; }
+@keyframes ps-spin { to { transform: rotate(360deg); } }
 .btn-primary { color: var(--ps-neutral-0); background: var(--ps-primary-500); box-shadow: var(--ps-shadow-sm); }
 .btn-primary:hover:not(:disabled) { background: var(--ps-primary-600); }
 .btn-secondary { color: var(--ps-primary-500); background: var(--ps-surface-0); border-color: var(--ps-primary-500); }
@@ -147,6 +149,7 @@ a {
 .badge { display: inline-flex; align-items: center; gap: var(--ps-space-1); padding: var(--ps-space-1) var(--ps-space-2); border-radius: var(--ps-radius-full); font-size: var(--ps-text-xs); font-weight: 600; line-height: 1.4; }
 .badge-neutral { background: var(--ps-neutral-100); color: var(--ps-neutral-700); }
 .badge-primary { background: var(--ps-primary-50); color: var(--ps-primary-700); }
+.badge-info { background: var(--ps-primary-50); color: var(--ps-primary-700); }
 .badge-success { background: var(--ps-success-50); color: var(--ps-success-500); }
 .badge-warning { background: var(--ps-warning-50); color: var(--ps-warning-500); }
 .badge-danger { background: var(--ps-danger-50); color: var(--ps-danger-500); }
@@ -186,6 +189,7 @@ textarea.input { padding: var(--ps-space-2) var(--ps-space-3); line-height: 1.5;
 .dialog-body h2 { margin: 0 0 var(--ps-space-3); font-size: var(--ps-text-xl); font-weight: 600; color: var(--ps-neutral-900); }
 .dialog-body p { margin: 0; font-size: var(--ps-text-sm); color: var(--ps-neutral-600); }
 .dialog-footer { display: flex; justify-content: flex-end; gap: var(--ps-space-3); padding: var(--ps-space-4) var(--ps-space-5); }
+.modal-close { position: absolute; top: var(--ps-space-3); right: var(--ps-space-3); min-width: 32px; min-height: 32px; padding: 0; }
 
 /* Cabeceras de página y estados */
 .page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--ps-space-4); flex-wrap: wrap; margin-bottom: var(--ps-space-6); }
