@@ -6,6 +6,9 @@ import { AppError } from "../lib/errors/domain-errors";
 import { validateSession } from "../auth/session.service";
 import { readSessionCookie } from "@/lib/auth";
 
+export type AdminRole = "ADMIN" | "MODERATOR";
+export type SessionRole = "user" | AdminRole;
+
 /**
  * Contexto tRPC. La sesión se carga desde la cookie opaca respaldada por DB (003-login).
  * Si no hay cookie, la sesión es inválida o está revocada, `session` es `null`.
@@ -13,7 +16,7 @@ import { readSessionCookie } from "@/lib/auth";
  */
 export interface TRPCContext {
   prisma: PrismaClient;
-  session: { userId: string; role: "user" | "admin" } | null;
+  session: { userId: string; role: SessionRole } | null;
   sessionToken: string | null;
   pendingCookies: string[];
   setCookie: (value: string) => void;
@@ -23,7 +26,7 @@ export interface TRPCContext {
 
 export async function createTRPCContext(opts: { prisma: PrismaClient; request?: Request }): Promise<TRPCContext> {
   const pendingCookies: string[] = [];
-  let session: { userId: string; role: "user" | "admin" } | null = null;
+  let session: { userId: string; role: SessionRole } | null = null;
   let sessionToken: string | null = null;
 
   // Extraer IP del cliente para rate limiting (004-public-search)
@@ -40,7 +43,7 @@ export async function createTRPCContext(opts: { prisma: PrismaClient; request?: 
       const claims = await validateSession(opts.prisma, token);
       if (claims) {
         const user = await opts.prisma.user.findUnique({ where: { id: claims.userId }, select: { role: true } });
-        session = { userId: claims.userId, role: user?.role === "admin" ? "admin" : "user" };
+        session = { userId: claims.userId, role: user?.role === "ADMIN" || user?.role === "MODERATOR" ? user.role : "user" };
         sessionToken = token;
       }
     }
@@ -98,7 +101,7 @@ export const authedProcedure = t.procedure.use(({ ctx, next }) => {
 });
 
 export const adminProcedure = authedProcedure.use(({ ctx, next }) => {
-  if (ctx.session.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+  if (ctx.session.role !== "ADMIN" && ctx.session.role !== "MODERATOR") throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx });
 });
 

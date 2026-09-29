@@ -5,6 +5,8 @@ export type VerificationChannel = "email" | "phone";
 export type SsoProvider = "google" | "apple" | "facebook";
 export type OtpPurpose = "registration" | "contact_verification" | "credential_change" | "recovery";
 export type Capability = "publish_listing" | "request_booking" | "instant_booking" | "platform_insurance";
+export type AdminRole = "ADMIN" | "MODERATOR";
+export type SessionState = "AUTHENTICATED" | "PENDING_2FA";
 
 export interface LegalRegistrationDocument {
   id: string;
@@ -35,4 +37,7 @@ export interface LoginResult {
   accountStatus: AccountStatus;
   emailVerificationStatus: ContactVerificationStatus;
   redirectTo: string;
+  sessionState?: SessionState;
+  challengeId?: string;
+  role?: AdminRole;
 }

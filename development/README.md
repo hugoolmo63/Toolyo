@@ -1,3 +1,14 @@
+# Backoffice Administrativo
+
+La primera entrega administrativa está disponible bajo `/admin` para usuarios con rol `ADMIN` o `MODERATOR`.
+
+- `ADMIN`: gestión de usuarios/KYC, moderación y consulta de auditoría.
+- `MODERATOR`: moderación de reviews y acceso limitado a datos de usuario.
+- El acceso administrativo requiere TOTP RFC 6238 después del login inicial.
+- Los cambios administrativos críticos se registran en `AdminAuditLog` de forma append-only.
+- Las respuestas administrativas excluyen secretos TOTP, password hashes y documentos KYC.
+
+Validación funcional: consultar `specs/009-modulo-backoffice/quickstart.md`.
 # Toolyo Development
 
 Scaffold de la aplicación web de Toolyo.

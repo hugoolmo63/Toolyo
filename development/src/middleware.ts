@@ -28,6 +28,7 @@ export const config = {
     "/dashboard/:path*",
     "/profile/:path*",
     "/messages/:path*",
+    "/admin/:path*",
     // Excluye rutas públicas, auth, API y legales
   ],
 };

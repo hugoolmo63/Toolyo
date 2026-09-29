@@ -139,12 +139,12 @@ export async function reportReviewService(db: PrismaClient, reporterId: string, 
   }
 }
 
-export async function getPendingReportsService(db: PrismaClient, role: "user" | "admin") {
+export async function getPendingReportsService(db: PrismaClient, role: "user" | "admin" | "ADMIN" | "MODERATOR") {
   assertModerator(role);
   return findPendingReviewReports(db);
 }
 
-export async function resolveReportService(db: PrismaClient, moderatorId: string, role: "user" | "admin", input: ResolveInput) {
+export async function resolveReportService(db: PrismaClient, moderatorId: string, role: "user" | "admin" | "ADMIN" | "MODERATOR", input: ResolveInput) {
   assertModerator(role);
   const report = await findReviewReport(db, input.reportId);
   if (!report || report.status !== "open") throw new NotFoundError("Reporte pendiente no encontrado");
