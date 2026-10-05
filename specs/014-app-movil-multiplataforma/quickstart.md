@@ -5,7 +5,8 @@ Guía para validar de extremo a extremo que Toolyo funciona en web, Android e iP
 ## Prerrequisitos
 
 - Node.js 20 y dependencias instaladas en `development/`.
-- Para Android: JDK 17 y Android SDK (o Android Studio).
+- Node.js ≥ 22 (requisito del CLI de Capacitor 8).
+- Para Android: JDK 21 y Android SDK (o Android Studio).
 - Para iOS: macOS con Xcode y CocoaPods.
 - Cuenta con acceso al repositorio para lanzar el workflow de GitHub Actions.
 - Un despliegue web accesible (local o de pruebas) que el shell pueda cargar.

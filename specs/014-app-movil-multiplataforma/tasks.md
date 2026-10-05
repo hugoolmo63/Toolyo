@@ -80,7 +80,7 @@ description: "Task list for the multiplatform mobile app feature"
 **Independent Test**: Lanzar el workflow sobre una versión y descargar APK + artefacto iOS; forzar un fallo y comprobar que no se publica artefacto incompleto.
 
 - [X] T015 [US2] Create .github/workflows/mobile.yml with `workflow_dispatch` inputs (`server_url`, `allow_cleartext`) and `push` trigger on tags `v*.*.*` per contracts/mobile-platform.md §4.1
-- [X] T016 [US2] Implement the Android job in .github/workflows/mobile.yml (ubuntu, JDK 17, Android SDK, `npm ci`, `cap sync`, Gradle `assembleDebug`/`assembleRelease` with conditional keystore from secrets)
+- [X] T016 [US2] Implement the Android job in .github/workflows/mobile.yml (ubuntu, Node 22, JDK 21, Android SDK, `npm ci`, `cap sync`, Gradle `assembleDebug`/`assembleRelease` with conditional keystore from secrets)
 - [X] T017 [P] [US2] Implement the iOS job in .github/workflows/mobile.yml (macos runner, Xcode, `npm ci`, `cap sync`, `xcodebuild` with conditional signing from secrets)
 - [X] T018 [US2] Upload artifacts with version/platform/date/signature metadata and attach them to the GitHub Release on tags; fail the run explicitly on build error (no incomplete artifact) in .github/workflows/mobile.yml
 - [X] T019 [US2] Document required signing/push secrets (names only, no values) in .github/workflows/mobile.yml comments and development/README.md

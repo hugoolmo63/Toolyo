@@ -131,6 +131,7 @@ Consulta [ARCHITECTURE.md](ARCHITECTURE.md) para una explicación visual y orien
 ## App móvil multiplataforma (014-app-movil-multiplataforma)
 
 > Requiere **Node.js ≥ 22** para los comandos de Capacitor (`cap:sync`, `build:android`, `build:ios`).
+> Para Android: **JDK 21** y Android SDK. Para iOS: macOS con Xcode.
 
 La app Next.js se entrega también como app nativa Android/iOS mediante Capacitor. El shell
 carga el despliegue web configurado en `MOBILE_SERVER_URL` (un único punto de configuración).

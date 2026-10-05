@@ -84,7 +84,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          # Capacitor 8 compila con Java 21 (ver android/app/capacitor.build.gradle).
+          java-version: "21"
 
       - uses: android-actions/setup-android@v3
 
