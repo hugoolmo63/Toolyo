@@ -337,6 +337,25 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
+      - name: Clean previous internal release assets
+        # En ejecución manual, deja el release interno solo con los ficheros actuales.
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "No existe el release $RELEASE_TAG; nada que limpiar."
+            exit 0
+          fi
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | while read -r name; do
+            if [ -n "$name" ]; then
+              gh release delete-asset "$RELEASE_TAG" "$name" --yes || true
+            fi
+          done
+
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
