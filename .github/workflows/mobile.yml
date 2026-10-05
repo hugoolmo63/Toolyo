@@ -156,14 +156,25 @@ jobs:
             "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SIGNED" "$GITHUB_SHA" > android/build-metadata.txt
           cat android/build-metadata.txt
 
+      - name: Package Android artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/toolyo-android-${VERSION}-debug.apk"
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk "dist/toolyo-android-${VERSION}-release.apk"
+          fi
+          mv android/build-metadata.txt "dist/toolyo-android-${VERSION}-metadata.txt"
+          ls -lh dist
+
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
           name: toolyo-android-${{ steps.version.outputs.version }}
           if-no-files-found: error
-          path: |
-            development/android/app/build/outputs/apk/**/*.apk
-            development/android/build-metadata.txt
+          path: development/dist/**
 
   ios:
     name: iOS App
@@ -286,15 +297,29 @@ jobs:
             "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SIGNED" "$GITHUB_SHA" > ios/build-metadata.txt
           cat ios/build-metadata.txt
 
+      - name: Package iOS artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          APP_DIR="ios/App/build/Build/Products/Debug-iphonesimulator/App.app"
+          if [ -d "$APP_DIR" ]; then
+            # El bundle .app debe comprimirse: un release no puede contener directorios.
+            ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "dist/toolyo-ios-${VERSION}-simulator.zip"
+          fi
+          if ls ios/App/build/ipa/*.ipa >/dev/null 2>&1; then
+            cp ios/App/build/ipa/*.ipa "dist/toolyo-ios-${VERSION}.ipa"
+          fi
+          mv ios/build-metadata.txt "dist/toolyo-ios-${VERSION}-metadata.txt"
+          ls -lh dist
+
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: toolyo-ios-${{ steps.version.outputs.version }}
           if-no-files-found: error
-          path: |
-            development/ios/App/build/ipa/**/*.ipa
-            development/ios/App/build/Build/Products/Debug-iphonesimulator/App.app
-            development/ios/build-metadata.txt
+          path: development/dist/**
 
   release:
     name: Publish artifacts to release
@@ -321,4 +346,9 @@ jobs:
           name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Mobile interno ({0})', inputs.release_tag) }}
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
           generate_release_notes: false
-          files: artifacts/**/*
+          # Solo ficheros descargables; evita descomponer bundles .app en el release.
+          files: |
+            artifacts/**/*.apk
+            artifacts/**/*.ipa
+            artifacts/**/*.zip
+            artifacts/**/*.txt

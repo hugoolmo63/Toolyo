@@ -170,6 +170,16 @@ Workflow **Mobile Builds** (`.github/workflows/mobile.yml`): `workflow_dispatch`
 - En un tag `v*.*.*` se adjuntan al release de esa versión (requiere la variable de repositorio
   `MOBILE_SERVER_URL`).
 
+Ficheros publicados en el release:
+
+| Fichero | Qué es |
+|---|---|
+| `toolyo-android-<version>-debug.apk` | **La app Android**. Instálala en el móvil (activando "orígenes desconocidos"). |
+| `toolyo-android-<version>-release.apk` | App Android firmada (solo si hay keystore en secretos). |
+| `toolyo-ios-<version>-simulator.zip` | Contiene `App.app`; **solo** para el Simulador de iOS (no instalable en iPhone físico). |
+| `toolyo-ios-<version>.ipa` | App iOS firmada (solo si hay certificado y perfil en secretos). |
+| `toolyo-*-metadata.txt` | Versión, fecha, commit y si está firmada. |
+
 ### Secretos de firma (opcionales)
 
 Nunca se escriben en artefactos ni logs. Sin ellos se generan builds sin firmar (no instalables
