@@ -266,7 +266,8 @@ jobs:
   release:
     name: Publish artifacts to release
     needs: [android, ios]
-    if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish_release }}
+    # Publica si al menos una plataforma compiló, aunque la otra falle.
+    if: ${{ always() && (needs.android.result == 'success' || needs.ios.result == 'success') && (startsWith(github.ref, 'refs/tags/') || inputs.publish_release) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
