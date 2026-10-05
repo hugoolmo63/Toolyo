@@ -167,7 +167,8 @@ jobs:
 
   ios:
     name: iOS App
-    runs-on: macos-14
+    # Capacitor 8 requiere Xcode 16+; macos-15 lo trae por defecto.
+    runs-on: macos-15
     env:
       MOBILE_SERVER_URL: ${{ inputs.server_url || vars.MOBILE_SERVER_URL || '' }}
       MOBILE_IOS_ASSOCIATED_DOMAIN: ${{ vars.MOBILE_IOS_ASSOCIATED_DOMAIN || '' }}
@@ -176,6 +177,16 @@ jobs:
         working-directory: development
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select Xcode 16+
+        run: |
+          set -euo pipefail
+          echo "Xcode por defecto:"; xcodebuild -version || true
+          XCODE_APP="$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1 || true)"
+          if [ -n "$XCODE_APP" ]; then
+            sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          fi
+          echo "Xcode en uso:"; xcodebuild -version
 
       - name: Resolve endpoint configuration
         run: |
@@ -227,6 +238,7 @@ jobs:
             -scheme App \
             -configuration Debug \
             -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$PWD/build" \
             CODE_SIGNING_ALLOWED=NO \
             build
