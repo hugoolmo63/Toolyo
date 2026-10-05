@@ -107,7 +107,30 @@ Las especificaciones ejecutables organizadas por módulos se encuentran en `spec
 
 ---
 
-## 🔐 Seguridad y Datos
+## � App Móvil (Android + iPhone)
+
+La misma aplicación se entrega en web, Android e iPhone desde un único código mediante
+**Capacitor** sobre la app Next.js (ver [`specs/014-app-movil-multiplataforma/`](specs/014-app-movil-multiplataforma/)):
+
+- El shell nativo carga el despliegue web configurado en `MOBILE_SERVER_URL` (un único punto de
+  configuración; admite direcciones de red local en builds internas).
+- Capacidades nativas: cámara/galería, geolocalización, notificaciones push, enlaces profundos y
+  estado de red.
+- GitHub Actions genera los artefactos internos (APK Android y archivo/iOS) mediante el workflow
+  **Mobile Builds**; no se publican automáticamente en tiendas.
+
+```bash
+cd development
+npm run cap:sync          # sincroniza el shell
+npm run build:android     # APK debug
+npm run build:ios         # .app de simulador (requiere macOS)
+```
+
+El backoffice administrativo (`/admin`) permanece como herramienta web.
+
+---
+
+## �🔐 Seguridad y Datos
 
 - Todas las mutaciones tRPC requieren autenticación y autorización por recurso.
 - El renter se deriva de la sesión; el owner se obtiene desde el listing o la reserva.

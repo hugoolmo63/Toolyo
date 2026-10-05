@@ -2,6 +2,12 @@
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  env: {
+    NEXT_PUBLIC_MOBILE_SERVER_URL: process.env.MOBILE_SERVER_URL ?? "",
+    NEXT_PUBLIC_MOBILE_ALLOW_CLEARTEXT: process.env.MOBILE_ALLOW_CLEARTEXT ?? "false",
+    NEXT_PUBLIC_MOBILE_ALLOW_RUNTIME_OVERRIDE:
+      process.env.MOBILE_ALLOW_RUNTIME_OVERRIDE ?? "false",
+  },
   experimental: {
     serverComponentsExternalPackages: ["@huggingface/transformers", "onnxruntime-node"],
   },

@@ -127,3 +127,79 @@ Consulta [CHEATSHEET.md](CHEATSHEET.md) para una referencia rápida de comandos 
 ## Arquitectura
 
 Consulta [ARCHITECTURE.md](ARCHITECTURE.md) para una explicación visual y orientada a principiantes de todas las piezas del proyecto.
+
+## App móvil multiplataforma (014-app-movil-multiplataforma)
+
+La app Next.js se entrega también como app nativa Android/iOS mediante Capacitor. El shell
+carga el despliegue web configurado en `MOBILE_SERVER_URL` (un único punto de configuración).
+
+```bash
+# Sincronizar el shell tras cambiar configuración o dependencias
+npm run cap:sync
+
+# Compilar artefactos localmente
+npm run build:android   # APK debug en android/app/build/outputs/apk/debug
+npm run build:ios       # .app de simulador (requiere macOS/Xcode)
+```
+
+### Endpoint y red local
+
+```bash
+# Endpoint público (HTTPS)
+MOBILE_SERVER_URL="https://toolyo.example.com" npm run cap:sync
+
+# Endpoint solo accesible desde la red local (builds internas)
+MOBILE_SERVER_URL="http://192.168.1.50:3000" MOBILE_ALLOW_CLEARTEXT=true npm run cap:sync
+```
+
+El HTTP en claro solo se admite en builds internas/de desarrollo: Android aplica
+`network_security_config_cleartext.xml` y iOS usa `NSAllowsLocalNetworking`; en producción se
+exige HTTPS. El workflow de CI activa el cleartext automáticamente cuando `server_url` es un
+`http://` de red local.
+
+### Generación de artefactos en GitHub
+
+Workflow **Mobile Builds** (`.github/workflows/mobile.yml`): `workflow_dispatch` con entradas
+`server_url` y `allow_cleartext`, y disparo en tags `v*.*.*`. Los artefactos se descargan de la
+ejecución o se adjuntan a la release.
+
+### Secretos de firma (opcionales)
+
+Nunca se escriben en artefactos ni logs. Sin ellos se generan builds sin firmar (no instalables
+en dispositivo iOS físico).
+
+| Secreto | Uso |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | Keystore Android en base64 (activa el APK release firmado). |
+| `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | Credenciales del keystore. |
+| `IOS_CERTIFICATE_BASE64`, `IOS_CERTIFICATE_PASSWORD` | Certificado de firma iOS (`.p12`). |
+| `IOS_PROVISIONING_PROFILE_BASE64` | Perfil de aprovisionamiento. |
+| `IOS_TEAM_ID`, `IOS_EXPORT_METHOD` | Team de Apple y método de exportación (`ad-hoc`/`development`/`app-store`). |
+| `GOOGLE_SERVICES_JSON` | Contenido de `google-services.json` para FCM (Android). El archivo se ignora en git. |
+
+Variable de repositorio opcional `MOBILE_SERVER_URL` para builds por tag.
+
+### Notificaciones push
+
+- `PUSH_PROVIDER=console` (por defecto) no envía nada real; `fcm` requiere `FCM_PROJECT_ID` y
+  `FCM_ACCESS_TOKEN` en el entorno del servidor.
+- Android: `google-services.json` en `android/app/` (inyectado desde `GOOGLE_SERVICES_JSON` en CI).
+- iOS: activar la capacidad **Push Notifications** y **Background Modes → Remote notifications**
+  en Xcode para el target `App` (APNs).
+
+### Sesión y enlaces profundos
+
+- La sesión se mantiene con la cookie `HttpOnly` existente; `CapacitorCookies` conserva las
+  cookies del WebView entre aperturas de la app (no se guardan tokens en almacenamiento nativo).
+- Los enlaces compartidos (`https://<dominio>/listings/...`) abren la app mediante App Links /
+  Universal Links; los archivos de asociación se sirven en `/.well-known/assetlinks.json` y
+  `/.well-known/apple-app-site-association` con los valores de `MOBILE_ANDROID_*` / `MOBILE_IOS_*`.
+- El esquema `toolyo://` sirve como respaldo para pruebas internas sin asociación verificada.
+- **Android**: `AndroidManifest.xml` declara un `intent-filter` `autoVerify` con
+  `android:host="${mobileHost}"`, derivado de `MOBILE_SERVER_URL` en `android/app/build.gradle`.
+  La huella del certificado de firma se publica en `/.well-known/assetlinks.json`
+  (`MOBILE_ANDROID_CERT_SHA256`).
+- **iOS**: `ios/App/App/App.entitlements` habilita Push Notifications (`aps-environment`) y
+  Universal Links (`applinks:<dominio>`). Sustituye el dominio en el archivo o define la variable
+  de repositorio `MOBILE_IOS_ASSOCIATED_DOMAIN` (el workflow la aplica antes de compilar). El
+  Team ID debe coincidir con `MOBILE_IOS_TEAM_ID`.

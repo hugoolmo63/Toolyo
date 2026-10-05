@@ -61,6 +61,10 @@ const envSchema = z.object({
   STORAGE_ACCESS_KEY_ID: z.string().min(1),
   STORAGE_SECRET_ACCESS_KEY: z.string().min(1),
   STORAGE_PRESIGNED_TTL_SECONDS: z.coerce.number().int().positive().max(900).default(300),
+  // Notificaciones push móviles (014-app-movil-multiplataforma)
+  PUSH_PROVIDER: z.enum(["console", "fcm"]).default("console"),
+  FCM_PROJECT_ID: z.string().optional(),
+  FCM_ACCESS_TOKEN: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse({

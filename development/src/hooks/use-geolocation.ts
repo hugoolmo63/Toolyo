@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import {
+  getNativeCoordinates,
+  GeolocationPermissionError,
+} from "@/lib/native/geolocation";
+import { isNativeShell } from "@/lib/native/platform";
 
 /**
- * Hook para detectar la ubicación del usuario vía GPS (navigator.geolocation).
+ * Hook para detectar la ubicación del usuario.
+ * En el shell nativo usa el plugin de Capacitor; en web, navigator.geolocation.
  * Respeta la decisión del usuario: no geolocaliza sin consentimiento explícito.
- * Ver spec.md FR-003 y research.md.
+ * Ver spec.md FR-003 y FR-008.
  */
 
 interface GeolocationState {
@@ -21,13 +27,27 @@ export function useGeolocation() {
     location: null,
   });
 
-  const detect = useCallback(() => {
+  const detect = useCallback(async () => {
+    setState({ loading: true, error: null, location: null });
+
+    if (isNativeShell()) {
+      try {
+        const location = await getNativeCoordinates();
+        setState({ loading: false, error: null, location });
+      } catch (err) {
+        const message =
+          err instanceof GeolocationPermissionError
+            ? err.message
+            : "No se pudo obtener tu ubicación. Puedes seleccionar una ubicación manualmente.";
+        setState({ loading: false, error: message, location: null });
+      }
+      return;
+    }
+
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setState({ loading: false, error: "Geolocalización no disponible en este dispositivo.", location: null });
       return;
     }
-
-    setState({ loading: true, error: null, location: null });
 
     navigator.geolocation.getCurrentPosition(
       (position) => {

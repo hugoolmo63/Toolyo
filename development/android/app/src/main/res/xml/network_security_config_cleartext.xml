@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Builds de pruebas/internas con comunicaciones por HTTP (FR-017).
+  Se aplica solo cuando MOBILE_ALLOW_CLEARTEXT=true; en producción se usa
+  `network_security_config.xml` (solo HTTPS).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

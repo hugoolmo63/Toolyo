@@ -6,8 +6,8 @@
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                              CLIENTES                                    │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐ │
-│  │   Web App   │  │  iOS App    │  │ Android App │  │  Admin Dashboard│ │
-│  │  (Next.js)  │  │(React Native)│  │(React Native)│  │   (Next.js)    │ │
+│  │   Web App   │  │   iOS App   │  │ Android App │  │  Admin Dashboard│ │
+│  │  (Next.js)  │  │ (Capacitor) │  │ (Capacitor) │  │   (Next.js)    │ │
 │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └────────┬────────┘ │
 │         │                │                │                  │          │
 │         └────────────────┴────────────────┘                  │          │
@@ -71,7 +71,7 @@
 |------|-----------|---------------|
 | **Web Framework** | Next.js 14+ (App Router) | SSR/SSG para SEO, API routes, React Server Components. Hygglo usa Next.js. |
 | **UI Framework** | Tailwind CSS + shadcn/ui | Desarrollo rápido, diseño consistente, accesibilidad. |
-| **Mobile** | React Native + Expo | Code sharing con web, despliegue rápido en iOS/Android. Hygglo usa React Native Web. |
+| **Mobile** | Capacitor (shell nativo sobre Next.js) | Reutiliza el mismo código web en Android/iOS y genera artefactos nativos desde CI. Ver `specs/014-app-movil-multiplataforma/`. |
 | **State Management** | Zustand + React Query (TanStack Query) | Cacheo de servidor, sincronización de estado, offline support. |
 | **Maps** | Mapbox GL JS / React Map GL | Mejor pricing que Google Maps, estilos personalizables. |
 | **Forms** | React Hook Form + Zod | Validación tipada, performance en formularios complejos. |

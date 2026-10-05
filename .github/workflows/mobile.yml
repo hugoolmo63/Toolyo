@@ -1,0 +1,270 @@
+# Mobile Builds — artefactos nativos Android/iOS (014-app-movil-multiplataforma)
+#
+# Genera artefactos instalables internos (APK Android y .app/.ipa iOS) sin publicar
+# en tiendas. El endpoint se configura con la entrada `server_url` (MOBILE_SERVER_URL).
+#
+# Secretos opcionales para firmar (nunca se escriben en artefactos ni logs):
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#   IOS_CERTIFICATE_BASE64, IOS_CERTIFICATE_PASSWORD, IOS_PROVISIONING_PROFILE_BASE64,
+#   IOS_TEAM_ID, IOS_EXPORT_METHOD (ad-hoc | development | app-store)
+#
+# Notificaciones push (opcionales):
+#   GOOGLE_SERVICES_JSON (contenido de google-services.json para FCM en Android)
+#   La capacidad Push Notifications + APNs se configura en Xcode (iOS).
+name: Mobile Builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "Endpoint del servicio (MOBILE_SERVER_URL). Admite dirección de red local."
+        required: true
+        type: string
+      allow_cleartext:
+        description: "Fuerza HTTP en claro. Si el endpoint es http:// local, se activa automáticamente."
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "20"
+  ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+  IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+  GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    env:
+      MOBILE_SERVER_URL: ${{ inputs.server_url || vars.MOBILE_SERVER_URL || '' }}
+    defaults:
+      run:
+        working-directory: development
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve endpoint configuration
+        run: |
+          set -euo pipefail
+          if [ -z "$MOBILE_SERVER_URL" ]; then
+            echo "::error::Falta server_url (MOBILE_SERVER_URL): indica el endpoint del servicio."
+            exit 1
+          fi
+          cleartext="${{ inputs.allow_cleartext }}"
+          if printf '%s' "$MOBILE_SERVER_URL" | grep -Eq '^http://(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|[a-z0-9-]+\.local)'; then
+            cleartext="true"
+          fi
+          echo "MOBILE_ALLOW_CLEARTEXT=$cleartext" >> "$GITHUB_ENV"
+          echo "Endpoint: $MOBILE_SERVER_URL (cleartext=$cleartext)"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: development/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Compute version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"; VERSION="${VERSION#v}"
+          else
+            VERSION="$(node -p "require('./package.json').version")-${GITHUB_SHA::7}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+
+      - name: Write google-services.json (FCM)
+        if: env.GOOGLE_SERVICES_JSON != ''
+        run: printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+      - name: Capacitor sync (Android)
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          chmod +x android/gradlew
+          cd android && ./gradlew --no-daemon assembleDebug
+
+      - name: Build signed release APK
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
+          cd android && ./gradlew --no-daemon assembleRelease \
+            -Pandroid.injected.signing.store.file="$PWD/app/release.keystore" \
+            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
+
+      - name: Write build metadata
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          SIGNED="false"; [ -n "$ANDROID_KEYSTORE_BASE64" ] && SIGNED="true"
+          printf 'platform=android\nversion=%s\ndate=%s\nsignature=%s\ncommit=%s\n' \
+            "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SIGNED" "$GITHUB_SHA" > android/build-metadata.txt
+          cat android/build-metadata.txt
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolyo-android-${{ steps.version.outputs.version }}
+          if-no-files-found: error
+          path: |
+            development/android/app/build/outputs/apk/**/*.apk
+            development/android/build-metadata.txt
+
+  ios:
+    name: iOS App
+    runs-on: macos-14
+    env:
+      MOBILE_SERVER_URL: ${{ inputs.server_url || vars.MOBILE_SERVER_URL || '' }}
+      MOBILE_IOS_ASSOCIATED_DOMAIN: ${{ vars.MOBILE_IOS_ASSOCIATED_DOMAIN || '' }}
+    defaults:
+      run:
+        working-directory: development
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve endpoint configuration
+        run: |
+          set -euo pipefail
+          if [ -z "$MOBILE_SERVER_URL" ]; then
+            echo "::error::Falta server_url (MOBILE_SERVER_URL): indica el endpoint del servicio."
+            exit 1
+          fi
+          cleartext="${{ inputs.allow_cleartext }}"
+          if printf '%s' "$MOBILE_SERVER_URL" | grep -Eq '^http://(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|[a-z0-9-]+\.local)'; then
+            cleartext="true"
+          fi
+          echo "MOBILE_ALLOW_CLEARTEXT=$cleartext" >> "$GITHUB_ENV"
+          echo "Endpoint: $MOBILE_SERVER_URL (cleartext=$cleartext)"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: development/package-lock.json
+
+      - name: Compute version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"; VERSION="${VERSION#v}"
+          else
+            VERSION="$(node -p "require('./package.json').version")-${GITHUB_SHA::7}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+
+      - name: Capacitor sync (iOS)
+        run: npx cap sync ios
+
+      - name: Configure Universal Links domain
+        if: env.MOBILE_IOS_ASSOCIATED_DOMAIN != ''
+        run: |
+          sed -i '' "s|applinks:toolyo.example.com|applinks:$MOBILE_IOS_ASSOCIATED_DOMAIN|g" ios/App/App/App.entitlements
+          cat ios/App/App/App.entitlements
+
+      - name: Build simulator app (unsigned)
+        run: |
+          cd ios/App
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath "$PWD/build" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Build signed IPA
+        if: env.IOS_CERTIFICATE_BASE64 != ''
+        env:
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_EXPORT_METHOD: ${{ secrets.IOS_EXPORT_METHOD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/toolyo.keychain-db"
+          security create-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          echo "$IOS_CERTIFICATE_BASE64" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$IOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -k "" "$KEYCHAIN"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/toolyo.mobileprovision
+          cd ios/App
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -archivePath "$PWD/build/App.xcarchive" \
+            DEVELOPMENT_TEAM="$IOS_TEAM_ID" archive
+          cat > "$PWD/build/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>${IOS_EXPORT_METHOD:-development}</string>
+            <key>teamID</key><string>$IOS_TEAM_ID</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$PWD/build/App.xcarchive" \
+            -exportOptionsPlist "$PWD/build/ExportOptions.plist" \
+            -exportPath "$PWD/build/ipa"
+
+      - name: Write build metadata
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          SIGNED="false"; [ -n "$IOS_CERTIFICATE_BASE64" ] && SIGNED="true"
+          printf 'platform=ios\nversion=%s\ndate=%s\nsignature=%s\ncommit=%s\n' \
+            "$VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SIGNED" "$GITHUB_SHA" > ios/build-metadata.txt
+          cat ios/build-metadata.txt
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolyo-ios-${{ steps.version.outputs.version }}
+          if-no-files-found: error
+          path: |
+            development/ios/App/build/ipa/**/*.ipa
+            development/ios/App/build/Build/Products/Debug-iphonesimulator/App.app
+            development/ios/build-metadata.txt
+
+  release:
+    name: Attach artifacts to release
+    needs: [android, ios]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Attach to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: false

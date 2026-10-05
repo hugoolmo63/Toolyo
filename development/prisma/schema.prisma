@@ -176,6 +176,7 @@ model User {
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]                 @relation("MessageSender")
   uploadedAttachments      AttachmentUpload[]        @relation("AttachmentUploadOwner")
+  devicePushTokens         DevicePushToken[]
 }
 
 model PasswordCredential {
@@ -690,4 +691,38 @@ model MessageAttachment {
 
   @@index([messageId, createdAt])
   @@index([storageKey])
+}
+
+// ─────────────────────────────────────────────────────────────
+// 014-app-movil-multiplataforma — Notificaciones push móviles
+// ─────────────────────────────────────────────────────────────
+
+/// Plataforma del dispositivo que registra un token de notificaciones.
+enum MobilePlatform {
+  android
+  ios
+}
+
+/// Token de dispositivo para notificaciones push (FCM/APNs).
+/// Un usuario puede tener varios dispositivos/plataformas.
+model DevicePushToken {
+  id                   String         @id @default(cuid())
+  userId               String
+  platform             MobilePlatform
+  token                String         @unique @db.VarChar(512)
+  deviceId             String?        @db.VarChar(191)
+  appVersion           String?        @db.VarChar(40)
+  osVersion            String?        @db.VarChar(40)
+  locale               String?        @db.VarChar(20)
+  notificationsEnabled Boolean        @default(true)
+  lastSeenAt           DateTime?      @db.Timestamptz(6)
+  revokedAt            DateTime?      @db.Timestamptz(6)
+  createdAt            DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime       @updatedAt @db.Timestamptz(6)
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId, platform])
+  @@index([userId, revokedAt])
+  @@index([platform, notificationsEnabled])
+  @@index([lastSeenAt])
 }

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Toolyo</string>
+    <string name="title_activity_main">Toolyo</string>
+    <string name="package_name">com.toolyo.app</string>
+    <string name="custom_url_scheme">com.toolyo.app</string>
+</resources>

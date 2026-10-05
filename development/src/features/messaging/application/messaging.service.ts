@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/server/lib/errors/domain-errors";
 import { countUnreadMessages, isConversationParticipant, listMessages as listMessageRows, markConversationRead, findMessageByClientId, createMessage, toMessagePayload, findPublishedListing, findListingConversation, createListingConversation, getConversationSummary, listUserConversations } from "../infrastructure/messaging.repository";
 import { attachConfirmedUploads } from "./attachment.service";
-import { notifyMessageByEmail } from "@/features/notifications/application/notification.service";
+import { notifyMessageByEmail, notifyMessageByPush } from "@/features/notifications/application/notification.service";
 import type { ConversationGetOrCreateInput, ConversationListInput, ListMessagesInput, MarkReadInput, MessageSendInput } from "../shared/messaging.schema";
 
 function decodeCursor(cursor?: string): { createdAt: Date; id: string } | undefined {
@@ -105,6 +105,13 @@ export async function sendMessage(db: PrismaClient, userId: string, input: Messa
   // Email is deliberately outside the transaction and fire-and-forget: provider
   // latency/failure must never block or roll back message persistence.
   void notifyMessageByEmail(db, {
+    senderUserId: userId,
+    recipientUserId: "conversation-participants",
+    conversationId: input.conversationId,
+    messageId: message.id,
+    preview: message.body ?? "Imagen adjunta",
+  }).catch(() => undefined);
+  void notifyMessageByPush(db, {
     senderUserId: userId,
     recipientUserId: "conversation-participants",
     conversationId: input.conversationId,

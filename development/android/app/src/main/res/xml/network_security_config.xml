@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Producción / release: solo HTTPS. Cualquier tráfico en claro se rechaza (FR-017).
+  Las builds internas que necesiten HTTP en red local usan la variante debug
+  (android/app/src/debug/res/xml/network_security_config.xml).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

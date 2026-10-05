@@ -860,3 +860,12 @@ dialog.login-dialog .auth-form { margin: 0 auto; }
 .booking-context-banner-text { display: grid; gap: 2px; min-width: 0; }
 .booking-context-banner-title { margin: 0; font-size: var(--ps-text-sm); font-weight: 600; color: var(--ps-neutral-900); }
 .booking-context-banner-dates { margin: 0; font-size: var(--ps-text-xs); color: var(--ps-neutral-600); }
+
+/* ==== App móvil: áreas seguras y shell nativo (014-app-movil-multiplataforma) ==== */
+.safe-area-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-area-x { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.safe-area-inset { padding-top: env(safe-area-inset-top, 0px); padding-right: env(safe-area-inset-right, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); }
+
+/* Dentro del shell nativo, evita el "rebote" del scroll del WebView. */
+html[data-native-shell] body { overscroll-behavior-y: contain; }
