@@ -160,8 +160,12 @@ exige HTTPS. El workflow de CI activa el cleartext automáticamente cuando `serv
 ### Generación de artefactos en GitHub
 
 Workflow **Mobile Builds** (`.github/workflows/mobile.yml`): `workflow_dispatch` con entradas
-`server_url` y `allow_cleartext`, y disparo en tags `v*.*.*`. Los artefactos se descargan de la
-ejecución o se adjuntan a la release.
+`server_url`, `allow_cleartext`, `publish_release` y `release_tag`, y disparo en tags `v*.*.*`.
+
+- Los artefactos quedan adjuntos a la ejecución **y**, si `publish_release` está activo, en
+  **Releases** (por defecto, un prerelease interno reutilizable `mobile-internal`).
+- En un tag `v*.*.*` se adjuntan al release de esa versión (requiere la variable de repositorio
+  `MOBILE_SERVER_URL`).
 
 ### Secretos de firma (opcionales)
 

@@ -25,6 +25,16 @@ on:
         required: false
         default: false
         type: boolean
+      publish_release:
+        description: "Publicar los artefactos en Releases al terminar."
+        required: false
+        default: true
+        type: boolean
+      release_tag:
+        description: "Tag del release interno donde publicar (se reutiliza/actualiza)."
+        required: false
+        default: "mobile-internal"
+        type: string
   push:
     tags:
       - "v*.*.*"
@@ -254,17 +264,27 @@ jobs:
             development/ios/build-metadata.txt
 
   release:
-    name: Attach artifacts to release
+    name: Publish artifacts to release
     needs: [android, ios]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish_release }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Attach to GitHub Release
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          # En tags se adjunta al release de la versión; en ejecución manual se
+          # publica/actualiza un release interno reutilizable.
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Mobile interno ({0})', inputs.release_tag) }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
           generate_release_notes: false
+          files: artifacts/**/*
