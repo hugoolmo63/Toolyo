@@ -43,7 +43,8 @@ permissions:
   contents: write
 
 env:
-  NODE_VERSION: "20"
+  # Capacitor 8 exige Node >= 22 (el resto de workflows pueden seguir en 20).
+  NODE_VERSION: "22"
   ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
   IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
   GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}

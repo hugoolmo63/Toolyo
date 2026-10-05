@@ -121,6 +121,7 @@ La misma aplicación se entrega en web, Android e iPhone desde un único código
 
 ```bash
 cd development
+# Requiere Node.js >= 22 para los comandos de Capacitor
 npm run cap:sync          # sincroniza el shell
 npm run build:android     # APK debug
 npm run build:ios         # .app de simulador (requiere macOS)
