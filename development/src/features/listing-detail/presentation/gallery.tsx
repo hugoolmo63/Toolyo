@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import type { ListingPhotoDTO } from "@/types/listing-detail";
 
 /**
- * Gallery — carrusel navegable con zoom y pantalla completa.
+ * Gallery — carrusel navegable con vista ampliada.
  * Accesible por teclado (flechas, Escape), foco visible, alt en imágenes.
  * Ver spec.md FR-002 y contracts/listing-detail.md.
  */
@@ -14,11 +14,46 @@ interface GalleryProps {
   title: string;
 }
 
+function GalleryArrow({ direction }: { direction: "previous" | "next" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={direction === "previous" ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"} />
+    </svg>
+  );
+}
+
+function GalleryCloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="22"
+      height="22"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m18 6-12 12M6 6l12 12" />
+    </svg>
+  );
+}
+
 export function Gallery({ photos, title }: GalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showZoom, setShowZoom] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const hasPhotos = photos.length > 0;
   const currentPhoto = hasPhotos ? photos[currentIndex] : null;
@@ -34,16 +69,12 @@ export function Gallery({ photos, title }: GalleryProps) {
   }, [hasPhotos, photos.length]);
 
   const closeZoom = useCallback(() => {
-    setShowZoom(false);
-    if (document.fullscreenElement) {
-      void document.exitFullscreen().catch(() => undefined);
-    }
-    setIsFullscreen(false);
+    setIsOpen(false);
   }, []);
 
   // Navegación por teclado
   useEffect(() => {
-    if (!showZoom) return;
+    if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeZoom();
       if (e.key === "ArrowRight") goNext();
@@ -51,23 +82,7 @@ export function Gallery({ photos, title }: GalleryProps) {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [showZoom, closeZoom, goNext, goPrev]);
-
-  const handleFullscreen = useCallback(async () => {
-    if (!containerRef.current) return;
-    try {
-      if (!document.fullscreenElement) {
-        await containerRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    } catch {
-      // Fallback: abrir overlay de zoom si Fullscreen API no está disponible
-      setShowZoom(true);
-    }
-  }, []);
+  }, [isOpen, closeZoom, goNext, goPrev]);
 
   if (!hasPhotos) {
     return (
@@ -80,25 +95,23 @@ export function Gallery({ photos, title }: GalleryProps) {
   }
 
   return (
-    <div
-      className={`gallery ${isFullscreen ? "gallery-fullscreen" : ""}`}
-      ref={containerRef}
-    >
+    <div className="gallery">
       <div className="gallery-main">
-        <button
-          type="button"
-          className="gallery-nav-btn gallery-prev"
-          onClick={goPrev}
-          aria-label="Imagen anterior"
-          disabled={photos.length <= 1}
-        >
-          ‹
-        </button>
+        {photos.length > 1 && (
+          <button
+            type="button"
+            className="gallery-nav-btn gallery-prev"
+            onClick={goPrev}
+            aria-label="Imagen anterior"
+          >
+            <GalleryArrow direction="previous" />
+          </button>
+        )}
 
         <button
           type="button"
           className="gallery-image-button"
-          onClick={() => setShowZoom(true)}
+          onClick={() => setIsOpen(true)}
           aria-label={`Ampliar imagen ${currentIndex + 1} de ${photos.length}`}
         >
           {currentPhoto && (
@@ -114,28 +127,23 @@ export function Gallery({ photos, title }: GalleryProps) {
           )}
         </button>
 
-        <button
-          type="button"
-          className="gallery-nav-btn gallery-next"
-          onClick={goNext}
-          aria-label="Imagen siguiente"
-          disabled={photos.length <= 1}
-        >
-          ›
-        </button>
+        {photos.length > 1 && (
+          <button
+            type="button"
+            className="gallery-nav-btn gallery-next"
+            onClick={goNext}
+            aria-label="Imagen siguiente"
+          >
+            <GalleryArrow direction="next" />
+          </button>
+        )}
 
-        <span className="gallery-counter" aria-live="polite">
-          {currentIndex + 1} / {photos.length}
-        </span>
+        {photos.length > 1 && (
+          <span className="gallery-counter" aria-live="polite">
+            {currentIndex + 1} / {photos.length}
+          </span>
+        )}
 
-        <button
-          type="button"
-          className="gallery-fullscreen-btn"
-          onClick={handleFullscreen}
-          aria-label="Pantalla completa"
-        >
-          ⛶
-        </button>
       </div>
 
       {photos.length > 1 && (
@@ -163,21 +171,27 @@ export function Gallery({ photos, title }: GalleryProps) {
         </div>
       )}
 
-      {showZoom && currentPhoto && (
+      {isOpen && currentPhoto && (
         <div
           className="gallery-zoom-overlay"
           role="dialog"
           aria-modal="true"
           aria-label="Imagen ampliada"
-          onClick={closeZoom}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeZoom();
+          }}
         >
           <button
             type="button"
             className="gallery-zoom-close"
-            onClick={closeZoom}
-            aria-label="Cerrar"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setIsOpen(false);
+            }}
+            aria-label="Cerrar vista ampliada"
           >
-            ✕
+            <GalleryCloseIcon />
           </button>
           <div className="gallery-zoom-image" onClick={(e) => e.stopPropagation()}>
             <Image
@@ -189,28 +203,32 @@ export function Gallery({ photos, title }: GalleryProps) {
               style={{ objectFit: "contain" }}
             />
           </div>
-          <button
-            type="button"
-            className="gallery-nav-btn gallery-prev"
-            onClick={(e) => {
-              e.stopPropagation();
-              goPrev();
-            }}
-            aria-label="Imagen anterior"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            className="gallery-nav-btn gallery-next"
-            onClick={(e) => {
-              e.stopPropagation();
-              goNext();
-            }}
-            aria-label="Imagen siguiente"
-          >
-            ›
-          </button>
+          {photos.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="gallery-nav-btn gallery-prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goPrev();
+                }}
+                aria-label="Imagen anterior"
+              >
+                <GalleryArrow direction="previous" />
+              </button>
+              <button
+                type="button"
+                className="gallery-nav-btn gallery-next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goNext();
+                }}
+                aria-label="Imagen siguiente"
+              >
+                <GalleryArrow direction="next" />
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
