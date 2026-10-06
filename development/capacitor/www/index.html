@@ -3,29 +3,131 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Toolyo</title>
+    <title>Conectar con Toolyo</title>
     <style>
-      :root { color-scheme: light dark; }
+      :root {
+        color-scheme: light;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #212529;
+        background: #f8f9fa;
+      }
       body {
         margin: 0;
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: system-ui, -apple-system, sans-serif;
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
       }
-      main { text-align: center; max-width: 24rem; padding: 1.5rem; }
-      code { font-size: 0.85em; }
+      main {
+        width: min(100%, 28rem);
+        box-sizing: border-box;
+        padding: 1.5rem;
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 8%);
+      }
+      h1 { margin-top: 0; color: #005ce6; }
+      p { line-height: 1.5; }
+      label { display: block; margin: 1.25rem 0 0.4rem; font-weight: 600; }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.75rem;
+        border: 1px solid #adb5bd;
+        border-radius: 0.4rem;
+        font: inherit;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.7rem 1rem;
+        border: 0;
+        border-radius: 0.4rem;
+        background: #005ce6;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button[type="button"] { margin-left: 0.5rem; background: #6c757d; }
+      button:disabled { opacity: 0.6; cursor: wait; }
+      #message { min-height: 1.5rem; margin-bottom: 0; }
+      .error { color: #b02a37; }
+      .hint { color: #495057; font-size: 0.9rem; }
     </style>
+    <script src="mobile-config.js"></script>
   </head>
   <body>
     <main>
-      <h1>Toolyo</h1>
+      <h1>Conectar con Toolyo</h1>
       <p>
-        No se pudo cargar la aplicación. Comprueba la conexión o la dirección del
-        servicio (<code>MOBILE_SERVER_URL</code>).
+        No se pudo cargar el servidor configurado. La aplicación está disponible para que
+        puedas cambiar la dirección del servidor.
       </p>
+      <p class="hint">La interfaz principal se abrirá cuando el servidor responda.</p>
+      <form id="endpoint-form" novalidate>
+        <label for="endpoint">Dirección del servidor</label>
+        <input id="endpoint" name="endpoint" type="url" inputmode="url" autocomplete="url" required />
+        <button id="connect" type="submit">Guardar y conectar</button>
+        <button id="reset" type="button">Restablecer</button>
+        <p id="message" role="status" aria-live="polite"></p>
+      </form>
     </main>
+    <script>
+      (() => {
+        const STORAGE_KEY = "toolyo.mobile.endpointOverride";
+        const input = document.getElementById("endpoint");
+        const form = document.getElementById("endpoint-form");
+        const connect = document.getElementById("connect");
+        const reset = document.getElementById("reset");
+        const message = document.getElementById("message");
+        const configuredEndpoint = window.__TOOLYO_DEFAULT_ENDPOINT__ || "";
+        const savedEndpoint = localStorage.getItem(STORAGE_KEY) || configuredEndpoint;
+        input.value = savedEndpoint;
+
+        const normalize = (value) => value.trim().replace(/\/+$/, "");
+        const validate = (value) => {
+          const endpoint = normalize(value);
+          if (!endpoint) return "Introduce la dirección del servidor.";
+          try {
+            const parsed = new URL(endpoint);
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+              return "La dirección debe utilizar HTTP o HTTPS.";
+            }
+            if (!parsed.hostname || parsed.username || parsed.password) {
+              return "Introduce una dirección de servidor válida sin credenciales.";
+            }
+            return null;
+          } catch {
+            return "Introduce una URL válida, por ejemplo http://192.168.1.50:3000.";
+          }
+        };
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const endpoint = normalize(input.value);
+          const error = validate(endpoint);
+          message.className = error ? "error" : "";
+          if (error) {
+            message.textContent = error;
+            return;
+          }
+          localStorage.setItem(STORAGE_KEY, endpoint);
+          message.textContent = "Dirección guardada. Conectando...";
+          connect.disabled = true;
+          const target = new URL(endpoint);
+          target.searchParams.set("toolyoEndpoint", endpoint);
+          window.location.assign(target.toString());
+        });
+
+        reset.addEventListener("click", () => {
+          localStorage.removeItem(STORAGE_KEY);
+          input.value = configuredEndpoint;
+          message.className = "";
+          message.textContent = "Se restauró la dirección predeterminada.";
+        });
+      })();
+    </script>
   </body>
 </html>

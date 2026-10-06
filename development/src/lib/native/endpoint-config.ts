@@ -116,7 +116,19 @@ export function getRuntimeOverride(): string | null {
   }
   try {
     const value = window.localStorage.getItem(RUNTIME_OVERRIDE_KEY);
-    return value ? normalizeEndpoint(value) : null;
+    if (value) {
+      return normalizeEndpoint(value);
+    }
+
+    const handoff = new URLSearchParams(window.location.search).get("toolyoEndpoint");
+    if (handoff && !validateEndpoint(handoff, { allowCleartext: true })) {
+      const normalized = normalizeEndpoint(handoff);
+      setRuntimeOverride(normalized);
+      window.history.replaceState({}, "", window.location.pathname);
+      return normalized;
+    }
+
+    return null;
   } catch {
     return null;
   }

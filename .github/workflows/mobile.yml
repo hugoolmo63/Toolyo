@@ -122,6 +122,11 @@ jobs:
 
       - run: npm ci
 
+      - name: Configure local mobile bootstrap
+        env:
+          ENDPOINT: ${{ env.MOBILE_SERVER_URL }}
+        run: node -e "require('fs').writeFileSync('capacitor/www/mobile-config.js', 'window.__TOOLYO_DEFAULT_ENDPOINT__=' + JSON.stringify(process.env.ENDPOINT) + ';')"
+
       - name: Write google-services.json (FCM)
         if: env.GOOGLE_SERVICES_JSON != ''
         run: printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
@@ -232,6 +237,11 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - run: npm ci
+
+      - name: Configure local mobile bootstrap
+        env:
+          ENDPOINT: ${{ env.MOBILE_SERVER_URL }}
+        run: node -e "require('fs').writeFileSync('capacitor/www/mobile-config.js', 'window.__TOOLYO_DEFAULT_ENDPOINT__=' + JSON.stringify(process.env.ENDPOINT) + ';')"
 
       - name: Capacitor sync (iOS)
         run: npx cap sync ios
