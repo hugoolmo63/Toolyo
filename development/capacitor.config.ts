@@ -3,15 +3,50 @@ import type { CapacitorConfig } from "@capacitor/cli";
 /**
  * Configuración del shell nativo (Capacitor sobre la app Next.js).
  *
- * La interfaz se carga desde `webDir` dentro del paquete nativo para que la
- * aplicación pueda abrirse aunque el endpoint de API no esté disponible.
- * `MOBILE_SERVER_URL` se utiliza por la aplicación para sus peticiones de API,
- * no como origen remoto del WebView.
+ * La interfaz inicial se carga desde `webDir` dentro del paquete nativo para que
+ * la pantalla de conexión pueda abrirse aunque el endpoint de API no esté
+ * disponible. `MOBILE_SERVER_URL` no se asigna a `server.url`; se permite como
+ * destino de navegación del WebView para que `window.location.assign()` abra la
+ * app remota dentro del shell y no en el navegador externo.
  */
+const serverUrl = process.env.MOBILE_SERVER_URL?.trim() || "";
+const allowCleartext = process.env.MOBILE_ALLOW_CLEARTEXT === "true";
+
+function hostOf(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+const host = hostOf(serverUrl);
+
+// Dominios adicionales legítimos (auth/pago) separados por coma. Nunca "*".
+const extraAllowedDomains = (process.env.MOBILE_ALLOWED_DOMAINS ?? "")
+  .split(",")
+  .map((domain) => domain.trim())
+  .filter(Boolean);
+
+// El usuario puede introducir cualquier IP/servidor desde la pantalla local.
+// El wildcard mantiene esas navegaciones dentro del WebView en vez de abrir el
+// navegador externo. Sigue siendo necesaria para builds con override runtime.
+const allowRuntimeOverride =
+  process.env.MOBILE_ALLOW_RUNTIME_OVERRIDE === "true";
+
+const allowNavigation = [
+  ...(allowRuntimeOverride ? ["*"] : host ? [host] : []),
+  ...extraAllowedDomains,
+];
+
 const config: CapacitorConfig = {
   appId: "com.toolyo.app",
   appName: "Toolyo",
   webDir: "capacitor/www",
+  server: {
+    cleartext: allowCleartext,
+    allowNavigation,
+  },
   android: {
     allowMixedContent: false,
   },
