@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { LoginSchema, type LoginInput } from "@/lib/validations/auth";
 import { api } from "@/lib/trpc-react";
 import { Button, FormField, Input } from "@/components/ui";
@@ -12,21 +13,27 @@ import { Button, FormField, Input } from "@/components/ui";
 interface LoginFormProps {
   variant?: "page" | "dialog";
   onSuccess?: () => void;
+  onNavigateRegister?: () => void;
+  initialEmail?: string;
 }
 
-export function LoginForm({ variant = "page", onSuccess }: LoginFormProps) {
+export function LoginForm({ variant = "page", onSuccess, onNavigateRegister, initialEmail = "" }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const utils = api.useUtils();
   const callback = searchParams.get("callback") ?? "/dashboard";
   const isDialog = variant === "dialog";
+  const [showPassword, setShowPassword] = useState(false);
+  const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryMessage, setRecoveryMessage] = useState("");
   const [twoFactorChallenge, setTwoFactorChallenge] = useState<string | null>(
     searchParams.get("twoFactor") === "required" ? "pending-login-challenge" : null,
   );
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
-    defaultValues: { email: "", password: "", rememberMe: false, callback },
+    defaultValues: { email: initialEmail, password: "", rememberMe: false, callback },
   });
 
   const loginMutation = api.auth.loginWithPassword.useMutation({
@@ -44,10 +51,20 @@ export function LoginForm({ variant = "page", onSuccess }: LoginFormProps) {
       router.push(data.callback);
       router.refresh();
     },
-    onError: (error) => form.setError("root", { message: error.message || "No se ha podido iniciar sesión." }),
+    onError: () => form.setError("root", { message: "Correo o contraseña incorrectos" }),
+  });
+  const recoveryMutation = api.auth.requestOtp.useMutation({
+    onSuccess: () => setRecoveryMessage("Si el correo está registrado, recibirás un código para recuperar el acceso."),
+    onError: () => setRecoveryMessage("No se ha podido procesar la solicitud. Inténtalo de nuevo más tarde."),
   });
   const verifyTotpMutation = api.admin.verifyTotp.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      if (isDialog) {
+        await utils.auth.getSession.invalidate();
+        router.refresh();
+        onSuccess?.();
+        return;
+      }
       router.push(isDialog ? callback : data.redirectTo);
       router.refresh();
     },
@@ -94,6 +111,42 @@ export function LoginForm({ variant = "page", onSuccess }: LoginFormProps) {
     );
   }
 
+  if (isRecoveringPassword) {
+    return (
+      <form
+        className="auth-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setRecoveryMessage("");
+          recoveryMutation.mutate({ channel: "email", destination: recoveryEmail, purpose: "recovery" });
+        }}
+      >
+        <div className="form-intro">
+          <p className="form-kicker">Recupera tu acceso</p>
+          <h1>¿Has olvidado tu contraseña?</h1>
+          <p>Introduce el correo asociado a tu cuenta y te enviaremos instrucciones para recuperarla.</p>
+        </div>
+        <FormField id="recovery-email" label="Email">
+          <Input
+            id="recovery-email"
+            type="email"
+            autoComplete="email"
+            value={recoveryEmail}
+            onChange={(event) => setRecoveryEmail(event.target.value)}
+            required
+          />
+        </FormField>
+        {recoveryMessage && <p className="field-hint" role="status" aria-live="polite">{recoveryMessage}</p>}
+        <Button className="auth-submit" type="submit" isLoading={recoveryMutation.isPending} loadingLabel="Enviando...">
+          Enviar código de recuperación
+        </Button>
+        <button className="text-button" type="button" onClick={() => { setIsRecoveringPassword(false); setRecoveryMessage(""); }}>
+          Volver a iniciar sesión
+        </button>
+      </form>
+    );
+  }
+
   return (
     <form className="auth-form" onSubmit={form.handleSubmit((values) => loginMutation.mutate(values))} noValidate>
       <div className="form-intro">
@@ -113,15 +166,30 @@ export function LoginForm({ variant = "page", onSuccess }: LoginFormProps) {
         />
       </FormField>
       <FormField id="login-password" label="Contraseña" error={form.formState.errors.password?.message}>
-        <Input
-          id="login-password"
-          type="password"
-          autoComplete="current-password"
-          {...form.register("password")}
-          hasError={Boolean(form.formState.errors.password)}
-          aria-describedby={form.formState.errors.password ? "login-password-error" : undefined}
-        />
+        <div className="password-field">
+          <Input
+            id="login-password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            {...form.register("password")}
+            hasError={Boolean(form.formState.errors.password)}
+            aria-describedby={form.formState.errors.password ? "login-password-error" : undefined}
+          />
+          <button className="password-toggle" type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={showPassword}>
+            {showPassword ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}
+          </button>
+        </div>
       </FormField>
+      <button
+        className="text-button forgot-password-link"
+        type="button"
+        onClick={() => {
+          setRecoveryEmail(form.getValues("email"));
+          setIsRecoveringPassword(true);
+        }}
+      >
+        ¿Has olvidado tu contraseña?
+      </button>
       <label className="check-row" htmlFor="remember-me">
         <input id="remember-me" type="checkbox" {...form.register("rememberMe")} />
         <span>Mantener mi sesión iniciada durante 30 días.</span>
@@ -131,7 +199,12 @@ export function LoginForm({ variant = "page", onSuccess }: LoginFormProps) {
         Iniciar sesión
       </Button>
       <p className="auth-switch">
-        ¿Aún no estás registrado? <Link href="/auth?tab=register" onClick={isDialog ? onSuccess : undefined}>¡No tardes!</Link>
+        ¿Aún no estás registrado?{" "}
+        {isDialog && onNavigateRegister ? (
+          <button className="auth-inline-link" type="button" onClick={onNavigateRegister}>Crear cuenta</button>
+        ) : (
+          <Link href="/register">¡No tardes!</Link>
+        )}
       </p>
     </form>
   );

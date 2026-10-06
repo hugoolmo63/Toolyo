@@ -18,7 +18,7 @@ const legalDocuments: LegalRegistrationDocument[] = [
 
 function fillCredentials() {
   fireEvent.change(screen.getByLabelText("Email"), { target: { value: "nuevo@toolyo.test" } });
-  fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "passwordpassword123" } });
+  fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "ValidPassword123!" } });
 }
 
 describe("RegistrationForm", () => {
@@ -44,7 +44,7 @@ describe("RegistrationForm", () => {
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledWith({
       email: "nuevo@toolyo.test",
-      password: "passwordpassword123",
+      password: "ValidPassword123!",
       termsDocumentId: "cmufqcx890015jmwntuewoa77",
       privacyDocumentId: "cmufqcx8b0016jmwn1h3m6wzn",
       marketingAccepted: false,

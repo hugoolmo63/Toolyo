@@ -9,9 +9,11 @@ import { LoginDialog } from "@/components/auth/login-dialog";
  * diálogo sin navegar a /auth. El diálogo se renderiza aquí, una sola vez.
  */
 interface AuthDialogContextValue {
-  open(): void;
+  open(tab?: "login" | "register"): void;
   close(): void;
   isOpen: boolean;
+  tab: "login" | "register";
+  setTab(tab: "login" | "register"): void;
 }
 
 const AuthDialogContext = createContext<AuthDialogContextValue | null>(null);
@@ -26,13 +28,20 @@ export function useAuthDialog(): AuthDialogContextValue {
 
 export function AuthDialogProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
+  const [tab, setTab] = useState<"login" | "register">("login");
+  const open = useCallback((initialTab: "login" | "register" = "login") => {
+    setTab(initialTab);
+    setIsOpen(true);
+  }, []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setTab("login");
+  }, []);
 
   return (
-    <AuthDialogContext.Provider value={{ open, close, isOpen }}>
+    <AuthDialogContext.Provider value={{ open, close, isOpen, tab, setTab }}>
       {children}
-      <LoginDialog open={isOpen} onClose={close} />
+      <LoginDialog open={isOpen} onClose={close} tab={tab} onTabChange={setTab} />
     </AuthDialogContext.Provider>
   );
 }

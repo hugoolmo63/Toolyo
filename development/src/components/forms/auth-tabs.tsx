@@ -13,7 +13,7 @@ const ART_CONTENT = {
   },
   register: {
     label: "CREAR CUENTA / 01",
-    title: "Alquila con\nconfianza.",
+    title: "Toolyo, y de nadie más.",
     number: "01",
   },
 } as const;

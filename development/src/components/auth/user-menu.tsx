@@ -8,7 +8,7 @@ import { LogoutButton } from "@/components/forms/logout-button";
 
 /**
  * Zona de sesión del header público (007-login-contextual, FR-006/FR-007).
- * Anónimo → "Entrar" abre el diálogo de login + "Crear cuenta" (página completa).
+ * Anónimo → "Entrar" o "Crear cuenta" abre el diálogo en su pestaña correspondiente.
  * Identificado → menú con "Ir a mi panel" y "Cerrar sesión".
  */
 export function UserMenu() {
@@ -42,12 +42,12 @@ export function UserMenu() {
   if (!isAuthenticated) {
     return (
       <>
-        <button type="button" className="public-nav-link public-nav-button" onClick={open}>
+        <button type="button" className="public-nav-link public-nav-button" onClick={() => open("login")}>
           Entrar
         </button>
-        <Link href="/auth?tab=register" className="public-nav-link public-nav-cta">
+        <button type="button" className="public-nav-link public-nav-cta" onClick={() => open("register")}>
           Crear cuenta
-        </Link>
+        </button>
       </>
     );
   }

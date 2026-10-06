@@ -5,7 +5,6 @@ import type { SsoProvider } from "@/types/auth";
 const providers: { id: SsoProvider; label: string }[] = [
   { id: "google", label: "Google" },
   { id: "apple", label: "Apple" },
-  { id: "facebook", label: "Facebook" },
 ];
 
 export function SsoButtons({ enabled = [] }: { enabled?: SsoProvider[] }) {

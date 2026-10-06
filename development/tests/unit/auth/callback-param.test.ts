@@ -19,6 +19,22 @@ import { LoginSchema } from "@/lib/validations/auth";
 describe("callback param — LoginSchema", () => {
   const base = { email: "user@example.com", password: "a".repeat(12) };
 
+  it("accepts short passwords and uses a generic message for invalid credentials", () => {
+    expect(LoginSchema.safeParse({ email: "user@example.com", password: "short" }).success).toBe(true);
+
+    for (const credentials of [
+      { email: "invalid-email", password: "secret" },
+      { email: "user@example.com", password: "" },
+      { email: "", password: "secret" },
+    ]) {
+      const result = LoginSchema.safeParse(credentials);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.every((issue) => issue.message === "Correo o contraseña incorrectos")).toBe(true);
+      }
+    }
+  });
+
   it("acepta callback como ruta interna", () => {
     const parsed = LoginSchema.parse({ ...base, callback: "/dashboard/products" });
     expect(parsed.callback).toBe("/dashboard/products");

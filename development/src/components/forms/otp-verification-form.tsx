@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/trpc-react";
 
-export function OtpVerificationForm({ channel = "email", destination = "", initialChallengeId = "" }: { channel?: "email" | "phone"; destination?: string; initialChallengeId?: string }) {
+export function OtpVerificationForm({ channel = "email", destination = "", initialChallengeId = "", onVerified }: { channel?: "email" | "phone"; destination?: string; initialChallengeId?: string; onVerified?: () => void }) {
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("Te hemos enviado un código de 6 dígitos.");
   const [challengeId, setChallengeId] = useState(initialChallengeId);
@@ -21,8 +21,13 @@ export function OtpVerificationForm({ channel = "email", destination = "", initi
   const requestOtp = requestOtpMutation.mutate;
 
   const verifyOtpMutation = api.auth.verifyOtp.useMutation({
-    onSuccess: () => {
-      setMessage("Código verificado correctamente.");
+    onSuccess: (result) => {
+      if (result.ok) {
+        setMessage("Código verificado correctamente.");
+        onVerified?.();
+      } else {
+        setMessage("El código no es válido o ha caducado. Solicita uno nuevo.");
+      }
     },
     onError: (error) => {
       setMessage(error.message || "No se ha podido verificar el código.");

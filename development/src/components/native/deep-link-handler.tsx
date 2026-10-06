@@ -1,6 +1,5 @@
 "use client";
 
-import { App } from "@capacitor/app";
 import { useEffect } from "react";
 import { parseDeepLink } from "@/lib/native/deep-link";
 import { isNativeShell } from "@/lib/native/platform";
@@ -26,30 +25,44 @@ export function DeepLinkHandler() {
       return;
     }
 
-    let remove: (() => void) | undefined;
+    let cancelled = false;
+    let removeListener: (() => void) | undefined;
 
-    App.addListener("appUrlOpen", ({ url }) => {
-      const target = parseDeepLink(url, window.location.origin);
-      if (target) {
-        navigateTo(target);
-      }
-    })
-      .then((listener) => {
-        remove = () => listener.remove();
-      })
-      .catch(() => {});
+    void import("@capacitor/app")
+      .then(async ({ App }) => {
+        if (cancelled) return;
 
-    App.getLaunchUrl()
-      .then((result) => {
-        if (!result?.url) return;
-        const target = parseDeepLink(result.url, window.location.origin);
+        const listener = await App.addListener("appUrlOpen", ({ url }) => {
+          const target = parseDeepLink(url, window.location.origin);
+          if (target) {
+            navigateTo(target);
+          }
+        });
+
+        if (cancelled) {
+          await listener.remove();
+          return;
+        }
+        removeListener = () => {
+          void listener.remove();
+        };
+
+        const launch = await App.getLaunchUrl();
+        if (cancelled || !launch?.url) return;
+
+        const target = parseDeepLink(launch.url, window.location.origin);
         if (target) {
           navigateTo(target);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // El plugin puede no estar disponible en una plataforma o runtime nativo.
+      });
 
-    return () => remove?.();
+    return () => {
+      cancelled = true;
+      removeListener?.();
+    };
   }, []);
 
   return null;

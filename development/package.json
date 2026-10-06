@@ -43,6 +43,7 @@
     "@trpc/react-query": "^11.0.0-rc.566",
     "@trpc/server": "^11.0.0-rc.566",
     "leaflet": "^1.9.4",
+    "lucide-react": "^1.52.0",
     "next": "^14.2.15",
     "nuqs": "^2.10.1",
     "otplib": "^13.5.0",

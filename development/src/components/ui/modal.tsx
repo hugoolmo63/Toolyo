@@ -6,13 +6,14 @@ import { Button } from "./button";
 export interface ModalProps {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
+  ariaLabel?: string;
   children: ReactNode;
   className?: string;
   closeLabel?: string;
 }
 
-export function Modal({ open, onClose, title, children, className, closeLabel = "Cerrar diálogo" }: ModalProps) {
+export function Modal({ open, onClose, title, ariaLabel = "Diálogo", children, className, closeLabel = "Cerrar diálogo" }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -51,7 +52,8 @@ export function Modal({ open, onClose, title, children, className, closeLabel = 
     <dialog
       ref={dialogRef}
       className={className ?? "dialog"}
-      aria-labelledby="ui-modal-title"
+      aria-labelledby={title ? "ui-modal-title" : undefined}
+      aria-label={title ? undefined : ariaLabel}
       onClose={handleClose}
       onClick={handleBackdropClick}
     >
@@ -68,7 +70,7 @@ export function Modal({ open, onClose, title, children, className, closeLabel = 
             ✕
           </Button>
           <div className="dialog-body">
-            <h2 id="ui-modal-title">{title}</h2>
+            {title && <h2 id="ui-modal-title">{title}</h2>}
             {children}
           </div>
         </>
