@@ -20,9 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" data-theme="profesional-seguro">
       <body>
-        <AppProviders>
-          <NativeShellProvider>{children}</NativeShellProvider>
-        </AppProviders>
+        <NativeShellProvider>
+          <AppProviders>{children}</AppProviders>
+        </NativeShellProvider>
       </body>
     </html>
   );

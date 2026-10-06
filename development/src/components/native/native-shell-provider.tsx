@@ -3,6 +3,7 @@
 import { StatusBar, Style } from "@capacitor/status-bar";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -10,20 +11,17 @@ import {
 } from "react";
 import { getAppPlatform, isBlockedOnMobile, type AppPlatform } from "@/lib/native/platform";
 import { registerBackButtonHandler } from "@/lib/native/back-button";
+import { getEffectiveEndpoint, getEndpointConfig, type MobileEndpointConfig } from "@/lib/native/endpoint-config";
 import { DeepLinkHandler } from "./deep-link-handler";
-import { PushRegistration } from "./push-registration";
+import { MobileEndpointSettings } from "./mobile-endpoint-settings";
 import { NetworkStatusBanner } from "./network-status-banner";
-import {
-  getEffectiveEndpoint,
-  getEndpointConfig,
-  type MobileEndpointConfig,
-} from "@/lib/native/endpoint-config";
 
 interface NativeShellContextValue {
   platform: AppPlatform;
   isNative: boolean;
   endpoint: MobileEndpointConfig;
   effectiveEndpoint: string;
+  refreshEndpoint: () => void;
 }
 
 const DEFAULT_ENDPOINT: MobileEndpointConfig = {
@@ -43,6 +41,12 @@ export function NativeShellProvider({ children }: { children: ReactNode }) {
   const [endpoint, setEndpoint] = useState<MobileEndpointConfig>(DEFAULT_ENDPOINT);
   const [effectiveEndpoint, setEffectiveEndpoint] = useState("");
 
+  const refreshEndpoint = useCallback(() => {
+    const config = getEndpointConfig();
+    setEndpoint(config);
+    setEffectiveEndpoint(getEffectiveEndpoint(config));
+  }, []);
+
   useEffect(() => {
     const detected = getAppPlatform();
     setPlatform(detected);
@@ -53,9 +57,7 @@ export function NativeShellProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const config = getEndpointConfig();
-    setEndpoint(config);
-    setEffectiveEndpoint(getEffectiveEndpoint(config));
+    refreshEndpoint();
 
     if (detected !== "web") {
       document.documentElement.dataset.nativeShell = detected;
@@ -65,7 +67,7 @@ export function NativeShellProvider({ children }: { children: ReactNode }) {
 
     const removeBackHandler = registerBackButtonHandler();
     return removeBackHandler;
-  }, []);
+  }, [refreshEndpoint]);
 
   return (
     <NativeShellContext.Provider
@@ -74,11 +76,17 @@ export function NativeShellProvider({ children }: { children: ReactNode }) {
         isNative: platform !== "web",
         endpoint,
         effectiveEndpoint,
+        refreshEndpoint,
       }}
     >
       <DeepLinkHandler />
-      <PushRegistration />
-      <NetworkStatusBanner />
+      <NetworkStatusBanner endpoint={effectiveEndpoint} />
+      <MobileEndpointSettings
+        platform={platform}
+        endpoint={endpoint}
+        effectiveEndpoint={effectiveEndpoint}
+        refreshEndpoint={refreshEndpoint}
+      />
       {children}
     </NativeShellContext.Provider>
   );

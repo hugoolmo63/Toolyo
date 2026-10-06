@@ -2,7 +2,6 @@
 
 import { Network } from "@capacitor/network";
 import { useEffect, useState } from "react";
-import { getEffectiveEndpoint, getEndpointConfig } from "@/lib/native/endpoint-config";
 
 type ConnectivityState = "online" | "offline" | "unreachable";
 
@@ -33,7 +32,7 @@ async function isEndpointReachable(endpoint: string): Promise<boolean> {
  * Distingue "sin conexión" de "servicio no accesible" (FR-011, FR-016/FR-017).
  * El segundo caso aparece cuando el endpoint solo es alcanzable desde la red local.
  */
-export function NetworkStatusBanner() {
+export function NetworkStatusBanner({ endpoint }: { endpoint: string }) {
   const [state, setState] = useState<ConnectivityState>("online");
 
   useEffect(() => {
@@ -44,7 +43,7 @@ export function NetworkStatusBanner() {
         if (active) setState("offline");
         return;
       }
-      const reachable = await isEndpointReachable(getEffectiveEndpoint(getEndpointConfig()));
+      const reachable = await isEndpointReachable(endpoint);
       if (active) setState(reachable ? "online" : "unreachable");
     };
 
@@ -70,7 +69,7 @@ export function NetworkStatusBanner() {
       window.removeEventListener("offline", onOffline);
       removeNetwork?.();
     };
-  }, []);
+  }, [endpoint]);
 
   if (state === "online") {
     return null;

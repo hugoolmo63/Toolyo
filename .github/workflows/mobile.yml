@@ -1,7 +1,7 @@
 # Mobile Builds — artefactos nativos Android/iOS (014-app-movil-multiplataforma)
 #
 # Genera artefactos instalables internos (APK Android y .app/.ipa iOS) sin publicar
-# en tiendas. El endpoint se configura con la entrada `server_url` (MOBILE_SERVER_URL).
+# en tiendas. La interfaz se empaqueta localmente; `server_url` configura la API (MOBILE_SERVER_URL).
 #
 # Secretos opcionales para firmar (nunca se escriben en artefactos ni logs):
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
@@ -55,6 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MOBILE_SERVER_URL: ${{ inputs.server_url || vars.MOBILE_SERVER_URL || '' }}
+      MOBILE_ALLOW_RUNTIME_OVERRIDE: "true"
     defaults:
       run:
         working-directory: development

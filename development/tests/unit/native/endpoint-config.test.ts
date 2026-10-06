@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  getRuntimeOverride,
   hostOf,
   isCleartextUrl,
   isLocalNetworkUrl,
+  normalizeEndpoint,
+  probeEndpoint,
   resolveEndpointConfig,
+  setRuntimeOverride,
+  validateEndpoint,
   validateEndpointForProduction,
 } from "@/lib/native/endpoint-config";
 
@@ -67,6 +72,41 @@ describe("network helpers", () => {
   it("detects cleartext schemes", () => {
     expect(isCleartextUrl("http://192.168.1.50:3000")).toBe(true);
     expect(isCleartextUrl("https://toolyo.example.com")).toBe(false);
+  });
+});
+
+describe("runtime endpoint validation", () => {
+  it("normalizes valid URLs and rejects unsafe values", () => {
+    expect(normalizeEndpoint(" https://toolyo.example.com/ ")).toBe("https://toolyo.example.com");
+    expect(validateEndpoint("https://toolyo.example.com")).toBeNull();
+    expect(validateEndpoint("not-a-url")).toMatch(/dirección|URL/i);
+    expect(validateEndpoint("ftp://toolyo.example.com")).toMatch(/http/i);
+    expect(validateEndpoint("https://user:password@toolyo.example.com")).toMatch(/credenciales/i);
+    expect(validateEndpoint("https://toolyo.example.com:70000")).toMatch(/puerto|URL/i);
+  });
+
+  it("allows local HTTP only for internal runtime use", () => {
+    expect(validateEndpoint("http://192.168.1.50:3000", { allowCleartext: true })).toBeNull();
+    expect(validateEndpoint("http://toolyo.example.com", { allowCleartext: true })).toMatch(/local/i);
+  });
+
+  it("persists and clears a runtime override", () => {
+    const storage = new Map<string, string>();
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: {
+        localStorage: {
+          getItem: (key: string) => storage.get(key) ?? null,
+          setItem: (key: string, value: string) => storage.set(key, value),
+          removeItem: (key: string) => storage.delete(key),
+        },
+      },
+    });
+
+    setRuntimeOverride(" https://toolyo.example.com/ ");
+    expect(getRuntimeOverride()).toBe("https://toolyo.example.com");
+    setRuntimeOverride(null);
+    expect(getRuntimeOverride()).toBeNull();
   });
 });
 
