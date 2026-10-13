@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { stDWithinClause, stDistanceSelect, setSeedSql } from "@/server/lib/geo/postgis";
+import { stDistanceSelect, setSeedSql } from "@/server/lib/geo/postgis";
 import type { SearchQueryInput } from "@/features/search/shared/search.schema";
 import { EMBEDDING_DIMENSIONS } from "@/lib/embeddings/embedding.service";
 
@@ -70,6 +70,24 @@ const PHOTO_JOIN = `
 `;
 
 const BASE_WHERE = `"Listing"."status" = 'published' AND "Listing"."deletedAt" IS NULL AND owner."id" IS NOT NULL`;
+
+/**
+ * Radio por defecto (km) que delimita "la zona" cuando el visitante selecciona
+ * una ubicación sin indicar una distancia máxima explícita.
+ */
+const DEFAULT_LOCATION_RADIUS_KM = 50;
+
+/**
+ * Geografía del listing para filtros de proximidad: usa el Point PostGIS si
+ * existe y, si no, construye el punto desde lat/lng. Los listings creados desde
+ * la app solo rellenan lat/lng (location es NULL), así que el fallback es
+ * imprescindible para que el filtro de ubicación no los excluya. Devuelve NULL
+ * si el listing no tiene coordenadas.
+ */
+const LISTING_GEOGRAPHY = `COALESCE(
+  "Listing"."location",
+  ST_SetSRID(ST_MakePoint("Listing"."lng", "Listing"."lat"), 4326)
+)::geography`;
 
 /**
  * Devuelve listings publicados en orden aleatorio con seed estable.
@@ -152,6 +170,30 @@ function buildFilterWhere(input: SearchQueryInput, includeText = true): string {
     )`);
   }
 
+  if (input.location) {
+    // La ubicación siempre acota el catálogo a "la zona" seleccionada:
+    // con distancia máxima explícita se respeta ese radio estrictamente;
+    // sin ella se aplica un radio por defecto o la coincidencia por ciudad.
+    const point = `ST_GeomFromText('POINT(${input.location.lng} ${input.location.lat})', 4326)::geography`;
+    if (input.maxDistanceKm !== undefined) {
+      conditions.push(
+        `ST_DWithin(${LISTING_GEOGRAPHY}, ${point}, ${input.maxDistanceKm * 1000})`,
+      );
+    } else {
+      const city = input.location.text
+        .split(",")[0]
+        ?.trim()
+        .replace(/'/g, "''")
+        .replace(/[%_]/g, "");
+      const radiusMeters = DEFAULT_LOCATION_RADIUS_KM * 1000;
+      conditions.push(
+        city
+          ? `(ST_DWithin(${LISTING_GEOGRAPHY}, ${point}, ${radiusMeters}) OR "Listing"."city" ILIKE '%${city}%')`
+          : `ST_DWithin(${LISTING_GEOGRAPHY}, ${point}, ${radiusMeters})`,
+      );
+    }
+  }
+
   return conditions.join(" AND ");
 }
 
@@ -163,7 +205,7 @@ function buildOrderBy(input: SearchQueryInput): string {
     case "nearest":
       // Requiere location — se maneja con ST_Distance
       if (input.location) {
-        return `ORDER BY ST_Distance("Listing"."location", ST_GeomFromText('POINT(${input.location.lng} ${input.location.lat})', 4326)::geography) ASC`;
+        return `ORDER BY ST_Distance(${LISTING_GEOGRAPHY}, ST_GeomFromText('POINT(${input.location.lng} ${input.location.lat})', 4326)::geography) ASC NULLS LAST`;
       }
       return 'ORDER BY "Listing"."ratingAverage" DESC';
     case "price_asc":
@@ -235,14 +277,6 @@ export async function findPublishedListingsFiltered(
     ? Prisma.raw(`, ${stDistanceSelect(input.location.lat, input.location.lng)}`)
     : Prisma.raw("");
 
-  // Filtro de distancia máxima (requiere location)
-  const distanceWhere =
-    input.location && input.maxDistanceKm
-      ? Prisma.raw(
-          ` AND ${stDWithinClause(input.location.lat, input.location.lng, input.maxDistanceKm * 1000)}`,
-        )
-      : Prisma.raw("");
-
   const runQuery = async (useSemantic: boolean) => {
     const semanticSelect = useSemantic
       ? Prisma.sql`, CASE WHEN embedding."embedding" IS NULL THEN NULL::real
@@ -263,7 +297,7 @@ export async function findPublishedListingsFiltered(
     ${Prisma.raw(VERIFIED_JOIN)}
     ${Prisma.raw(PHOTO_JOIN)}
     ${useSemantic ? Prisma.raw('INNER JOIN "ListingEmbedding" AS embedding ON embedding."listingId" = "Listing"."id"') : Prisma.raw("")}
-    WHERE ${Prisma.raw(useSemantic ? whereClause : textWhereClause)}${distanceWhere} ${semanticWhere}
+    WHERE ${Prisma.raw(useSemantic ? whereClause : textWhereClause)} ${semanticWhere}
     ${Prisma.raw(useSemantic ? orderByClause : buildOrderBy(input))}
     ${Prisma.raw(useSemantic ? semanticLimitClause : limitClause)}
   `;
@@ -308,7 +342,7 @@ export async function findPublishedListingsFiltered(
         SELECT COUNT(*)::bigint FROM "Listing"
         ${Prisma.raw(OWNER_JOIN)}
         ${Prisma.raw(VERIFIED_JOIN)}
-        WHERE ${Prisma.raw(textWhereClause)}${distanceWhere}
+        WHERE ${Prisma.raw(textWhereClause)}
       `;
 
   // Semantic results are intentionally capped at three items, so expose the
