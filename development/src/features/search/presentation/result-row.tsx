@@ -6,12 +6,17 @@ import type { SearchResultDTO } from "@/types/search";
  * ResultRow — fila de listing en vista lista (más compacta que la tarjeta grid).
  * Solo muestra campos públicos. Ver spec.md FR-014, FR-015.
  */
-export function ResultRow({ listing }: { listing: SearchResultDTO }) {
+export function ResultRow({ listing, openInNewTab = false }: { listing: SearchResultDTO; openInNewTab?: boolean }) {
   const href = `/listings/${listing.slug}`;
 
   return (
     <article className="result-row">
-      <Link href={href} className="result-row-link" aria-label={`Ver detalle de ${listing.title}`}>
+      <Link
+        href={href}
+        className="result-row-link"
+        aria-label={`Ver detalle de ${listing.title}`}
+        {...(openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
         <div className="result-row-image">
           {listing.primaryPhotoUrl ? (
             <Image

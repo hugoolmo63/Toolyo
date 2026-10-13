@@ -83,13 +83,13 @@ export function ResultsList({
       {view === "grid" ? (
         <div className="results-grid">
           {results.map((listing) => (
-            <ResultCard key={listing.id} listing={listing} />
+            <ResultCard key={listing.id} listing={listing} openInNewTab={!isMobile} />
           ))}
         </div>
       ) : (
         <div className="results-list-view">
           {results.map((listing) => (
-            <ResultRow key={listing.id} listing={listing} />
+            <ResultRow key={listing.id} listing={listing} openInNewTab={!isMobile} />
           ))}
         </div>
       )}

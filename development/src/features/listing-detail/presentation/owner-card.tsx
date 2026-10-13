@@ -13,11 +13,10 @@ interface OwnerCardProps {
 }
 
 export function OwnerCard({ owner }: OwnerCardProps) {
-  const displayName = owner.displayName ?? "Arrendador";
+  const displayName = owner.displayName ?? "Usuario";
 
   return (
     <section className="owner-card" aria-labelledby="owner-heading">
-      <h2 id="owner-heading">Arrendador</h2>
       <div className="owner-card-body">
         <Link href={`/users/${owner.id}`} className="owner-avatar" aria-label={`Ver perfil de ${displayName}`}>
           {owner.avatarUrl ? (
@@ -35,7 +34,7 @@ export function OwnerCard({ owner }: OwnerCardProps) {
           )}
         </Link>
         <div className="owner-info">
-          <p className="owner-name">
+          <p className="owner-name" id="owner-heading">
             <Link href={`/users/${owner.id}`}>{displayName}</Link>
             {owner.isVerified && (
               <span className="owner-verified-badge" title="Identidad verificada">

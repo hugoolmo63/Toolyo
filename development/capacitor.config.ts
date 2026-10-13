@@ -9,8 +9,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * destino de navegación del WebView para que `window.location.assign()` abra la
  * app remota dentro del shell y no en el navegador externo.
  */
-const serverUrl = process.env.MOBILE_SERVER_URL?.trim() || "";
-const allowCleartext = process.env.MOBILE_ALLOW_CLEARTEXT === "true";
+// Endpoint temporal para la build del simulador iOS; retirar al terminar las pruebas.
+const serverUrl = "http://10.26.52.22:3000";
 
 function hostOf(url: string): string | null {
   try {
@@ -44,7 +44,8 @@ const config: CapacitorConfig = {
   appName: "Toolyo",
   webDir: "capacitor/www",
   server: {
-    cleartext: allowCleartext,
+    url: serverUrl,
+    cleartext: true,
     allowNavigation,
   },
   android: {

@@ -75,6 +75,7 @@ export interface ListingDetailDTO {
     id: string;
     name: string;
     slug: string;
+    parentId: string | null;
     parentName: string | null;
   };
   owner: OwnerDTO;

@@ -112,7 +112,7 @@ describe("listing-detail.service", () => {
       expect(result!.reviewCount).toBe(10);
       expect(result!.viewCount).toBe(100);
       expect(result!.isInstantBooking).toBe(true);
-      expect(result!.category).toEqual({ id: "cat-1", name: "Cámaras", slug: "camaras", parentName: null });
+      expect(result!.category).toEqual({ id: "cat-1", name: "Cámaras", slug: "camaras", parentId: null, parentName: null });
       expect(result!.owner.id).toBe("owner-1");
       expect(result!.owner.isVerified).toBe(true);
       expect(result!.photos).toHaveLength(2);

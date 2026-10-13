@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ListingDetailDTO } from "@/types/listing-detail";
 
 /**
@@ -13,9 +14,17 @@ export function ListingHeader({ listing }: ListingHeaderProps) {
     <header className="listing-header">
       <div className="listing-header-badges">
         <span className="listing-category-badge">
-          {listing.category.parentName
-            ? `${listing.category.parentName} > ${listing.category.name}`
-            : listing.category.name}
+          {listing.category.parentName && listing.category.parentId && (
+            <>
+              <Link href={`/?cat=${encodeURIComponent(listing.category.parentId)}`}>
+                {listing.category.parentName}
+              </Link>
+              <span aria-hidden="true"> &gt; </span>
+            </>
+          )}
+          <Link href={`/?cat=${encodeURIComponent(listing.category.id)}`}>
+            {listing.category.name}
+          </Link>
         </span>
         {listing.isInstantBooking && (
           <span className="listing-instant-badge" title="Reserva instantánea">
@@ -33,10 +42,16 @@ export function ListingHeader({ listing }: ListingHeaderProps) {
 
       <div className="listing-meta">
         {listing.city && (
-          <span className="listing-location">
+          <Link
+            className="listing-location"
+            href={listing.location
+              ? `/?${new URLSearchParams({ loc: listing.city, lat: String(listing.location.lat), lng: String(listing.location.lng) }).toString()}`
+              : `/?q=${encodeURIComponent(listing.city)}`}
+            aria-label={`Buscar productos en ${listing.city}`}
+          >
             📍 {listing.city}
             {listing.addressText && ` · ${listing.addressText}`}
-          </span>
+          </Link>
         )}
         <a href="#reviews" className="listing-rating listing-rating-link" aria-label={`Ver ${listing.reviewCount} reseñas`}>
           ★ {listing.ratingAverage.toFixed(1)}

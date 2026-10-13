@@ -77,6 +77,7 @@ function mapDetailToDTO(
       id: row.categoryId,
       name: row.categoryName,
       slug: row.categorySlug,
+      parentId: row.parentCategoryId ?? null,
       parentName: row.parentCategoryName ?? null,
     },
     owner,

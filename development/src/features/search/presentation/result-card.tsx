@@ -7,12 +7,17 @@ import type { SearchResultDTO } from "@/types/search";
  * Solo muestra campos públicos (sin email, teléfono, dirección exacta).
  * Ver spec.md FR-008 y contracts/search.md (SearchResultDTO).
  */
-export function ResultCard({ listing }: { listing: SearchResultDTO }) {
+export function ResultCard({ listing, openInNewTab = false }: { listing: SearchResultDTO; openInNewTab?: boolean }) {
   const href = `/listings/${listing.slug}`;
 
   return (
     <article className="result-card">
-      <Link href={href} className="result-card-link" aria-label={`Ver detalle de ${listing.title}`}>
+      <Link
+        href={href}
+        className="result-card-link"
+        aria-label={`Ver detalle de ${listing.title}`}
+        {...(openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
         <div className="result-card-image">
           {listing.primaryPhotoUrl ? (
             <Image

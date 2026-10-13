@@ -27,6 +27,7 @@ export interface RawListingDetailRow {
   categoryId: string;
   categoryName: string;
   categorySlug: string;
+  parentCategoryId?: string | null;
   parentCategoryName?: string | null;
   ownerId: string;
   ownerDisplayName: string | null;
@@ -133,6 +134,7 @@ export async function findListingBySlug(
       "Listing"."categoryId",
       cat."name" AS "categoryName",
       cat."slug" AS "categorySlug",
+      parent_cat."id" AS "parentCategoryId",
       parent_cat."name" AS "parentCategoryName",
       "Listing"."ownerId",
       owner."displayName" AS "ownerDisplayName",

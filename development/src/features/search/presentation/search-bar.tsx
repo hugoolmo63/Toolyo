@@ -2,40 +2,62 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { api } from "@/lib/trpc-react";
+import { MapPin, Package, Tag, X } from "lucide-react";
 import { useUpdateSearchParams } from "@/hooks/use-search-params";
-import type {
-  CategorySuggestion,
-  LocationSuggestion,
-} from "@/features/search/domain/search-result";
 
-interface ListingSuggestion {
+interface ProductSuggestion {
+  kind: "product";
   id: string;
   title: string;
   category: string;
 }
 
+interface CategorySuggestion {
+  kind: "category";
+  id: string;
+  name: string;
+}
+
+interface LocationSuggestion {
+  kind: "location";
+  text: string;
+  lat: number;
+  lng: number;
+}
+
+type SearchSuggestion = ProductSuggestion | CategorySuggestion | LocationSuggestion;
+
+interface SuggestionGroups {
+  locations: Omit<LocationSuggestion, "kind">[];
+  categories: Omit<CategorySuggestion, "kind">[];
+  products: Omit<ProductSuggestion, "kind">[];
+}
+
+const EMPTY_SUGGESTIONS: SuggestionGroups = {
+  locations: [],
+  categories: [],
+  products: [],
+};
+
 /**
- * SearchBar — barra de búsqueda con autocompletado diferenciado de ubicaciones,
- * categorías y productos. Sincroniza el estado con la URL al seleccionar o enviar.
+ * SearchBar — barra de búsqueda simple.
+ * Sincroniza el texto con la URL al enviar.
  * Ver spec.md FR-002 y contracts/search.md.
  */
 export function SearchBar({ compact = false }: { compact?: boolean }) {
   const [inputValue, setInputValue] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<ListingSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestionGroups>(EMPTY_SUGGESTIONS);
   const [isOpen, setIsOpen] = useState(false);
   const searchBarRef = useRef<HTMLDivElement>(null);
   const updateParams = useUpdateSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-
-  const suggestQuery = api.search.suggest.useQuery(
-    { query: debouncedQuery, type: "all", limit: 4 },
-    { enabled: debouncedQuery.length >= 2, staleTime: 30_000 },
-  );
-  const locationSuggestions = suggestQuery.data?.locations ?? [];
-  const categorySuggestions = suggestQuery.data?.categories ?? [];
+  const allSuggestions: SearchSuggestion[] = [
+    ...suggestions.locations.map((suggestion) => ({ ...suggestion, kind: "location" as const })),
+    ...suggestions.categories.map((suggestion) => ({ ...suggestion, kind: "category" as const })),
+    ...suggestions.products.map((suggestion) => ({ ...suggestion, kind: "product" as const })),
+  ];
+  const hasSuggestions = allSuggestions.length > 0;
 
   const searchFor = (query: string) => {
     if (pathname.startsWith("/listings/")) {
@@ -45,41 +67,51 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
     updateParams({ query, page: null });
   };
 
-  const searchLocation = (location: LocationSuggestion) => {
-    if (pathname.startsWith("/listings/")) {
-      router.push(
-        `/?loc=${encodeURIComponent(location.text)}&lat=${location.lat}&lng=${location.lng}`,
-      );
-      return;
-    }
-    updateParams({
-      query: null,
-      locationText: location.text,
-      lat: location.lat,
-      lng: location.lng,
-      page: null,
-    });
-  };
+  const selectSuggestion = (suggestion: SearchSuggestion) => {
+    setInputValue(
+      suggestion.kind === "location"
+        ? suggestion.text
+        : suggestion.kind === "category"
+          ? suggestion.name
+          : suggestion.title,
+    );
+    setSuggestions(EMPTY_SUGGESTIONS);
+    setIsOpen(false);
 
-  const searchCategory = (category: CategorySuggestion) => {
+    const filters = {
+      query: suggestion.kind === "product" ? suggestion.title : null,
+      locationText: suggestion.kind === "location" ? suggestion.text : null,
+      lat: suggestion.kind === "location" ? suggestion.lat : null,
+      lng: suggestion.kind === "location" ? suggestion.lng : null,
+      categoryId: suggestion.kind === "category" ? suggestion.id : null,
+      page: null,
+    };
+
     if (pathname.startsWith("/listings/")) {
-      router.push(`/?cat=${encodeURIComponent(category.id)}`);
+      const params = new URLSearchParams();
+      if (filters.query) params.set("q", filters.query);
+      if (filters.locationText) {
+        params.set("loc", filters.locationText);
+        params.set("lat", String(filters.lat));
+        params.set("lng", String(filters.lng));
+      }
+      if (filters.categoryId) params.set("cat", filters.categoryId);
+      router.push(`/?${params.toString()}`);
       return;
     }
-    updateParams({ categoryId: category.id, page: null });
+
+    updateParams(filters);
   };
 
   useEffect(() => {
     const query = inputValue.trim();
     if (!query) {
-      setDebouncedQuery("");
-      setSuggestions([]);
+      setSuggestions(EMPTY_SUGGESTIONS);
       return;
     }
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
-      setDebouncedQuery(query);
       try {
         const response = await fetch(
           `/api/search/suggestions?q=${encodeURIComponent(query)}`,
@@ -87,11 +119,15 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
         );
         if (!response.ok) return;
 
-        const data = (await response.json()) as { suggestions: ListingSuggestion[] };
-        setSuggestions(data.suggestions);
+        const data = (await response.json()) as SuggestionGroups;
+        setSuggestions({
+          locations: data.locations ?? [],
+          categories: data.categories ?? [],
+          products: data.products ?? [],
+        });
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setSuggestions([]);
+        setSuggestions(EMPTY_SUGGESTIONS);
       }
     }, 300);
 
@@ -121,22 +157,36 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
     };
   }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitSearch = () => {
     setIsOpen(false);
     if (inputValue.trim()) {
-      searchFor(inputValue.trim());
+      const normalizedInput = inputValue.trim().toLocaleLowerCase();
+      const matchingSuggestion = allSuggestions.find((suggestion) => {
+        const label = suggestion.kind === "location"
+          ? suggestion.text
+          : suggestion.kind === "category"
+            ? suggestion.name
+            : suggestion.title;
+        return label.toLocaleLowerCase().startsWith(normalizedInput);
+      });
+
+      if (matchingSuggestion) {
+        selectSuggestion(matchingSuggestion);
+      } else {
+        searchFor(inputValue.trim());
+      }
     }
   };
 
-  const hasSuggestions =
-    locationSuggestions.length > 0 ||
-    categorySuggestions.length > 0 ||
-    suggestions.length > 0;
-
   return (
     <div className={`search-bar${compact ? " search-bar-compact" : ""}`} ref={searchBarRef}>
-      <form role="search" onSubmit={handleSubmit}>
+      <form
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitSearch();
+        }}
+      >
         <label htmlFor="search-input" className="sr-only">
           Buscar productos para alquilar
         </label>
@@ -146,8 +196,14 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
           value={inputValue}
           onChange={(e) => {
             setInputValue(e.target.value);
-            setSuggestions([]);
+            setSuggestions(EMPTY_SUGGESTIONS);
             setIsOpen(true);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              submitSearch();
+            }
           }}
           onFocus={() => {
             if (inputValue.trim()) setIsOpen(true);
@@ -158,70 +214,81 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
           aria-expanded={isOpen && hasSuggestions}
           aria-controls="search-suggestions"
         />
-        <button type="submit" className="search-submit" aria-label="Buscar">
-          Buscar
-        </button>
+        {inputValue && (
+          <button
+            type="button"
+            className="search-clear"
+            aria-label="Limpiar búsqueda"
+            onClick={() => {
+              setInputValue("");
+              setSuggestions(EMPTY_SUGGESTIONS);
+              setIsOpen(false);
+            }}
+          >
+            <X aria-hidden="true" size={18} />
+          </button>
+        )}
       </form>
       {isOpen && hasSuggestions && (
-        <ul id="search-suggestions" className="search-suggestions" role="listbox">
-          {locationSuggestions.map((location) => (
-            <li key={`loc-${location.text}-${location.lat}-${location.lng}`}>
-              <button
-                type="button"
-                className="suggestion-item"
-                role="option"
-                aria-selected="false"
-                onClick={() => {
-                  setInputValue("");
-                  setSuggestions([]);
-                  setIsOpen(false);
-                  searchLocation(location);
-                }}
-              >
-                <span className="suggestion-text">📍 {location.text}</span>
-                <span className="suggestion-type">Ubicación</span>
-              </button>
-            </li>
-          ))}
-          {categorySuggestions.map((category) => (
-            <li key={`cat-${category.id}`}>
-              <button
-                type="button"
-                className="suggestion-item"
-                role="option"
-                aria-selected="false"
-                onClick={() => {
-                  setInputValue("");
-                  setSuggestions([]);
-                  setIsOpen(false);
-                  searchCategory(category);
-                }}
-              >
-                <span className="suggestion-text">{category.name}</span>
-                <span className="suggestion-type">Categoría</span>
-              </button>
-            </li>
-          ))}
-          {suggestions.map((suggestion) => (
-            <li key={suggestion.id}>
-              <button
-                type="button"
-                className="suggestion-item"
-                role="option"
-                aria-selected="false"
-                onClick={() => {
-                  setInputValue(suggestion.title);
-                  setSuggestions([]);
-                  setIsOpen(false);
-                  searchFor(suggestion.title);
-                }}
-              >
-                <span className="suggestion-text">{suggestion.title}</span>
-                <span className="suggestion-type">{suggestion.category}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div id="search-suggestions" className="search-suggestions" role="listbox" aria-label="Sugerencias de búsqueda">
+          {suggestions.locations.length > 0 && (
+            <div className="suggestion-group" role="group" aria-label="Ubicaciones">
+              <h2 className="suggestion-heading">Ubicaciones</h2>
+              {suggestions.locations.map((suggestion) => (
+                <button
+                  key={`${suggestion.lat},${suggestion.lng}`}
+                  type="button"
+                  className="suggestion-item"
+                  role="option"
+                  aria-selected="false"
+                  onClick={() => selectSuggestion({ ...suggestion, kind: "location" })}
+                >
+                  <MapPin className="suggestion-icon" aria-hidden="true" size={18} />
+                  <span className="suggestion-text">{suggestion.text}</span>
+                  <span className="suggestion-type">Ubicación</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {suggestions.categories.length > 0 && (
+            <div className="suggestion-group" role="group" aria-label="Categorías">
+              <h2 className="suggestion-heading">Categorías</h2>
+              {suggestions.categories.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  type="button"
+                  className="suggestion-item"
+                  role="option"
+                  aria-selected="false"
+                  onClick={() => selectSuggestion({ ...suggestion, kind: "category" })}
+                >
+                  <Tag className="suggestion-icon" aria-hidden="true" size={18} />
+                  <span className="suggestion-text">{suggestion.name}</span>
+                  <span className="suggestion-type">Categoría</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {suggestions.products.length > 0 && (
+            <div className="suggestion-group" role="group" aria-label="Productos">
+              <h2 className="suggestion-heading">Productos</h2>
+              {suggestions.products.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  type="button"
+                  className="suggestion-item"
+                  role="option"
+                  aria-selected="false"
+                  onClick={() => selectSuggestion({ ...suggestion, kind: "product" })}
+                >
+                  <Package className="suggestion-icon" aria-hidden="true" size={18} />
+                  <span className="suggestion-text">{suggestion.title}</span>
+                  <span className="suggestion-type">Producto</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
