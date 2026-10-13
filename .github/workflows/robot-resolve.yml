@@ -127,8 +127,14 @@ jobs:
           set -euo pipefail
           git config user.name "toolyo-bot"
           git config user.email "toolyo-bot@users.noreply.github.com"
-          git checkout -b "robot/issue-$ISSUE_NUMBER"
-          git push -u origin "robot/issue-$ISSUE_NUMBER"
+          git fetch origin "robot/issue-$ISSUE_NUMBER" || true
+          if git show-ref --verify --quiet "refs/remotes/origin/robot/issue-$ISSUE_NUMBER"; then
+            # Reintento: la rama ya existe en remoto — continuar sobre ella
+            git checkout --track "origin/robot/issue-$ISSUE_NUMBER"
+          else
+            git checkout -b "robot/issue-$ISSUE_NUMBER"
+            git push -u origin "robot/issue-$ISSUE_NUMBER"
+          fi
 
       - name: Render agent runbook
         if: steps.guard.outputs.skip == 'false'
