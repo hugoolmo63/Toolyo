@@ -92,6 +92,16 @@ No introduzcas credenciales reales en `.env` ni en fixtures. `AUTH_GOOGLE_ENABLE
 
 Para enviar el correo real de verificación, configura `EMAIL_PROVIDER="resend"` y completa `RESEND_API_KEY` y `RESEND_FROM` en `.env`.
 
+## App móvil
+
+Los scripts móviles requieren los toolchains nativos instalados: Android Studio/SDK para Android y Xcode (macOS) para iOS.
+
+```bash
+npm run cap:sync        # sincroniza la web build con los proyectos nativos
+npm run build:android   # compila la app Android (requiere Android Studio/SDK)
+npm run build:ios       # compila la app iOS (requiere Xcode en macOS)
+```
+
 ## Validación
 
 ```bash
