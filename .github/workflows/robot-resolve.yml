@@ -81,7 +81,7 @@ jobs:
             echo "- Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo "- Rama de trabajo: \`robot/issue-$ISSUE_NUMBER\`"
           } > /tmp/comment_start.md
-          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_start.md
+          bash ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_start.md
 
       # -- Entorno de ejecución (replica el setup de ci.yml) --
       - name: Set up Node.js
@@ -210,7 +210,7 @@ jobs:
             echo ""
             head -n 30 ROBOT_SUMMARY.md
           } > /tmp/comment_done.md
-          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_done.md
+          bash ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_done.md
 
       # -- Aborto controlado: el agente decidió no resolver --
       - name: Report agent abort
@@ -225,7 +225,7 @@ jobs:
             echo ""
             echo "Enriquece la descripción de la issue y vuelve a aplicar la etiqueta \`TO_LOCO\`, o relanza con \`workflow_dispatch\` (Run workflow → issue $ISSUE_NUMBER)."
           } > /tmp/comment_abort.md
-          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_abort.md
+          bash ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_abort.md
 
       # -- Cancelación: se retiró TO_LOCO o se cerró la issue en curso --
       - name: Report cancellation
@@ -234,7 +234,7 @@ jobs:
           {
             echo "ℹ️ El trabajo del robot sobre esta incidencia se canceló (etiqueta retirada o issue cerrada durante la ejecución)."
           } > /tmp/comment_cancel.md
-          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_cancel.md || true
+          bash ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_cancel.md || true
 
       # -- Fallo interno: agente crash, timeout, sin sentinels, sin commits --
       - name: Report failure
@@ -248,7 +248,7 @@ jobs:
             echo "- Log del run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo "- Reintento: retira y vuelve a aplicar la etiqueta \`TO_LOCO\`, o usa workflow_dispatch."
           } > /tmp/comment_failed.md
-          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_failed.md
+          bash ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_failed.md
 
       - name: Clear in-progress label
         if: always() && steps.guard.outputs.skip == 'false'
