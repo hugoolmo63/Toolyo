@@ -18,3 +18,7 @@ coverage/
 # Playwright artifacts
 test-results/
 playwright-report/
+
+# Robot de resolución de incidencias (sentinels efímeros del job)
+ROBOT_SUMMARY.md
+ROBOT_ABORT.md

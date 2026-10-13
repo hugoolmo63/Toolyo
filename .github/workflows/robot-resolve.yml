@@ -1,0 +1,255 @@
+# Robot de resolución de incidencias
+# Se dispara al aplicar la etiqueta TO_LOCO a una issue, o manualmente vía
+# workflow_dispatch (reintento). Ver specs/016-*/contracts/.
+name: robot-resolve
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Número de issue a procesar"
+        required: true
+        type: number
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+
+concurrency:
+  group: robot-issue-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+env:
+  ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  resolve:
+    name: Resolve issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.action == 'labeled' &&
+       github.event.label.name == 'TO_LOCO')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -- Guardias tempranas: estado, etiqueta y anti-duplicación (FR-010) --
+      - name: Resolve issue context & guards
+        id: guard
+        run: |
+          set -euo pipefail
+          gh issue view "$ISSUE_NUMBER" --json number,title,body,state,labels > /tmp/issue.json
+
+          state=$(jq -r '.state' /tmp/issue.json)
+          if [ "$state" != "OPEN" ]; then
+            echo "Issue #$ISSUE_NUMBER está $state — se omite."
+            echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          labeled=$(jq '[.labels[].name] | index("TO_LOCO") != null' /tmp/issue.json)
+          if [ "$labeled" != "true" ]; then
+            echo "Issue #$ISSUE_NUMBER no tiene la etiqueta TO_LOCO — se omite."
+            echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          if jq -e '[.labels[].name] | index("robot:in-progress") != null' /tmp/issue.json >/dev/null; then
+            echo "Issue #$ISSUE_NUMBER ya tiene robot:in-progress — ejecución duplicada omitida."
+            echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          # El contenido de la issue es texto no confiable: se persiste en
+          # ficheros y nunca se interpola en comandos de shell.
+          jq -r '.title' /tmp/issue.json > /tmp/issue_title.txt
+          jq -r '.body // "(sin descripción)"' /tmp/issue.json > /tmp/issue_body.md
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Mark in-progress and comment start
+        if: steps.guard.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          gh issue edit "$ISSUE_NUMBER" --add-label "robot:in-progress"
+          {
+            echo "🤖 **Trabajo iniciado** por el robot de resolución de incidencias."
+            echo ""
+            echo "- Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Rama de trabajo: \`robot/issue-$ISSUE_NUMBER\`"
+          } > /tmp/comment_start.md
+          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_start.md
+
+      # -- Entorno de ejecución (replica el setup de ci.yml) --
+      - name: Set up Node.js
+        if: steps.guard.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: development/package-lock.json
+
+      - name: Install project dependencies
+        if: steps.guard.outputs.skip == 'false'
+        working-directory: development
+        run: |
+          npm ci
+          npx prisma generate
+
+      - name: Install Devin CLI
+        if: steps.guard.outputs.skip == 'false'
+        run: |
+          curl -fsSL https://cli.devin.ai/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # -- Auth de Devin CLI: el secret contiene el credentials.toml generado
+      #    por `devin auth login` en local (ver specs/016-*/research.md D2) --
+      - name: Restore Devin CLI credentials
+        if: steps.guard.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.config/devin"
+          printf '%s' "${{ secrets.DEVIN_CLI_TOKEN }}" > "$HOME/.config/devin/credentials.toml"
+          chmod 600 "$HOME/.config/devin/credentials.toml"
+          ~/.local/bin/devin auth status
+
+      - name: Create work branch
+        if: steps.guard.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          git config user.name "toolyo-bot"
+          git config user.email "toolyo-bot@users.noreply.github.com"
+          git checkout -b "robot/issue-$ISSUE_NUMBER"
+          git push -u origin "robot/issue-$ISSUE_NUMBER"
+
+      - name: Render agent runbook
+        if: steps.guard.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          sed -e "s/{{ISSUE_NUMBER}}/$ISSUE_NUMBER/g" \
+              -e "s|{{BRANCH}}|robot/issue-$ISSUE_NUMBER|g" \
+              .github/robot/runbook.md > /tmp/prompt.md
+          # Título y cuerpo se adjuntan desde ficheros (texto no confiable,
+          # jamás interpolado en comandos).
+          {
+            printf '\n- **Número**: #%s\n' "$ISSUE_NUMBER"
+            printf -- '- **Título**: '
+            cat /tmp/issue_title.txt
+            printf '\n- **Cuerpo**:\n\n'
+            cat /tmp/issue_body.md
+          } >> /tmp/prompt.md
+          printf 'ROBOT_SUMMARY.md\nROBOT_ABORT.md\n' >> .gitignore
+
+      - name: Run Devin agent (headless)
+        if: steps.guard.outputs.skip == 'false'
+        id: agent
+        continue-on-error: true
+        env:
+          DEVIN_MODEL: ${{ vars.ROBOT_MODEL }}
+        run: |
+          set -uo pipefail
+          model_args=""
+          if [ -n "${DEVIN_MODEL:-}" ]; then
+            model_args="--model $DEVIN_MODEL"
+          fi
+          # autonomous + sandbox: ejecución no interactiva con exec sandboxed
+          # (bwrap/seccomp). Si el sandbox no está disponible en el runner,
+          # cambiar a --permission-mode dangerous.
+          ~/.local/bin/devin -p --prompt-file /tmp/prompt.md \
+            --permission-mode autonomous --sandbox $model_args
+
+      - name: Evaluate outcome
+        if: always() && steps.guard.outputs.skip == 'false'
+        id: outcome
+        run: |
+          set -uo pipefail
+          # Los sentinels nunca deben quedar commiteados
+          git rm -f --cached ROBOT_SUMMARY.md ROBOT_ABORT.md 2>/dev/null || true
+
+          # Releer la issue: cancelación si se retiró TO_LOCO o se cerró en curso
+          gh issue view "$ISSUE_NUMBER" --json state,labels > /tmp/issue_now.json || true
+          state=$(jq -r '.state // "OPEN"' /tmp/issue_now.json 2>/dev/null || echo "OPEN")
+          labeled=$(jq '[.labels[].name] | index("TO_LOCO") != null' /tmp/issue_now.json 2>/dev/null || echo "true")
+          if [ "$state" != "OPEN" ] || [ "$labeled" != "true" ]; then
+            echo "result=cancelled" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          commits=$(git rev-list --count "HEAD" --not "origin/${{ github.event.repository.default_branch }}" 2>/dev/null || echo "0")
+          if [ -f ROBOT_ABORT.md ]; then
+            echo "result=aborted" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.agent.outcome }}" = "success" ] && [ -s ROBOT_SUMMARY.md ] && [ "$commits" -gt 0 ]; then
+            echo "result=done" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      # -- Éxito: crear la PR con trazabilidad (determinista, nunca el agente) --
+      - name: Create pull request
+        if: steps.outcome.outputs.result == 'done'
+        run: |
+          set -euo pipefail
+          git push origin "robot/issue-$ISSUE_NUMBER"
+          sed -e "/{{ROBOT_SUMMARY}}/r ROBOT_SUMMARY.md" \
+              -e "s/{{ROBOT_SUMMARY}}//" \
+              -e "s/{{ISSUE_NUMBER}}/$ISSUE_NUMBER/g" \
+              .github/robot/pr-body-template.md > /tmp/pr_body.md
+          gh pr create \
+            --title "robot: $(cat /tmp/issue_title.txt) (#$ISSUE_NUMBER)" \
+            --body-file /tmp/pr_body.md \
+            --head "robot/issue-$ISSUE_NUMBER" \
+            --base "${{ github.event.repository.default_branch }}" > /tmp/pr_url.txt
+          gh issue edit "$ISSUE_NUMBER" --add-label "robot:done"
+          {
+            echo "✅ Resolución completada. PR abierta para revisión humana:"
+            cat /tmp/pr_url.txt
+            echo ""
+            echo "### Extracto del análisis"
+            echo ""
+            head -n 30 ROBOT_SUMMARY.md
+          } > /tmp/comment_done.md
+          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_done.md
+
+      # -- Aborto controlado: el agente decidió no resolver --
+      - name: Report agent abort
+        if: steps.outcome.outputs.result == 'aborted'
+        run: |
+          set -euo pipefail
+          gh issue edit "$ISSUE_NUMBER" --add-label "robot:needs-human"
+          {
+            echo "⚠️ El robot no pudo resolver esta incidencia de forma autónoma:"
+            echo ""
+            cat ROBOT_ABORT.md
+            echo ""
+            echo "Enriquece la descripción de la issue y vuelve a aplicar la etiqueta \`TO_LOCO\`, o relanza con \`workflow_dispatch\` (Run workflow → issue $ISSUE_NUMBER)."
+          } > /tmp/comment_abort.md
+          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_abort.md
+
+      # -- Cancelación: se retiró TO_LOCO o se cerró la issue en curso --
+      - name: Report cancellation
+        if: steps.outcome.outputs.result == 'cancelled'
+        run: |
+          {
+            echo "ℹ️ El trabajo del robot sobre esta incidencia se canceló (etiqueta retirada o issue cerrada durante la ejecución)."
+          } > /tmp/comment_cancel.md
+          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_cancel.md || true
+
+      # -- Fallo interno: agente crash, timeout, sin sentinels, sin commits --
+      - name: Report failure
+        if: steps.outcome.outputs.result == 'failed'
+        run: |
+          set -euo pipefail
+          gh issue edit "$ISSUE_NUMBER" --add-label "robot:failed"
+          {
+            echo "❌ El proceso del robot falló (error interno, timeout o resultado incompleto)."
+            echo ""
+            echo "- Log del run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Reintento: retira y vuelve a aplicar la etiqueta \`TO_LOCO\`, o usa workflow_dispatch."
+          } > /tmp/comment_failed.md
+          ./scripts/robot/post-comment.sh "$ISSUE_NUMBER" /tmp/comment_failed.md
+
+      - name: Clear in-progress label
+        if: always() && steps.guard.outputs.skip == 'false'
+        run: gh issue edit "$ISSUE_NUMBER" --remove-label "robot:in-progress" || true
