@@ -156,15 +156,14 @@ jobs:
           DEVIN_MODEL: ${{ vars.ROBOT_MODEL }}
         run: |
           set -uo pipefail
-          model_args=""
-          if [ -n "${DEVIN_MODEL:-}" ]; then
-            model_args="--model $DEVIN_MODEL"
-          fi
           # autonomous + sandbox: ejecución no interactiva con exec sandboxed
           # (bwrap/seccomp). Si el sandbox no está disponible en el runner,
           # cambiar a --permission-mode dangerous.
-          ~/.local/bin/devin -p --prompt-file /tmp/prompt.md \
-            --permission-mode autonomous --sandbox $model_args
+          args=(-p --prompt-file /tmp/prompt.md --permission-mode autonomous --sandbox --respect-workspace-trust false)
+          if [ -n "${DEVIN_MODEL:-}" ]; then
+            args+=(--model "$DEVIN_MODEL")
+          fi
+          ~/.local/bin/devin "${args[@]}"
 
       - name: Evaluate outcome
         if: always() && steps.guard.outputs.skip == 'false'
