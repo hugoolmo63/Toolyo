@@ -116,10 +116,13 @@ jobs:
           DEVIN_CLI_TOKEN: ${{ secrets.DEVIN_CLI_TOKEN }}
         run: |
           set -euo pipefail
-          mkdir -p "$HOME/.config/devin"
-          printf '%s' "$DEVIN_CLI_TOKEN" > "$HOME/.config/devin/credentials.toml"
-          chmod 600 "$HOME/.config/devin/credentials.toml"
-          ~/.local/bin/devin auth status
+          # En Linux el CLI lee credenciales de XDG_DATA_HOME, no .config
+          mkdir -p "$HOME/.local/share/devin"
+          printf '%s' "$DEVIN_CLI_TOKEN" > "$HOME/.local/share/devin/credentials.toml"
+          chmod 600 "$HOME/.local/share/devin/credentials.toml"
+          # auth status devuelve exit 0 incluso sin login: comprobar el texto
+          ~/.local/bin/devin auth status | tee /tmp/auth_status.txt
+          grep -q "Logged in" /tmp/auth_status.txt
 
       - name: Create work branch
         if: steps.guard.outputs.skip == 'false'

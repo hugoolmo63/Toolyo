@@ -37,10 +37,10 @@ rama lista para que el workflow abra la PR.
 
 1. Instalar Devin CLI y autenticarse: `devin auth login`
 2. El CLI persiste las credenciales en `credentials.toml`:
-   `~/.config/devin/credentials.toml` (Linux/macOS) o
+   `~/.local/share/devin/credentials.toml` (Linux) o `~/Library/Application Support/devin/credentials.toml` (macOS) o
    `%APPDATA%\devin\credentials.toml` (Windows).
 3. Copiar el contenido completo del archivo al secret `DEVIN_CLI_TOKEN`.
-   El workflow lo restaura en `~/.config/devin/credentials.toml` del runner.
+   El workflow lo restaura en `~/.local/share/devin/credentials.toml` del runner.
 
 Requisito del repo: *Settings → Actions → General → Allow GitHub Actions to
 create and approve pull requests* debe estar activado.
