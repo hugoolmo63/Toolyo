@@ -102,7 +102,10 @@ jobs:
       - name: Install Devin CLI
         if: steps.guard.outputs.skip == 'false'
         run: |
-          curl -fsSL https://cli.devin.ai/install.sh | bash
+          # El instalador termina ejecutando `devin setup` (wizard interactivo
+          # que aborta con "Login canceled" en runners sin TTY). Filtramos esa
+          # línea: la auth se restaura en el paso siguiente.
+          curl -fsSL https://cli.devin.ai/install.sh | sed '/" setup$/d' | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       # -- Auth de Devin CLI: el secret contiene el credentials.toml generado
@@ -188,7 +191,7 @@ jobs:
 
       # -- Éxito: crear la PR con trazabilidad (determinista, nunca el agente) --
       - name: Create pull request
-        if: steps.outcome.outputs.result == 'done'
+        if: always() && steps.outcome.outputs.result == 'done'
         run: |
           set -euo pipefail
           git push origin "robot/issue-$ISSUE_NUMBER"
@@ -214,7 +217,7 @@ jobs:
 
       # -- Aborto controlado: el agente decidió no resolver --
       - name: Report agent abort
-        if: steps.outcome.outputs.result == 'aborted'
+        if: always() && steps.outcome.outputs.result == 'aborted'
         run: |
           set -euo pipefail
           gh issue edit "$ISSUE_NUMBER" --add-label "robot:needs-human"
@@ -229,7 +232,7 @@ jobs:
 
       # -- Cancelación: se retiró TO_LOCO o se cerró la issue en curso --
       - name: Report cancellation
-        if: steps.outcome.outputs.result == 'cancelled'
+        if: always() && steps.outcome.outputs.result == 'cancelled'
         run: |
           {
             echo "ℹ️ El trabajo del robot sobre esta incidencia se canceló (etiqueta retirada o issue cerrada durante la ejecución)."
@@ -238,7 +241,7 @@ jobs:
 
       # -- Fallo interno: agente crash, timeout, sin sentinels, sin commits --
       - name: Report failure
-        if: steps.outcome.outputs.result == 'failed'
+        if: always() && steps.outcome.outputs.result == 'failed'
         run: |
           set -euo pipefail
           gh issue edit "$ISSUE_NUMBER" --add-label "robot:failed"
