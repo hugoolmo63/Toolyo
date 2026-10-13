@@ -104,41 +104,6 @@ jobs:
         working-directory: .
         run: docker build --tag toolyo-postgres:15-pgvector-postgis --file scripts/Dockerfile.postgres-test scripts
 
-      - name: Verify PostgreSQL test extensions
-        working-directory: .
-        shell: bash
-        run: |
-          set -euo pipefail
-          container_name=toolyo-postgres-extension-check
-          docker rm -f "$container_name" >/dev/null 2>&1 || true
-          docker run --detach --name "$container_name" \
-            --env POSTGRES_USER=test \
-            --env POSTGRES_PASSWORD=test \
-            --env POSTGRES_DB=test \
-            toolyo-postgres:15-pgvector-postgis >/dev/null
-          cleanup() { docker rm -f "$container_name" >/dev/null 2>&1 || true; }
-          trap cleanup EXIT
-          for attempt in $(seq 1 30); do
-            if docker exec "$container_name" pg_isready -U test -d test >/dev/null 2>&1; then
-              break
-            fi
-            sleep 2
-          done
-          docker exec -i "$container_name" psql -v ON_ERROR_STOP=1 -U test -d test <<'SQL'
-          CREATE EXTENSION IF NOT EXISTS vector;
-          CREATE EXTENSION IF NOT EXISTS pg_trgm;
-          DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis') THEN
-              CREATE EXTENSION postgis;
-            END IF;
-          END
-          $$;
-          SELECT extname FROM pg_extension
-          WHERE extname IN ('vector', 'pg_trgm', 'postgis')
-          ORDER BY extname;
-          SQL
-
       - run: npm run test:integration
         env:
           DATABASE_URL: "postgresql://test:test@localhost:5432/test?schema=public"
