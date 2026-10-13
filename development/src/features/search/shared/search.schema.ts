@@ -17,7 +17,8 @@ export const SortBySchema = z.enum([
 export const SearchLocationSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
-  text: z.string().min(1).max(200),
+  // El texto es solo para display; puede faltar en URLs con lat/lng sin loc.
+  text: z.string().max(200).default(""),
 });
 
 export const DateRangeSchema = z.object({
