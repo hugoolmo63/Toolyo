@@ -165,10 +165,10 @@ jobs:
           DEVIN_MODEL: ${{ vars.ROBOT_MODEL }}
         run: |
           set -uo pipefail
-          # autonomous + sandbox: ejecución no interactiva con exec sandboxed
-          # (bwrap/seccomp). Si el sandbox no está disponible en el runner,
-          # cambiar a --permission-mode dangerous.
-          args=(-p --prompt-file /tmp/prompt.md --permission-mode autonomous --sandbox --respect-workspace-trust false)
+          # dangerous: auto-aprueba todas las herramientas sin prompts.
+          # El runner es efímero y aislado — el sandbox interno (--sandbox,
+          # bwrap/seccomp) no está garantizado y falla al iniciar la sesión.
+          args=(-p --prompt-file /tmp/prompt.md --permission-mode dangerous --respect-workspace-trust false)
           if [ -n "${DEVIN_MODEL:-}" ]; then
             args+=(--model "$DEVIN_MODEL")
           fi
