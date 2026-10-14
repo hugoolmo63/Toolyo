@@ -83,6 +83,7 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
       locationText: suggestion.kind === "location" ? suggestion.text : null,
       lat: suggestion.kind === "location" ? suggestion.lat : null,
       lng: suggestion.kind === "location" ? suggestion.lng : null,
+      radius: suggestion.kind === "location" ? 50 : null,
       categoryId: suggestion.kind === "category" ? suggestion.id : null,
       page: null,
     };
@@ -94,6 +95,7 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
         params.set("loc", filters.locationText);
         params.set("lat", String(filters.lat));
         params.set("lng", String(filters.lng));
+        params.set("radius", "50");
       }
       if (filters.categoryId) params.set("cat", filters.categoryId);
       router.push(`/?${params.toString()}`);

@@ -22,6 +22,7 @@ export function LocationDetector() {
       lat: location.lat,
       lng: location.lng,
       locationText: "Mi ubicación",
+      radius: 50,
       page: null,
     });
   }

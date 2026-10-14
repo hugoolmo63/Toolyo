@@ -40,6 +40,7 @@ export const SearchQuerySchema = z.object({
   dateRange: DateRangeSchema.optional(),
   maxPricePerDay: z.number().positive().max(100000).optional(),
   maxDistanceKm: z.number().positive().max(500).optional(),
+  radius: z.union([z.literal(5), z.literal(10), z.literal(20), z.literal(50)]).optional(),
   minRating: z.number().min(0).max(5).optional(),
   onlyVerified: z.boolean().optional(),
   sortBy: SortBySchema.default("relevance"),

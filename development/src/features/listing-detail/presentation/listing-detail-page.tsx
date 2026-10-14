@@ -1,7 +1,6 @@
 "use client";
 
 import type { ListingDetailDTO } from "@/types/listing-detail";
-import { useRouter } from "next/navigation";
 import { Gallery } from "./gallery";
 import { ListingHeader } from "./listing-header";
 import { DescriptionSection } from "./description-section";
@@ -15,6 +14,7 @@ import { PriceTable } from "./price-table";
 import { ActionButtons } from "./action-buttons";
 import dynamic from "next/dynamic";
 import type { ReputationAggregate } from "@/features/reviews/presentation/reputation-summary";
+import { FavoritePicker } from "@/features/favorites/presentation/favorite-picker";
 
 const ListingLocationMap = dynamic(() => import("./listing-location-map").then((module) => module.ListingLocationMap), { ssr: false });
 
@@ -29,33 +29,11 @@ interface ListingDetailPageProps {
 }
 
 export function ListingDetailPage({ listing, reputation }: ListingDetailPageProps) {
-  const router = useRouter();
-
   return (
     <div className="listing-detail-page">
       <div className="listing-detail-gallery-wrapper">
-        <button
-          type="button"
-          className="listing-detail-back-button"
-          onClick={() => router.back()}
-          aria-label="Volver a la página anterior"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
         <Gallery photos={listing.photos} title={listing.title} />
+        <FavoritePicker listingId={listing.id} />
       </div>
 
       <div className="listing-detail-layout">

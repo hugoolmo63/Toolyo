@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuthDialog } from "@/providers/auth-dialog-provider";
 import { useSession } from "@/lib/hooks/use-session";
 import { LogoutButton } from "@/components/forms/logout-button";
+import { Heart } from "lucide-react";
 
 /**
  * Zona de sesión del header público (007-login-contextual, FR-006/FR-007).
@@ -53,7 +54,11 @@ export function UserMenu() {
   }
 
   return (
-    <div className="user-menu" ref={containerRef}>
+    <>
+      <Link href="/favorites" className="public-nav-link favorites-nav-link" aria-label="Mis favoritos">
+        <Heart size={20} />
+      </Link>
+      <div className="user-menu" ref={containerRef}>
       <button
         type="button"
         className="public-nav-link public-nav-button user-menu-trigger"
@@ -92,6 +97,7 @@ export function UserMenu() {
           <LogoutButton className="user-menu-item user-menu-item-button" />
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

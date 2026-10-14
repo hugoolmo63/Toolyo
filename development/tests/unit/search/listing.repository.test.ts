@@ -75,6 +75,21 @@ describe("findPublishedListingsFiltered — filtro de ubicación", () => {
     expect(sql).not.toContain("ILIKE");
   });
 
+  it("con radio explícito aplica el radio seleccionado", async () => {
+    const { prisma, queryRaw } = createPrismaStub();
+    await findPublishedListingsFiltered(prisma, {
+      ...baseInput,
+      location: { lat: 40.4168, lng: -3.7038, text: "Madrid, España" },
+      radius: 10,
+    });
+
+    const sql = sqlText(queryRaw);
+    expect(sql).toContain("ST_DWithin");
+    expect(sql).toContain("10000");
+    expect(sql).not.toContain("50000");
+    expect(sql).not.toContain("ILIKE");
+  });
+
   it("con ubicación sin texto no filtra por ciudad", async () => {
     const { prisma, queryRaw } = createPrismaStub();
     await findPublishedListingsFiltered(prisma, {

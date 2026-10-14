@@ -177,6 +177,7 @@ model User {
   sentMessages             Message[]                 @relation("MessageSender")
   uploadedAttachments      AttachmentUpload[]        @relation("AttachmentUploadOwner")
   devicePushTokens         DevicePushToken[]
+  favoriteLists             FavoriteList[]
 }
 
 model PasswordCredential {
@@ -416,12 +417,38 @@ model Listing {
   reviews       Review[]
   bookings      Booking[]
   conversations Conversation[]
+  favoriteItems FavoriteItem[]
 
   @@index([status, deletedAt])
   @@index([categoryId, status, deletedAt])
   @@index([ownerId, status])
   @@index([pricePerDay])
   @@index([ratingAverage])
+}
+
+model FavoriteList {
+  id        String         @id @default(cuid())
+  name      String         @db.VarChar(100)
+  userId    String
+  createdAt DateTime       @default(now()) @db.Timestamptz(6)
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items FavoriteItem[]
+
+  @@index([userId, createdAt])
+}
+
+model FavoriteItem {
+  id        String       @id @default(cuid())
+  listId    String
+  listingId String
+  createdAt DateTime     @default(now()) @db.Timestamptz(6)
+
+  list    FavoriteList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listing Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, listingId])
+  @@index([listingId])
 }
 
 /// Valoración pública de un listing realizada por un usuario.

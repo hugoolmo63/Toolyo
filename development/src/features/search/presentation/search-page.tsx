@@ -68,6 +68,7 @@ export function SearchPage({ initialResults }: SearchPageProps) {
           : undefined,
       maxPricePerDay: params.maxPrice ?? undefined,
       maxDistanceKm: params.maxDist ?? undefined,
+      radius: params.radius,
       minRating: params.minRating ?? undefined,
       onlyVerified: params.verified || undefined,
       sortBy: (params.sort as "relevance" | "nearest" | "price_asc" | "price_desc" | "best_rated" | "most_popular") ?? "relevance",
@@ -125,6 +126,7 @@ export function SearchPage({ initialResults }: SearchPageProps) {
     if (params.dateStart && params.dateEnd) filters.push(`Fechas: ${params.dateStart} - ${params.dateEnd}`);
     if (params.maxPrice !== null) filters.push(`Precio máx: ${params.maxPrice}€/día`);
     if (params.maxDist !== null) filters.push(`Distancia máx: ${params.maxDist} km`);
+    if (params.lat !== null) filters.push(`Radio: ${params.radius} km`);
     if (params.minRating !== null) filters.push(`Valoración mín: ${params.minRating}★`);
     if (params.verified) filters.push("Solo verificados");
     if (params.sort !== "relevance") filters.push(`Orden: ${params.sort}`);

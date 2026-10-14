@@ -175,9 +175,10 @@ function buildFilterWhere(input: SearchQueryInput, includeText = true): string {
     // con distancia máxima explícita se respeta ese radio estrictamente;
     // sin ella se aplica un radio por defecto o la coincidencia por ciudad.
     const point = `ST_GeomFromText('POINT(${input.location.lng} ${input.location.lat})', 4326)::geography`;
-    if (input.maxDistanceKm !== undefined) {
+    const radiusKm = input.radius ?? input.maxDistanceKm;
+    if (radiusKm !== undefined) {
       conditions.push(
-        `ST_DWithin(${LISTING_GEOGRAPHY}, ${point}, ${input.maxDistanceKm * 1000})`,
+        `ST_DWithin(${LISTING_GEOGRAPHY}, ${point}, ${radiusKm * 1000})`,
       );
     } else {
       const city = input.location.text

@@ -37,6 +37,10 @@ export default async function Home({ searchParams }: HomePageProps) {
   const dateEnd = parseParam(searchParams.dateEnd);
   const maxPrice = parseNumberParam(searchParams.maxPrice);
   const maxDist = parseNumberParam(searchParams.maxDist);
+  const parsedRadius = parseNumberParam(searchParams.radius);
+  const radius = parsedRadius === 5 || parsedRadius === 10 || parsedRadius === 20 || parsedRadius === 50
+    ? parsedRadius
+    : 50;
   const minRating = parseNumberParam(searchParams.minRating);
   const verified = parseParam(searchParams.verified) === "true";
   const sort = parseParam(searchParams.sort) ?? "relevance";
@@ -69,6 +73,7 @@ export default async function Home({ searchParams }: HomePageProps) {
           dateStart && dateEnd ? { startDate: dateStart, endDate: dateEnd } : undefined,
         maxPricePerDay: maxPrice ?? undefined,
         maxDistanceKm: maxDist ?? undefined,
+        radius,
         minRating: minRating ?? undefined,
         onlyVerified: verified || undefined,
         sortBy: (sort as "relevance" | "nearest" | "price_asc" | "price_desc" | "best_rated" | "most_popular") ?? "relevance",

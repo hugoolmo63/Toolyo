@@ -20,6 +20,7 @@ export const SEARCH_PARAMS_KEYS = {
   dateEnd: "dateEnd",
   maxPrice: "maxPrice",
   maxDist: "maxDist",
+  radius: "radius",
   minRating: "minRating",
   verified: "verified",
   sort: "sort",
@@ -38,6 +39,7 @@ export interface SearchUrlParams {
   dateEnd: string | null;
   maxPrice: number | null;
   maxDist: number | null;
+  radius: 5 | 10 | 20 | 50;
   minRating: number | null;
   verified: boolean;
   sort: string;
@@ -73,6 +75,9 @@ export function useSearchParamsState(): SearchUrlParams {
       dateEnd: searchParams.get(SEARCH_PARAMS_KEYS.dateEnd),
       maxPrice: parseNumber(searchParams.get(SEARCH_PARAMS_KEYS.maxPrice)),
       maxDist: parseNumber(searchParams.get(SEARCH_PARAMS_KEYS.maxDist)),
+      radius: ([5, 10, 20, 50] as const).includes(Number(searchParams.get(SEARCH_PARAMS_KEYS.radius)) as 5 | 10 | 20 | 50)
+        ? Number(searchParams.get(SEARCH_PARAMS_KEYS.radius)) as 5 | 10 | 20 | 50
+        : 50,
       minRating: parseNumber(searchParams.get(SEARCH_PARAMS_KEYS.minRating)),
       verified: parseBoolean(searchParams.get(SEARCH_PARAMS_KEYS.verified)),
       sort: searchParams.get(SEARCH_PARAMS_KEYS.sort) ?? "relevance",

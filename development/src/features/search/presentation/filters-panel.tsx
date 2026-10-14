@@ -128,23 +128,23 @@ export function FiltersPanel() {
 
           {/* Distancia máxima */}
           <div className="filter-group">
-            <label htmlFor="filter-max-dist">Distancia máxima (km)</label>
-            <input
-              id="filter-max-dist"
-              type="number"
-              min={1}
-              max={500}
-              step={1}
-              value={params.maxDist ?? ""}
-              onChange={(e) =>
-                updateParams({
-                  maxDist: e.target.value ? Number(e.target.value) : null,
-                  page: null,
-                })
-              }
-              placeholder="Sin límite"
-              disabled={params.lat === null}
-            />
+            <fieldset disabled={params.lat === null}>
+              <legend>Radio de búsqueda</legend>
+              <div className="filter-radio-group">
+                {[5, 10, 20, 50].map((radius) => (
+                  <label key={radius} className="filter-radio-option">
+                    <input
+                      type="radio"
+                      name="search-radius"
+                      value={radius}
+                      checked={params.radius === radius}
+                      onChange={() => updateParams({ radius, maxDist: null, page: null })}
+                    />
+                    {radius} km
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             {params.lat === null && (
               <p className="filter-hint">Selecciona una ubicación para filtrar por distancia.</p>
             )}
