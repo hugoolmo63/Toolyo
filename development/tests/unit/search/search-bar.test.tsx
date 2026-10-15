@@ -106,6 +106,7 @@ describe("SearchBar", () => {
       locationText: "Madrid",
       lat: 40.4168,
       lng: -3.7038,
+      radius: 50,
       categoryId: null,
       page: null,
     });
@@ -121,6 +122,7 @@ describe("SearchBar", () => {
       locationText: null,
       lat: null,
       lng: null,
+      radius: null,
       categoryId: "category-1",
       page: null,
     });
@@ -136,6 +138,7 @@ describe("SearchBar", () => {
       locationText: null,
       lat: null,
       lng: null,
+      radius: null,
       categoryId: null,
       page: null,
     });
