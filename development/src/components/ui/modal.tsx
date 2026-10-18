@@ -41,7 +41,7 @@ export function Modal({ open, onClose, title, ariaLabel = "Diálogo", children, 
 
   function handleBackdropClick(event: MouseEvent<HTMLDialogElement>) {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog || event.target !== dialog) return;
     const rect = dialog.getBoundingClientRect();
     const inside = event.clientX >= rect.left && event.clientX <= rect.right
       && event.clientY >= rect.top && event.clientY <= rect.bottom;
