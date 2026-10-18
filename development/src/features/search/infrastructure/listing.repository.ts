@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { stDistanceSelect, setSeedSql } from "@/server/lib/geo/postgis";
+import { stDistanceSelect } from "@/server/lib/geo/postgis";
 import type { SearchQueryInput } from "@/features/search/shared/search.schema";
 import { EMBEDDING_DIMENSIONS } from "@/lib/embeddings/embedding.service";
 
@@ -94,12 +94,15 @@ const LISTING_GEOGRAPHY = `COALESCE(
  */
 export async function findPublishedListingsRandom(
   prisma: PrismaClient,
-  opts: { seed?: number; limit: number },
+  opts: { seed?: number; limit: number; page?: number },
 ): Promise<{ rows: RawListingRow[]; total: number }> {
   const { seed, limit } = opts;
-  if (seed !== undefined) {
-    await prisma.$executeRaw(setSeedSql(seed));
-  }
+  const page = opts.page ?? 1;
+  const offset = (page - 1) * limit;
+  // Orden pseudoaleatorio determinista por seed: estable entre peticiones y
+  // conexiones del pool, requisito para que el scroll infinito (OFFSET) no
+  // repita ni omita resultados.
+  const orderBy = `md5("Listing"."id"::text || ':' || ${seed ?? 0}::text)`;
 
   const rows = await prisma.$queryRaw<RawListingRow[]>`
     SELECT ${Prisma.raw(LISTING_SELECT_COLUMNS)},
@@ -113,8 +116,8 @@ export async function findPublishedListingsRandom(
     ${Prisma.raw(VERIFIED_JOIN)}
     ${Prisma.raw(PHOTO_JOIN)}
     WHERE ${Prisma.raw(BASE_WHERE)}
-    ORDER BY random()
-    LIMIT ${limit}
+    ORDER BY ${Prisma.raw(orderBy)}
+    LIMIT ${limit} OFFSET ${offset}
   `;
 
   const countResult = await prisma.$queryRaw<RawCountRow[]>`

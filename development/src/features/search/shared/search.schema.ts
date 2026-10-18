@@ -52,6 +52,7 @@ export const SearchQuerySchema = z.object({
 
 export const SearchInitialSchema = z.object({
   seed: z.number().int().optional(),
+  page: z.number().int().positive().max(1000).optional(),
   limit: z.number().int().positive().max(48).default(24),
 });
 

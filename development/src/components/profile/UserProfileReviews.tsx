@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import type { PublicReview } from "@/features/users/domain/public-user-profile";
 
 function ReviewStars({ rating }: { rating: number }) {
@@ -13,6 +14,11 @@ function ReviewStars({ rating }: { rating: number }) {
 
 export function UserProfileReviews({ reviews }: { reviews: PublicReview[] }) {
   const [visibleCount, setVisibleCount] = useState(5);
+  const hasMore = visibleCount < reviews.length;
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>({
+    enabled: hasMore,
+    onLoadMore: () => setVisibleCount((count) => count + 10),
+  });
   const visibleReviews = reviews.slice(0, visibleCount);
   return <section className="user-profile-reviews" aria-labelledby="profile-reviews-title"><h2 id="profile-reviews-title">Reseñas</h2>
     {reviews.length === 0 ? <p className="user-profile-empty">Aún no hay reseñas.</p> : <>
@@ -25,7 +31,11 @@ export function UserProfileReviews({ reviews }: { reviews: PublicReview[] }) {
         <p>Producto: <Link href={`/listings/${review.listing.slug}`} className="profile-review-listing-link">{review.listing.title}</Link></p>
         <p>{review.comment ?? "Sin comentario"}</p>{review.status === "under_review" && <p className="review-moderation-status" role="status">Esta reseña está siendo revisada y sigue visible mientras se resuelve el reporte.</p>}<time dateTime={review.createdAt}>{new Date(review.createdAt).toLocaleDateString("es-ES")}</time>
       </article>)}</div>
-      {visibleCount < reviews.length && <button type="button" className="reviews-load-more" onClick={() => setVisibleCount((count) => count + 10)}>Cargar más</button>}
+      {hasMore && (
+        <div ref={sentinelRef} className="infinite-scroll-sentinel" aria-live="polite">
+          <span className="loading-more">Cargando más reseñas...</span>
+        </div>
+      )}
     </>}
   </section>;
 }

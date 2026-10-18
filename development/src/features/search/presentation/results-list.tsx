@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { ResultCard } from "./result-card";
 import { ResultRow } from "./result-row";
 import { EmptyState } from "./empty-state";
@@ -8,8 +8,8 @@ import type { SearchResultDTO, SearchView } from "@/types/search";
 
 /**
  * ResultsList — lista de resultados de búsqueda.
- * Soporta vista grid y lista, skeletons durante carga, empty state,
- * infinite scroll en móvil (IntersectionObserver) y paginación numerada en desktop.
+ * Soporta vista grid y lista, skeletons durante carga, empty state y
+ * scroll infinito en todos los dispositivos (IntersectionObserver).
  * Ver spec.md FR-008, FR-011, FR-014, FR-015.
  */
 interface ResultsListProps {
@@ -18,11 +18,8 @@ interface ResultsListProps {
   hasFilters: boolean;
   activeFilters?: string[];
   view?: SearchView;
-  page?: number;
-  totalPages?: number;
   hasMore?: boolean;
   onLoadMore?: () => void;
-  onPageChange?: (page: number) => void;
   isMobile?: boolean;
 }
 
@@ -32,32 +29,14 @@ export function ResultsList({
   hasFilters,
   activeFilters = [],
   view = "grid",
-  page = 1,
-  totalPages = 1,
   hasMore = false,
   onLoadMore,
-  onPageChange,
   isMobile = false,
 }: ResultsListProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Infinite scroll en móvil con IntersectionObserver
-  useEffect(() => {
-    if (!isMobile || !hasMore || !onLoadMore) return;
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          onLoadMore();
-        }
-      },
-      { rootMargin: "200px" },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [isMobile, hasMore, onLoadMore]);
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>({
+    enabled: hasMore && Boolean(onLoadMore),
+    onLoadMore: () => onLoadMore?.(),
+  });
 
   if (isLoading) {
     return (
@@ -94,38 +73,11 @@ export function ResultsList({
         </div>
       )}
 
-      {/* Infinite scroll sentinel (móvil) */}
-      {isMobile && hasMore && (
+      {/* Scroll infinito: el centinela dispara la carga de la siguiente página */}
+      {hasMore && (
         <div ref={sentinelRef} className="infinite-scroll-sentinel" aria-live="polite">
           <span className="loading-more">Cargando más resultados...</span>
         </div>
-      )}
-
-      {/* Paginación numerada (desktop) */}
-      {!isMobile && totalPages > 1 && onPageChange && (
-        <nav className="pagination" aria-label="Paginación de resultados">
-          <button
-            type="button"
-            className="pagination-btn"
-            onClick={() => onPageChange(Math.max(1, page - 1))}
-            disabled={page <= 1}
-            aria-label="Página anterior"
-          >
-            ← Anterior
-          </button>
-          <span className="pagination-info">
-            Página {page} de {totalPages}
-          </span>
-          <button
-            type="button"
-            className="pagination-btn"
-            onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-            disabled={page >= totalPages}
-            aria-label="Página siguiente"
-          >
-            Siguiente →
-          </button>
-        </nav>
       )}
     </>
   );

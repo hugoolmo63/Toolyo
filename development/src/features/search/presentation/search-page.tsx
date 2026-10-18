@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/trpc-react";
 import { SearchBar } from "./search-bar";
 import { LocationDetector } from "./location-detector";
@@ -9,16 +9,13 @@ import { FiltersPanel } from "./filters-panel";
 import { SortSelector } from "./sort-selector";
 import { ViewToggle } from "./view-toggle";
 import { MapView } from "./map-view";
-import {
-  useSearchParamsState,
-  useUpdateSearchParams,
-} from "@/hooks/use-search-params";
+import { useSearchParamsState } from "@/hooks/use-search-params";
 import { PublicHeader } from "@/components/public-header";
-import type { SearchResultsPage, MapPin } from "@/types/search";
+import type { SearchResultsPage, SearchResultDTO, MapPin } from "@/types/search";
 
 /**
  * SearchPage — orquesta la barra de búsqueda, detector de ubicación, filtros,
- * ordenación, vistas (grid/lista/mapa) y paginación adaptativa.
+ * ordenación, vistas (grid/lista/mapa) y scroll infinito.
  * Sincroniza todo el estado con la URL.
  * Ver spec.md FR-001, FR-018, FR-019 y contracts/search.md.
  */
@@ -29,11 +26,21 @@ interface SearchPageProps {
 const MOBILE_BREAKPOINT = 768;
 const MAX_INFINITE_RESULTS = 200;
 
+/** Páginas extra acumuladas por scroll infinito, ligadas a los criterios activos. */
+interface AccumulatedResults {
+  key: string;
+  items: SearchResultDTO[];
+  hasMore: boolean;
+  nextPage: number;
+}
+
 export function SearchPage({ initialResults }: SearchPageProps) {
   const params = useSearchParamsState();
-  const updateParams = useUpdateSearchParams();
+  const utils = api.useUtils();
   const [isMobile, setIsMobile] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [accumulated, setAccumulated] = useState<AccumulatedResults | null>(null);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   // Detectar móvil por breakpoint
   useEffect(() => {
@@ -118,6 +125,44 @@ export function SearchPage({ initialResults }: SearchPageProps) {
   const isLoading = hasCriteria ? queryResult.isLoading : initialResult.isLoading;
   const hasActiveFilters = hasCriteria || params.sort !== "relevance";
 
+  // Clave de los criterios actuales: al cambiar, el acumulado de scroll se descarta.
+  const criteriaKey = useMemo(
+    () => JSON.stringify(hasCriteria ? queryInput : initialInput),
+    [hasCriteria, queryInput, initialInput],
+  );
+  const extra = accumulated?.key === criteriaKey ? accumulated : null;
+
+  const items = useMemo(() => {
+    const base = results?.items ?? [];
+    if (!extra) return base;
+    const seen = new Set(base.map((item) => item.id));
+    return [...base, ...extra.items.filter((item) => !seen.has(item.id))].slice(0, MAX_INFINITE_RESULTS);
+  }, [results, extra]);
+
+  const hasMore = items.length >= MAX_INFINITE_RESULTS
+    ? false
+    : (extra ? extra.hasMore : results?.hasMore ?? false);
+
+  // Scroll infinito: pide la página siguiente y la añade a las ya cargadas.
+  const loadMore = useCallback(async () => {
+    if (!hasMore || isFetchingMore) return;
+    setIsFetchingMore(true);
+    try {
+      const nextPage = extra?.nextPage ?? (results?.page ?? 1) + 1;
+      const data = hasCriteria
+        ? await utils.search.query.fetch({ ...queryInput, page: nextPage })
+        : await utils.search.initial.fetch({ ...initialInput, page: nextPage });
+      setAccumulated({
+        key: criteriaKey,
+        items: [...(extra?.items ?? []), ...data.items],
+        hasMore: data.hasMore,
+        nextPage: nextPage + 1,
+      });
+    } finally {
+      setIsFetchingMore(false);
+    }
+  }, [hasMore, isFetchingMore, extra, results, hasCriteria, utils, queryInput, initialInput, criteriaKey]);
+
   const activeFilters: string[] = useMemo(() => {
     const filters: string[] = [];
     if (params.query) filters.push(`Búsqueda: ${params.query}`);
@@ -184,15 +229,13 @@ export function SearchPage({ initialResults }: SearchPageProps) {
         )}
 
         <ResultsList
-          results={results?.items ?? []}
+          results={items}
           isLoading={isLoading && !results}
           hasFilters={hasActiveFilters}
           activeFilters={activeFilters}
           view={params.view}
-          page={results?.page ?? 1}
-          totalPages={results?.totalPages ?? 1}
-          hasMore={results?.hasMore ?? false}
-          onPageChange={(p) => updateParams({ page: p })}
+          hasMore={hasMore}
+          onLoadMore={() => void loadMore()}
           isMobile={isMobile}
         />
       </main>

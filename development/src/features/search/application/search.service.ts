@@ -81,8 +81,9 @@ export async function searchInitial(
 ): Promise<SearchResultsPage> {
   const seed = input.seed ?? generateSeed();
   const limit = input.limit;
+  const page = input.page ?? 1;
 
-  const { rows, total } = await findPublishedListingsRandom(prisma, { seed, limit });
+  const { rows, total } = await findPublishedListingsRandom(prisma, { seed, limit, page });
 
   const items = rows.map((r) => mapToDTO(r));
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -90,9 +91,9 @@ export async function searchInitial(
   return {
     items,
     total,
-    hasMore: total > limit,
+    hasMore: page * limit < total,
     nextCursor: items.length > 0 ? `${items[items.length - 1]!.id}` : null,
-    page: 1,
+    page,
     totalPages,
     seed,
   };
@@ -119,6 +120,7 @@ export async function searchQuery(
   if (!hasCriteria && input.sortBy === "relevance") {
     return searchInitial(prisma, {
       seed: input.seed,
+      page: input.page,
       limit: input.limit,
     });
   }

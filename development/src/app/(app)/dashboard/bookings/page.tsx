@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerApi } from "@/lib/server-api";
-import { BookingStatusBadge } from "@/features/bookings/presentation/booking-status-badge";
-import { formatEur } from "@/features/bookings/presentation/booking-summary";
+import { BookingsList, BOOKINGS_PAGE_SIZE } from "@/features/bookings/presentation/bookings-list";
 
 /**
  * Panel de reservas — Server Component (008-modulo-reservas, §5.2/§7).
  * Lista las reservas del usuario como arrendatario y/o arrendador con filtros
- * de rol y estado; cada elemento enlaza a la conversación asociada.
+ * de rol y estado; la carga de páginas siguientes se hace con scroll infinito
+ * en el cliente.
  */
 
 const roleTabs = [
@@ -29,15 +29,7 @@ type Role = (typeof roleTabs)[number][0];
 type Status = (typeof statusTabs)[number][0];
 
 interface BookingsPageProps {
-  searchParams: { role?: string; status?: string; cursor?: string };
-}
-
-function formatDay(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    timeZone: "UTC",
-  });
+  searchParams: { role?: string; status?: string };
 }
 
 export default async function BookingsPage({ searchParams }: BookingsPageProps) {
@@ -57,18 +49,15 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
   const result = await api.booking.list({
     role,
     status,
-    cursor: searchParams.cursor,
-    limit: 20,
+    limit: BOOKINGS_PAGE_SIZE,
   });
 
-  const buildQuery = (overrides: { role?: Role; status?: Status; cursor?: string }) => {
+  const buildQuery = (overrides: { role?: Role; status?: Status }) => {
     const params = new URLSearchParams();
     const nextRole = overrides.role ?? role;
     const nextStatus = "status" in overrides ? overrides.status : status;
-    const nextCursor = "cursor" in overrides ? overrides.cursor : undefined;
     if (nextRole !== "all") params.set("role", nextRole);
     if (nextStatus) params.set("status", nextStatus);
-    if (nextCursor) params.set("cursor", nextCursor);
     const query = params.toString();
     return `/dashboard/bookings${query ? `?${query}` : ""}`;
   };
@@ -122,51 +111,12 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
           </Link>
         </section>
       ) : (
-        <ul className="conversation-list booking-list">
-          {result.items.map((booking) => (
-            <li key={booking.id} data-testid="booking-list-item">
-              <div className="conversation-item booking-item">
-                <div className="conversation-item-main">
-                  <strong className="conversation-item-name">
-                    <Link href={`/listings/${booking.listing.slug}`}>{booking.listing.title}</Link>
-                  </strong>
-                  <span className="conversation-item-listing">
-                    {formatDay(booking.startDate)} – {formatDay(booking.endDate)} ·{" "}
-                    {formatEur(booking.financials.totalPrice)}
-                  </span>
-                  <span className="conversation-item-preview">
-                    Arrendatario: {booking.renter.displayName ?? "—"} · Arrendador:{" "}
-                    {booking.owner.displayName ?? "—"}
-                  </span>
-                  {booking.status === "rejected" && booking.rejectionReason && (
-                    <span className="conversation-item-preview">
-                      Motivo: {booking.rejectionReason}
-                    </span>
-                  )}
-                </div>
-                <div className="conversation-item-meta">
-                  <BookingStatusBadge status={booking.status} />
-                  {booking.conversationId && (
-                    <Link
-                      href={`/messages/${booking.conversationId}?booking=${booking.id}`}
-                      className="dashboard-link"
-                    >
-                      Ver conversación →
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {result.nextCursor && (
-        <p>
-          <Link href={buildQuery({ cursor: result.nextCursor })} className="dashboard-link">
-            Ver más reservas →
-          </Link>
-        </p>
+        <BookingsList
+          role={role}
+          status={status}
+          initialItems={result.items}
+          initialCursor={result.nextCursor}
+        />
       )}
     </div>
   );

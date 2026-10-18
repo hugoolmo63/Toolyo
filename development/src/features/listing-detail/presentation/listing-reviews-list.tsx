@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import type { ListingReviewDTO } from "../domain/listing-detail";
 
 function ReviewStars({ rating }: { rating: number }) {
@@ -11,6 +12,11 @@ function ReviewStars({ rating }: { rating: number }) {
 
 export function ListingReviewsList({ reviews }: { reviews: ListingReviewDTO[] }) {
   const [visibleCount, setVisibleCount] = useState(5);
+  const hasMore = visibleCount < reviews.length;
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>({
+    enabled: hasMore,
+    onLoadMore: () => setVisibleCount((count) => count + 5),
+  });
   const visibleReviews = reviews.slice(0, visibleCount);
   return <>
     <div className="listing-reviews-list">
@@ -24,6 +30,10 @@ export function ListingReviewsList({ reviews }: { reviews: ListingReviewDTO[] })
         <time dateTime={review.createdAt}>{new Date(review.createdAt).toLocaleDateString("es-ES")}</time>
       </article>)}
     </div>
-    {visibleCount < reviews.length && <button type="button" className="reviews-load-more" onClick={() => setVisibleCount((count) => count + 5)}>Cargar más</button>}
+    {hasMore && (
+      <div ref={sentinelRef} className="infinite-scroll-sentinel" aria-live="polite">
+        <span className="loading-more">Cargando más reseñas...</span>
+      </div>
+    )}
   </>;
 }
