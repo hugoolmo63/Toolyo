@@ -428,16 +428,6 @@ dialog.login-dialog .auth-form { margin: 0 auto; }
 .search-clear:focus-visible { outline: 2px solid var(--ps-primary-500); outline-offset: 2px; }
 .search-bar-compact input { min-height: 40px; padding: var(--ps-space-2) 44px var(--ps-space-2) var(--ps-space-3); font-size: var(--ps-text-sm); }
 
-.search-suggestions { position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin: var(--ps-space-1) 0 0; padding: 0; list-style: none; border: 1px solid var(--ps-neutral-200); border-radius: var(--ps-radius-md); background: var(--ps-surface-0); box-shadow: var(--ps-shadow-lg); max-height: 400px; overflow-y: auto; }
-.suggestion-group + .suggestion-group { border-top: 1px solid var(--ps-neutral-200); }
-.suggestion-heading { margin: 0; padding: var(--ps-space-2) var(--ps-space-4) var(--ps-space-1); color: var(--ps-neutral-500); font-size: var(--ps-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
-.suggestion-item { display: flex; width: 100%; align-items: center; gap: var(--ps-space-2); padding: var(--ps-space-2) var(--ps-space-4); border: 0; border-bottom: 1px solid var(--ps-neutral-100); color: inherit; background: transparent; font: inherit; text-align: left; cursor: pointer; }
-.suggestion-item:last-child { border-bottom: 0; }
-.suggestion-item.active, .suggestion-item:hover { background: var(--ps-primary-50); }
-.suggestion-icon { flex: 0 0 auto; }
-.suggestion-text { flex: 1; font-size: var(--ps-text-sm); color: var(--ps-neutral-800); }
-.suggestion-type { font-size: var(--ps-text-xs); color: var(--ps-neutral-500); text-transform: uppercase; letter-spacing: 0.05em; }
-
 .location-detector { display: flex; flex-direction: column; gap: var(--ps-space-1); }
 .location-detect-btn { min-height: 44px; padding: 0 var(--ps-space-4); border: 1px solid var(--ps-neutral-300); border-radius: var(--ps-radius-md); color: var(--ps-neutral-700); background: var(--ps-surface-0); font-family: inherit; font-size: var(--ps-text-sm); font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color var(--ps-duration-base) var(--ps-ease-in-out); }
 .location-detect-btn:hover:not(:disabled) { background: var(--ps-neutral-100); }
