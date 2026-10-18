@@ -149,9 +149,10 @@ export function SearchPage({ initialResults }: SearchPageProps) {
     setIsFetchingMore(true);
     try {
       const nextPage = extra?.nextPage ?? (results?.page ?? 1) + 1;
+      const seed = results?.seed ?? undefined;
       const data = hasCriteria
-        ? await utils.search.query.fetch({ ...queryInput, page: nextPage })
-        : await utils.search.initial.fetch({ ...initialInput, page: nextPage });
+        ? await utils.search.query.fetch({ ...queryInput, seed, page: nextPage })
+        : await utils.search.initial.fetch({ ...initialInput, seed, page: nextPage });
       setAccumulated({
         key: criteriaKey,
         items: [...(extra?.items ?? []), ...data.items],
