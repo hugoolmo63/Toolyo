@@ -28,13 +28,13 @@ export function UserProfileTabs({ listings, reviews }: { listings: PublicListing
     <section className="user-profile-tabs" aria-label="Contenido del perfil">
       <div className="user-profile-tab-list" role="tablist" aria-label="Listings y reseñas">
         <button type="button" role="tab" aria-selected={activeTab === "listings"} className={activeTab === "listings" ? "active" : ""} onClick={() => selectTab("listings")}>
-          Listings activos <span>{listings.length}</span>
+          Productos activos <span>{listings.length}</span>
         </button>
         <button id="profile-reviews" type="button" role="tab" aria-selected={activeTab === "reviews"} className={activeTab === "reviews" ? "active" : ""} onClick={() => selectTab("reviews")}>
           Reseñas <span>{reviews.length}</span>
         </button>
       </div>
-      <div role="tabpanel" aria-label={activeTab === "listings" ? "Listings activos" : "Reseñas"}>
+      <div role="tabpanel" aria-label={activeTab === "listings" ? "Productos activos" : "Reseñas"}>
         {activeTab === "listings" ? <UserProfileListings listings={listings} /> : <UserProfileReviews reviews={reviews} />}
       </div>
     </section>

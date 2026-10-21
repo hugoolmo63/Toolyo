@@ -7,7 +7,7 @@ import { UserProfileReviews } from "@/components/profile/UserProfileReviews";
 describe("profile listings and reviews", () => {
   it("shows useful empty states", () => {
     render(<><UserProfileListings listings={[]} /><UserProfileReviews reviews={[]} /></>);
-    expect(screen.getByText(/todavía no tiene listings/)).toBeTruthy();
+    expect(screen.getByText(/todavía no tiene productos/)).toBeTruthy();
     expect(screen.getByText(/Aún no hay reseñas/)).toBeTruthy();
   });
 

@@ -18,8 +18,10 @@ export async function getPublicUserProfile(
     preferredLocation: record.preferredLocation,
     createdAt: record.createdAt.toISOString(),
     ratingAverage: (() => {
-      const ratings = record.listings.flatMap((listing) => (listing.reviews ?? []).filter((review) => review.status === "published").map((review) => review.rating));
-      return ratings.length ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 10) / 10 : null;
+      const ratedListings = record.listings.filter((listing) => listing.reviewCount > 0);
+      return ratedListings.length
+        ? Math.round((ratedListings.reduce((sum, listing) => sum + Number(listing.ratingAverage), 0) / ratedListings.length) * 10) / 10
+        : null;
     })(),
     transactionCount: record.transactionCount ?? 0,
     badges: {

@@ -11,6 +11,7 @@ import { ViewToggle } from "./view-toggle";
 import { MapView } from "./map-view";
 import { useSearchParamsState } from "@/hooks/use-search-params";
 import { PublicHeader } from "@/components/public-header";
+import { PublicFooter } from "@/components/public-footer";
 import type { SearchResultsPage, SearchResultDTO, MapPin } from "@/types/search";
 
 /**
@@ -241,6 +242,7 @@ export function SearchPage({ initialResults }: SearchPageProps) {
         />
       </main>
       </div>
+      <PublicFooter />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { PublicHeader } from "@/components/public-header";
+import { PublicFooter } from "@/components/public-footer";
 
 /**
  * Layout público — header mínimo con zona de sesión (007-login-contextual).
@@ -10,6 +11,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     <div className="public-layout">
       <PublicHeader />
       <main className="public-main">{children}</main>
+      <PublicFooter />
     </div>
   );
 }

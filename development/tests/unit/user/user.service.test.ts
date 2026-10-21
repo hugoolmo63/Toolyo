@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Prisma, type PrismaClient } from "@prisma/client";
-import { getPublicProfileById, updateProfile } from "@/features/users/application/user.service";
+import { deleteOwnAccount, getPublicProfileById, updateProfile } from "@/features/users/application/user.service";
 import { NotFoundError, UnauthorizedError } from "@/server/lib/errors/domain-errors";
 import {
   findPublicUserProfile,
@@ -113,5 +113,34 @@ describe("user.service", () => {
       expect.objectContaining({ displayName: "Ana" }),
     );
     expect(result).toEqual(updated);
+  });
+
+  it("anonymizes account data, revokes sessions and pauses its published products", async () => {
+    const transaction = {
+      user: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      session: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      passwordCredential: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      oAuthAccount: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      devicePushToken: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      listing: { updateMany: vi.fn().mockResolvedValue({ count: 2 }) },
+    };
+    const transactionalDb = {
+      $transaction: vi.fn(async (callback: (tx: typeof transaction) => Promise<void>) => callback(transaction)),
+    } as unknown as PrismaClient;
+
+    await deleteOwnAccount("user-1", transactionalDb);
+
+    expect(transaction.user.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "user-1", accountStatus: "active", deletedAt: null },
+      data: expect.objectContaining({
+        accountStatus: "deleted",
+        emailNormalized: "deleted+user-1@deleted.invalid",
+        displayName: null,
+        preferredLocation: null,
+      }),
+    }));
+    expect(transaction.session.updateMany).toHaveBeenCalled();
+    expect(transaction.passwordCredential.deleteMany).toHaveBeenCalled();
+    expect(transaction.listing.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { status: "paused" } }));
   });
 });

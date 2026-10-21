@@ -1,5 +1,10 @@
+"use client";
+
+import { useState } from "react";
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { SearchResultDTO } from "@/types/search";
 
 /**
@@ -9,19 +14,33 @@ import type { SearchResultDTO } from "@/types/search";
  */
 export function ResultCard({ listing, openInNewTab = false }: { listing: SearchResultDTO; openInNewTab?: boolean }) {
   const href = `/listings/${listing.slug}`;
+  const photos = listing.photoUrls?.length
+    ? listing.photoUrls
+    : listing.primaryPhotoUrl
+      ? [listing.primaryPhotoUrl]
+      : [];
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const activePhoto = photos[photoIndex] ?? listing.primaryPhotoUrl;
+
+  function changePhoto(event: MouseEvent<HTMLButtonElement>, direction: -1 | 1) {
+    event.preventDefault();
+    event.stopPropagation();
+    setPhotoIndex((current) => (current + direction + photos.length) % photos.length);
+  }
 
   return (
     <article className="result-card">
-      <Link
-        href={href}
-        className="result-card-link"
-        aria-label={`Ver detalle de ${listing.title}`}
-        {...(openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      >
-        <div className="result-card-image">
-          {listing.primaryPhotoUrl ? (
+      <div className="result-card-image">
+        <Link
+          href={href}
+          className="result-card-photo-link"
+          aria-label={`Ver fotos de ${listing.title}`}
+          {...(openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        >
+          {activePhoto ? (
             <Image
-              src={listing.primaryPhotoUrl}
+              key={activePhoto}
+              src={activePhoto}
               alt={listing.title}
               fill
               unoptimized
@@ -33,12 +52,39 @@ export function ResultCard({ listing, openInNewTab = false }: { listing: SearchR
               Sin imagen
             </div>
           )}
-          {listing.owner.isVerified && (
-            <span className="verified-badge" title="Arrendador verificado">
-              ✓ Verificado
-            </span>
-          )}
-        </div>
+        </Link>
+        {listing.owner.isVerified && (
+          <span className="verified-badge" title="Arrendador verificado">
+            ✓ Verificado
+          </span>
+        )}
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              className="result-card-photo-nav previous"
+              aria-label={`Foto anterior de ${listing.title}`}
+              onClick={(event) => changePhoto(event, -1)}
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="result-card-photo-nav next"
+              aria-label={`Foto siguiente de ${listing.title}`}
+              onClick={(event) => changePhoto(event, 1)}
+            >
+              <ChevronRight size={20} aria-hidden="true" />
+            </button>
+          </>
+        )}
+      </div>
+      <Link
+        href={href}
+        className="result-card-link"
+        aria-label={`Ver detalle de ${listing.title}`}
+        {...(openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
         <div className="result-card-body">
           <h3 className="result-card-title">{listing.title}</h3>
           <p className="result-card-location">
@@ -56,9 +102,6 @@ export function ResultCard({ listing, openInNewTab = false }: { listing: SearchR
               )}
             </span>
           </div>
-          <p className="result-card-owner">
-            Por {listing.owner.displayName}
-          </p>
         </div>
       </Link>
     </article>

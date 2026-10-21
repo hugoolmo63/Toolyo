@@ -82,7 +82,7 @@ export function PreferredLocationMap({
     <div>
       <div ref={containerRef} className="preferred-location-map" aria-label="Mapa de ubicación preferida" />
       <p className="preferred-location-hint">
-        {readOnly ? "Zona aproximada; no se muestra la dirección exacta." : "Haz clic en el mapa o arrastra el pin para elegir una zona aproximada."}
+        {readOnly ? "Zona aproximada." : "Haz clic en el mapa o arrastra el pin para elegir una zona aproximada."}
       </p>
     </div>
   );

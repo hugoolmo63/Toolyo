@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { UpdateUserProfileSchema, type UpdateUserProfileInput } from "../shared/user-profile.schema";
 import { api } from "@/lib/trpc-react";
 import { PreferredLocationMap } from "./preferred-location-map";
@@ -14,6 +15,8 @@ type EditableProfile = {
 };
 
 export function UserProfileForm({ profile, developmentFallback = false }: { profile: EditableProfile; developmentFallback?: boolean }) {
+  const router = useRouter();
+  const utils = api.useUtils();
   const form = useForm<UpdateUserProfileInput>({
     resolver: zodResolver(UpdateUserProfileSchema),
     defaultValues: {
@@ -36,6 +39,14 @@ export function UserProfileForm({ profile, developmentFallback = false }: { prof
       form.setError("root", { type: "success", message: "Perfil actualizado correctamente." });
     },
     onError: (error) => form.setError("root", { message: error.message || "No se pudo actualizar el perfil." }),
+  });
+  const deleteAccount = api.userProfile.deleteAccount.useMutation({
+    onSuccess: async () => {
+      await utils.auth.getSession.invalidate();
+      router.push("/");
+      router.refresh();
+    },
+    onError: (error) => form.setError("root", { message: error.message || "No se pudo dar de baja la cuenta." }),
   });
 
   function submit(values: UpdateUserProfileInput) {
@@ -70,7 +81,7 @@ export function UserProfileForm({ profile, developmentFallback = false }: { prof
           value={form.watch("preferredLocation")}
           onChange={(value) => form.setValue("preferredLocation", value, { shouldDirty: true, shouldValidate: true })}
         />
-        <label htmlFor="profile-bio">Biografía</label>
+        <label htmlFor="profile-bio">Biografía (opcional)</label>
         <textarea id="profile-bio" rows={6} {...form.register("bio")} aria-invalid={Boolean(form.formState.errors.bio)} />
         {form.formState.errors.bio && <p className="field-error">{form.formState.errors.bio.message}</p>}
         {form.formState.errors.root && (
@@ -81,6 +92,24 @@ export function UserProfileForm({ profile, developmentFallback = false }: { prof
         <button className="auth-submit" type="submit" disabled={updateAuthenticated.isPending || updateDevelopment.isPending}>
           {updateAuthenticated.isPending || updateDevelopment.isPending ? "Guardando..." : "Guardar cambios"}
         </button>
+        {!developmentFallback && (
+          <section className="profile-account-deletion" aria-labelledby="delete-account-title">
+            <h2 id="delete-account-title">Dar de baja mi cuenta</h2>
+            <p>La cuenta se desactivará y se anonimizarán los datos de perfil. Algunos registros podrán conservarse por obligaciones legales u operaciones pendientes.</p>
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={deleteAccount.isPending}
+              onClick={() => {
+                if (window.confirm("¿Quieres dar de baja tu cuenta? Se cerrará tu sesión y no podrás volver a iniciarla.")) {
+                  deleteAccount.mutate();
+                }
+              }}
+            >
+              {deleteAccount.isPending ? "Procesando baja..." : "Dar de baja mi cuenta"}
+            </button>
+          </section>
+        )}
       </form>
     </section>
   );

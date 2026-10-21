@@ -82,3 +82,31 @@ export async function updateProfile(
   const input = UpdateUserProfileSchema.parse(data);
   return updateUserProfile(db, userId, input);
 }
+
+/** Desactiva y anonimiza la cuenta preservando registros sujetos a retención legal. */
+export async function deleteOwnAccount(userId: string, db: PrismaClient = defaultPrisma): Promise<void> {
+  await db.$transaction(async (tx) => {
+    const result = await tx.user.updateMany({
+      where: { id: userId, accountStatus: "active", deletedAt: null },
+      data: {
+        accountStatus: "deleted",
+        deletedAt: new Date(),
+        emailNormalized: `deleted+${userId}@deleted.invalid`,
+        phoneE164: null,
+        displayName: null,
+        avatarUrl: null,
+        bio: null,
+        preferredLocation: null,
+      },
+    });
+    if (result.count !== 1) throw new NotFoundError("La cuenta no está disponible");
+
+    await Promise.all([
+      tx.session.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+      tx.passwordCredential.deleteMany({ where: { userId } }),
+      tx.oAuthAccount.deleteMany({ where: { userId } }),
+      tx.devicePushToken.deleteMany({ where: { userId } }),
+      tx.listing.updateMany({ where: { ownerId: userId, status: "published", deletedAt: null }, data: { status: "paused" } }),
+    ]);
+  });
+}

@@ -3,12 +3,14 @@ import { createTRPCRouter, authedProcedure, publicProcedure } from "../trpc";
 import {
   getEditableProfileById,
   getPublicProfileById,
+  deleteOwnAccount,
   updateProfile,
 } from "@/features/users/application/user.service";
 import { UpdateUserProfileSchema } from "@/features/users/shared/user-profile.schema";
 import { mapErrorToTRPC } from "@/server/lib/errors/map-error";
 import { DEVELOPMENT_PROFILE_USER_ID } from "@/features/users/domain/preferred-location";
 import { getPublicUserProfile } from "@/features/users/application/public-user-profile.service";
+import { serializeClearSessionCookie } from "@/lib/auth";
 
 export const userProfileRouter = createTRPCRouter({
   getPublicProjection: publicProcedure.input(z.string().cuid()).query(async ({ ctx, input }) => {
@@ -48,6 +50,16 @@ export const userProfileRouter = createTRPCRouter({
   update: authedProcedure.input(UpdateUserProfileSchema).mutation(async ({ ctx, input }) => {
     try {
       return await updateProfile(ctx.session.userId, input, ctx.session.userId, ctx.prisma);
+    } catch (error) {
+      throw mapErrorToTRPC(error);
+    }
+  }),
+
+  deleteAccount: authedProcedure.mutation(async ({ ctx }) => {
+    try {
+      await deleteOwnAccount(ctx.session.userId, ctx.prisma);
+      if (ctx.sessionToken) ctx.setCookie(serializeClearSessionCookie());
+      return { success: true as const };
     } catch (error) {
       throw mapErrorToTRPC(error);
     }

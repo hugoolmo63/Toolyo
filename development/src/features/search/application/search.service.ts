@@ -55,6 +55,7 @@ function mapToDTO(row: RawListingRow, userLat?: number, userLng?: number): Searc
     title: row.title,
     pricePerDay: Number(row.pricePerDay),
     primaryPhotoUrl: row.primaryPhotoUrl,
+    photoUrls: row.photoUrls ?? (row.primaryPhotoUrl ? [row.primaryPhotoUrl] : []),
     ratingAverage: Number(row.ratingAverage),
     reviewCount: row.reviewCount,
     distanceKm,

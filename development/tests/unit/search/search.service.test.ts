@@ -47,6 +47,7 @@ const mockRow = {
   ownerAvatarUrl: null,
   ownerIsVerified: true,
   primaryPhotoUrl: "https://example.com/photo.jpg",
+  photoUrls: ["https://example.com/photo.jpg", "https://example.com/photo-2.jpg"],
 };
 
 describe("search.service", () => {
@@ -70,6 +71,7 @@ describe("search.service", () => {
       expect(result.items[0]!.pricePerDay).toBe(50);
       expect(result.items[0]!.ratingAverage).toBe(4.5);
       expect(result.items[0]!.owner.isVerified).toBe(true);
+      expect(result.items[0]!.photoUrls).toEqual(mockRow.photoUrls);
       expect(result.seed).toBeDefined();
       expect(result.total).toBe(1);
     });

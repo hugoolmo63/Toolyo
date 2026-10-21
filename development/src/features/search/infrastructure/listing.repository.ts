@@ -26,6 +26,7 @@ interface RawListingRow {
   ownerAvatarUrl: string | null;
   ownerIsVerified: boolean;
   primaryPhotoUrl: string | null;
+  photoUrls: string[];
   semantic_score?: number | null;
 }
 
@@ -110,7 +111,8 @@ export async function findPublishedListingsRandom(
       NULL::text AS "ownerDisplayName",
       NULL::text AS "ownerAvatarUrl",
       (vs."id" IS NOT NULL) AS "ownerIsVerified",
-      photo."url" AS "primaryPhotoUrl"
+      photo."url" AS "primaryPhotoUrl",
+      COALESCE((SELECT array_agg(lp."url" ORDER BY lp."order") FROM "ListingPhoto" lp WHERE lp."listingId" = "Listing"."id" AND lp."deletedAt" IS NULL), ARRAY[]::text[]) AS "photoUrls"
     FROM "Listing"
     ${Prisma.raw(OWNER_JOIN)}
     ${Prisma.raw(VERIFIED_JOIN)}
@@ -295,7 +297,8 @@ export async function findPublishedListingsFiltered(
       NULL::text AS "ownerDisplayName",
       NULL::text AS "ownerAvatarUrl",
       (vs."id" IS NOT NULL) AS "ownerIsVerified",
-      photo."url" AS "primaryPhotoUrl"
+      photo."url" AS "primaryPhotoUrl",
+      COALESCE((SELECT array_agg(lp."url" ORDER BY lp."order") FROM "ListingPhoto" lp WHERE lp."listingId" = "Listing"."id" AND lp."deletedAt" IS NULL), ARRAY[]::text[]) AS "photoUrls"
     FROM "Listing"
     ${Prisma.raw(OWNER_JOIN)}
     ${Prisma.raw(VERIFIED_JOIN)}

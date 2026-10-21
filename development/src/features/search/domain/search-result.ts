@@ -18,6 +18,7 @@ export interface SearchResultDTO {
   title: string;
   pricePerDay: number;
   primaryPhotoUrl: string | null;
+  photoUrls: string[];
   ratingAverage: number;
   reviewCount: number;
   distanceKm: number | null;

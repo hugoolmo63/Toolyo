@@ -50,4 +50,17 @@ describe("RegistrationForm", () => {
       marketingAccepted: false,
     }));
   });
+
+  it("keeps the submit button native so Enter submits the registration form", async () => {
+    const { container } = render(<RegistrationForm legalDocuments={legalDocuments} />);
+    fillCredentials();
+    fireEvent.click(screen.getByLabelText(/Términos y Condiciones/));
+    fireEvent.click(screen.getByLabelText(/Política de Privacidad/));
+
+    const submitButton = screen.getByRole("button", { name: "Crear cuenta" });
+    expect(submitButton.getAttribute("type")).toBe("submit");
+    fireEvent.submit(container.querySelector("form")!);
+
+    await waitFor(() => expect(mocks.mutate).toHaveBeenCalled());
+  });
 });

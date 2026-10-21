@@ -14,7 +14,7 @@ export function LogoutButton({ className = "btn btn-ghost btn-sm" }: { className
       // En zona privada hay que salir (middleware echaría al usuario de todos
       // modos); en página pública se permanece en contexto (FR-008).
       if (isPrivatePathname(pathname)) {
-        router.push("/auth?tab=login");
+        router.push("/");
       }
       router.refresh();
     },

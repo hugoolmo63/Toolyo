@@ -7,7 +7,6 @@ import { DescriptionSection } from "./description-section";
 import { OwnerCard } from "./owner-card";
 import { ReviewsSection } from "./reviews-section";
 import { SimilarListings } from "./similar-listings";
-import { InsuranceSection } from "./insurance-section";
 import { RulesSection } from "./rules-section";
 import { Calendar } from "./calendar";
 import { PriceTable } from "./price-table";
@@ -44,7 +43,6 @@ export function ListingDetailPage({ listing, reputation }: ListingDetailPageProp
           <section className="listing-location-section" aria-labelledby="listing-location-heading">
             <h2 id="listing-location-heading">Ubicación aproximada</h2>
             <ListingLocationMap location={listing.location} />
-            <p className="preferred-location-hint">La zona se muestra de forma aproximada para proteger la privacidad.</p>
           </section>
 
           <section className="listing-calendar-section" aria-labelledby="calendar-heading">
@@ -73,7 +71,6 @@ export function ListingDetailPage({ listing, reputation }: ListingDetailPageProp
             <ActionButtons listing={listing} />
           </div>
           <OwnerCard owner={listing.owner} />
-          <InsuranceSection listing={listing} />
           <RulesSection />
         </aside>
       </div>

@@ -26,4 +26,26 @@ describe("public user profile service", () => {
     const result = await getPublicUserProfile(record.id, {} as never);
     expect(result.preferredLocation).toBe("not-a-coordinate");
   });
+
+  it("calculates the profile rating as the average of rated product ratings", async () => {
+    const record = publicProfileRecord();
+    record.listings.push({
+      ...record.listings[0]!,
+      id: "listing-2",
+      ratingAverage: { toString: () => "3.5" } as never,
+      reviewCount: 2,
+    });
+    record.listings.push({
+      ...record.listings[0]!,
+      id: "listing-3",
+      ratingAverage: { toString: () => "0" } as never,
+      reviewCount: 0,
+      reviews: [],
+    });
+    vi.mocked(findPublicUserProfileRecord).mockResolvedValue(record as never);
+
+    const result = await getPublicUserProfile(record.id, {} as never);
+
+    expect(result.ratingAverage).toBe(4.1);
+  });
 });
