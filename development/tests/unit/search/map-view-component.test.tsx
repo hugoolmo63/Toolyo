@@ -47,9 +47,11 @@ describe("MapView markers", () => {
     render(<MapView center={null} pins={pins} isLoading={false} />);
 
     await waitFor(() => expect(screen.getAllByTestId("map-marker")).toHaveLength(90));
-    expect(map.fitBounds).toHaveBeenCalledWith(
-      pins.map((pin) => [pin.lat, pin.lng]),
-      { padding: [32, 32], maxZoom: 14 },
+    await waitFor(() =>
+      expect(map.fitBounds).toHaveBeenCalledWith(
+        pins.map((pin) => [pin.lat, pin.lng]),
+        { padding: [32, 32], maxZoom: 14 },
+      ),
     );
   });
 
