@@ -49,7 +49,11 @@ describe("admin authentication and RBAC", () => {
     const user = await prisma.user.create({ data: { emailNormalized: "admin-login@toolyo.dev", accountStatus: "active", role: "ADMIN", passwordCredential: { create: { passwordHash } }, totpCredential: { create: { secretCiphertext: encryptTotpSecret(secret), keyVersion: "v1", isEnabled: true, enabledAt: new Date() } } } });
     const request = new Request("http://localhost/api/trpc");
     const caller = appRouter.createCaller(await createTRPCContext({ prisma, request }));
-    const login = await caller.auth.loginWithPassword({ email: user.emailNormalized, password: "AdminPassword123!" });
+    const login = await caller.auth.loginWithPassword({
+      email: user.emailNormalized,
+      password: "AdminPassword123!",
+      botToken: "development-human-check",
+    });
     expect(login.sessionState).toBe("PENDING_2FA");
     expect(login.challengeId).toBeTruthy();
     const code = await generate({ secret });
