@@ -23,6 +23,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   AUTH_SECRET: z.string().min(16).optional(),
   AUTH_URL: z.string().url().optional(),
+  TURNSTILE_SECRET_KEY: z.string().optional(),
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
   AUTH_GOOGLE_ENABLED: z.coerce.boolean().default(false),
   AUTH_APPLE_ENABLED: z.coerce.boolean().default(false),
   AUTH_FACEBOOK_ENABLED: z.coerce.boolean().default(false),

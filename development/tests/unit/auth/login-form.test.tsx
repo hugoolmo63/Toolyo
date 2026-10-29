@@ -30,6 +30,7 @@ describe("LoginForm", () => {
     const { container } = render(<LoginForm />);
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "user@example.test" } });
     fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "AnyPassword123!" } });
+    fireEvent.click(screen.getByLabelText("No soy un robot"));
 
     expect(screen.getByRole("button", { name: "Iniciar sesión" }).getAttribute("type")).toBe("submit");
     fireEvent.submit(container.querySelector("form")!);
@@ -37,6 +38,7 @@ describe("LoginForm", () => {
     await waitFor(() => expect(mocks.login).toHaveBeenCalledWith(expect.objectContaining({
       email: "user@example.test",
       password: "AnyPassword123!",
+      botToken: "development-human-check",
     })));
   });
 });

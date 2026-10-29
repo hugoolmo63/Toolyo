@@ -21,6 +21,7 @@ export type ListingManagementSummary = {
 
 export type ListingManagementDetail = ListingManagementSummary & {
   description: string | null;
+  verificationVideoUrl: string | null;
   location: { city: string | null; lat: number | null; lng: number | null; addressText: string | null };
   photos: ListingManagementPhoto[];
   availability: Array<{ blockedDate: string; reason: string | null }>;

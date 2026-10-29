@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { prisma } from "@/server/db/client";
-import { searchInitial, searchQuery } from "@/features/search/application/search.service";
+import { searchInitial, searchMapResults, searchQuery } from "@/features/search/application/search.service";
 import { SearchPage } from "@/features/search/presentation/search-page";
 import type { SearchResultsPage } from "@/types/search";
 
@@ -59,6 +59,7 @@ export default async function Home({ searchParams }: HomePageProps) {
   );
 
   let initialResults: SearchResultsPage | null = null;
+  let initialMapResults: SearchResultsPage | null = null;
 
   try {
     if (hasCriteria) {
@@ -86,6 +87,19 @@ export default async function Home({ searchParams }: HomePageProps) {
         seed: seed ?? undefined,
         limit: 24,
       });
+
+      // Carga el conjunto completo del mapa junto con Home para que los pins
+      // no dependan de una búsqueda ni de una petición posterior del cliente.
+      try {
+        initialMapResults = await searchMapResults(prisma, {
+          seed: initialResults.seed ?? undefined,
+          page: 1,
+          limit: 1000,
+          sortBy: "relevance",
+        });
+      } catch {
+        // La vista de catálogo sigue disponible si falla la precarga del mapa.
+      }
     }
   } catch {
     // Si la precarga falla, el cliente reintentará con React Query
@@ -94,7 +108,7 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   return (
     <Suspense fallback={<div className="search-loading">Cargando...</div>}>
-      <SearchPage initialResults={initialResults} />
+      <SearchPage initialResults={initialResults} initialMapResults={initialMapResults} />
     </Suspense>
   );
 }

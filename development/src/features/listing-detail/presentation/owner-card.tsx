@@ -4,7 +4,7 @@ import Image from "next/image";
 
 /**
  * OwnerCard — perfil público del arrendador.
- * Solo campos públicos: nombre, avatar, badge verificado, rating, tiempo de respuesta,
+ * Solo campos públicos: nombre, avatar, rating, tiempo de respuesta,
  * número de transacciones. Los campos no disponibles se muestran como "N/A" hasta §1.2.
  * Nunca email, teléfono ni datos privados. Ver spec.md FR-010.
  */
@@ -36,11 +36,6 @@ export function OwnerCard({ owner }: OwnerCardProps) {
         <div className="owner-info">
           <p className="owner-name" id="owner-heading">
             <Link href={`/users/${owner.id}`}>{displayName}</Link>
-            {owner.isVerified && (
-              <span className="owner-verified-badge" title="Identidad verificada">
-                {" "}✓
-              </span>
-            )}
           </p>
           <dl className="owner-stats">
             <div className="owner-stat">

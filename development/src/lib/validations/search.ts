@@ -4,6 +4,7 @@
  */
 export {
   SearchQuerySchema,
+  SearchMapResultsSchema,
   SearchInitialSchema,
   SuggestSchema,
   MapBoundsQuerySchema,

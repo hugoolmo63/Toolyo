@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Slug de listing: kebab-case, 1-200 chars. */
+/** Slug o ID del listing para resolver enlaces públicos. */
 export const GetBySlugSchema = z.object({
   slug: z.string().min(1, "slug es obligatorio").max(200),
 });

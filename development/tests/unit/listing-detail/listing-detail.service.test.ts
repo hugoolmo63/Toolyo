@@ -39,6 +39,7 @@ const mockDetailRow = {
   slug: "test-listing",
   title: "Cámara de prueba",
   description: "Una cámara excelente",
+  verificationVideoUrl: null,
   pricePerDay: { toString: () => "50" } as any,
   lat: { toString: () => "40.4168" } as any,
   lng: { toString: () => "-3.7038" } as any,
@@ -130,6 +131,18 @@ describe("listing-detail.service", () => {
       const result = await getListingBySlug(mockPrisma, { slug: "no-existe" });
 
       expect(result).toBeNull();
+    });
+
+    it("resuelve la ficha usando el ID real enviado por el enlace del mapa", async () => {
+      vi.mocked(findListingBySlug).mockResolvedValue(mockDetailRow);
+      vi.mocked(findPhotosByListingId).mockResolvedValue([]);
+      vi.mocked(findAvailabilityByListingId).mockResolvedValue([]);
+      vi.mocked(findReviewsByListingId).mockResolvedValue([]);
+
+      const result = await getListingBySlug(mockPrisma, { slug: "listing-1" });
+
+      expect(findListingBySlug).toHaveBeenCalledWith(mockPrisma, "listing-1");
+      expect(result?.id).toBe("listing-1");
     });
 
     it("devuelve null para listing en estado draft", async () => {

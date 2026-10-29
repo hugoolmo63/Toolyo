@@ -392,6 +392,7 @@ model Listing {
   title            String
   slug             String                                @unique
   description      String?                               @db.Text
+  verificationVideoUrl String?
   pricePerDay      Decimal                               @db.Decimal(19, 4)
   /// Punto geoespacial PostGIS (geometry(Point, 4326)). Prisma no soporta el tipo
   /// nativamente; se gestiona via SQL raw en migraciones y queries. Ver DATABASE.md §5.4.

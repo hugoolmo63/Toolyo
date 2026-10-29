@@ -19,9 +19,10 @@ const LocationFieldsSchema = z.object({
 export const ListingFieldsSchema = LocationFieldsSchema.extend({
   title: z.string().trim().min(1, "El título es obligatorio").max(120),
   description: z.string().trim().max(5000).optional(),
+  verificationVideoUrl: z.string().max(2048).optional().nullable().refine((value) => value == null || /^\/uploads\/listing-videos\/[a-zA-Z0-9-]+\.(mp4|webm|mov)$/.test(value), "El vídeo no es válido"),
   categoryId: z.string().cuid("La categoría no es válida"),
   pricePerDay: z.string().trim().regex(/^\d+(\.\d{1,4})?$/, "El precio no es válido").refine((value) => Number(value) > 0, "El precio debe ser mayor que cero"),
-  photos: z.array(PhotoInputSchema).max(10).default([]),
+  photos: z.array(PhotoInputSchema).max(10, "Cada producto admite un máximo de 10 fotos").default([]),
 });
 
 export const CreateListingManagementSchema = ListingFieldsSchema.extend({

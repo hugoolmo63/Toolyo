@@ -58,6 +58,7 @@ export interface ListingDetailDTO {
   slug: string;
   title: string;
   description: string | null;
+  verificationVideoUrl: string | null;
   /** EUR, derivado de Decimal. */
   pricePerDay: number;
   location: { lat: number; lng: number } | null;

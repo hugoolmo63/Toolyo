@@ -20,6 +20,7 @@ import type {
   SearchInitialInput,
   SuggestInput,
   MapBoundsQueryInput,
+  SearchMapResultsInput,
 } from "@/features/search/shared/search.schema";
 
 /**
@@ -60,7 +61,7 @@ function mapToDTO(row: RawListingRow, userLat?: number, userLng?: number): Searc
     reviewCount: row.reviewCount,
     distanceKm,
     city: row.city,
-    location: row.lat && row.lng ? { lat: Number(row.lat), lng: Number(row.lng) } : null,
+    location: row.lat != null && row.lng != null ? { lat: Number(row.lat), lng: Number(row.lng) } : null,
     owner: {
       id: row.ownerId,
       // El displayName real se resolvería desde el perfil del usuario;
@@ -156,6 +157,33 @@ export async function searchQuery(
   };
 }
 
+/** Búsqueda completa para mapa: misma consulta por texto/filtros, sin el límite semántico de 3. */
+export async function searchMapResults(prisma: PrismaClient, input: SearchMapResultsInput): Promise<SearchResultsPage> {
+  const hasCriteria = Boolean(
+    input.query || input.location || input.categoryId || input.dateRange ||
+    input.maxPricePerDay !== undefined || input.maxDistanceKm !== undefined ||
+    input.minRating !== undefined || input.onlyVerified,
+  );
+  // El mapa presenta el conjunto completo en una sola respuesta (incluyendo
+  // Home sin filtros), no limita los pines a las 24 tarjetas visibles.
+  const mapInput = { ...input, page: input.page ?? 1, limit: input.limit };
+  if (!hasCriteria && input.sortBy === "relevance") {
+    return searchInitial(prisma, { seed: input.seed, page: mapInput.page, limit: mapInput.limit });
+  }
+  const { rows, total } = await findPublishedListingsFiltered(prisma, mapInput);
+  const items = rows.map((row) => mapToDTO(row, mapInput.location?.lat, mapInput.location?.lng));
+  const page = mapInput.page;
+  return {
+    items,
+    total,
+    hasMore: page * input.limit < total,
+    nextCursor: items.at(-1)?.id ?? null,
+    page,
+    totalPages: Math.max(1, Math.ceil(total / input.limit)),
+    seed: input.seed ?? null,
+  };
+}
+
 /**
  * Autocompletado de ubicaciones y categorías.
  */
@@ -222,8 +250,8 @@ export async function searchMapBounds(
 
   return rows.map((r) => ({
     id: r.id,
-    lat: r.lat ? Number(r.lat) : 0,
-    lng: r.lng ? Number(r.lng) : 0,
+    lat: r.lat != null ? Number(r.lat) : 0,
+    lng: r.lng != null ? Number(r.lng) : 0,
     title: r.title,
     pricePerDay: Number(r.pricePerDay),
     primaryPhotoUrl: r.primaryPhotoUrl,

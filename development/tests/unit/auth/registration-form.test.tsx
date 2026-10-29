@@ -40,6 +40,7 @@ describe("RegistrationForm", () => {
     fillCredentials();
     fireEvent.click(screen.getByLabelText(/Términos y Condiciones/));
     fireEvent.click(screen.getByLabelText(/Política de Privacidad/));
+    fireEvent.click(screen.getByLabelText("No soy un robot"));
     fireEvent.submit(container.querySelector("form")!);
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledWith({
@@ -48,6 +49,7 @@ describe("RegistrationForm", () => {
       termsDocumentId: "cmufqcx890015jmwntuewoa77",
       privacyDocumentId: "cmufqcx8b0016jmwn1h3m6wzn",
       marketingAccepted: false,
+      botToken: "development-human-check",
     }));
   });
 
@@ -56,6 +58,7 @@ describe("RegistrationForm", () => {
     fillCredentials();
     fireEvent.click(screen.getByLabelText(/Términos y Condiciones/));
     fireEvent.click(screen.getByLabelText(/Política de Privacidad/));
+    fireEvent.click(screen.getByLabelText("No soy un robot"));
 
     const submitButton = screen.getByRole("button", { name: "Crear cuenta" });
     expect(submitButton.getAttribute("type")).toBe("submit");

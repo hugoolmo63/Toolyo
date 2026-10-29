@@ -5,10 +5,12 @@ import {
   SearchInitialSchema,
   SuggestSchema,
   MapBoundsQuerySchema,
+  SearchMapResultsSchema,
 } from "@/lib/validations/search";
 import {
   searchInitial,
   searchQuery,
+  searchMapResults,
   searchSuggest,
   searchMapBounds,
 } from "@/features/search/application/search.service";
@@ -65,6 +67,17 @@ export const searchRouter = createTRPCRouter({
     });
     try {
       return await searchQuery(ctx.prisma, input);
+    } catch (error) {
+      throw mapErrorToTRPC(error);
+    }
+  }),
+
+  mapResults: publicProcedure.input(SearchMapResultsSchema).query(async ({ ctx, input }) => {
+    const ip = ctx.clientIp ?? "unknown";
+    const rateLimit = consumeRateLimit(`search:ip:${ip}`, env.SEARCH_RATE_LIMIT_PER_MIN, 60_000);
+    if (!rateLimit.allowed) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas búsquedas. Inténtalo de nuevo más tarde." });
+    try {
+      return await searchMapResults(ctx.prisma, input);
     } catch (error) {
       throw mapErrorToTRPC(error);
     }

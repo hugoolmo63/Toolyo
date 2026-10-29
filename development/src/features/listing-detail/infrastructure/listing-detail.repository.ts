@@ -14,6 +14,7 @@ export interface RawListingDetailRow {
   slug: string;
   title: string;
   description: string | null;
+  verificationVideoUrl?: string | null;
   pricePerDay: Prisma.Decimal;
   lat: Prisma.Decimal | null;
   lng: Prisma.Decimal | null;
@@ -107,20 +108,20 @@ const PARENT_CATEGORY_JOIN = `
 
 const BASE_WHERE = `"Listing"."status" = 'published' AND "Listing"."deletedAt" IS NULL AND owner."id" IS NOT NULL`;
 
-/**
- * Busca un listing publicado por slug con joins de owner, categoría y verificación.
- * Devuelve null si no existe, no está publicado, o su owner no es active.
- */
-export async function findListingBySlug(
+/** Busca los campos públicos detallados usando el identificador indicado. */
+async function findListingDetailByLocator(
   prisma: PrismaClient,
-  slug: string,
+  locator: string,
+  byId: boolean,
 ): Promise<RawListingDetailRow | null> {
+  const listingColumn = byId ? Prisma.raw('"Listing"."id"') : Prisma.raw('"Listing"."slug"');
   const rows = await prisma.$queryRaw<RawListingDetailRow[]>`
     SELECT
       "Listing"."id",
       "Listing"."slug",
       "Listing"."title",
       "Listing"."description",
+      "Listing"."verificationVideoUrl",
       "Listing"."pricePerDay",
       "Listing"."lat",
       "Listing"."lng",
@@ -155,10 +156,41 @@ export async function findListingBySlug(
         AND listing_review."status" = 'published'
         AND listing_review."deletedAt" IS NULL
     ) AS review_stats ON TRUE
-    WHERE ${Prisma.raw(BASE_WHERE)} AND "Listing"."slug" = ${slug}
+    WHERE ${Prisma.raw(BASE_WHERE)} AND ${listingColumn} = ${locator}
     LIMIT 1
   `;
   return rows[0] ?? null;
+}
+
+function decodeRouteValue(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    // Los params pueden contener un '%' literal mal formado; se conserva el original.
+    return value;
+  }
+}
+
+/**
+ * Resuelve primero por id real y, si no existe, por slug (incluida la variante
+ * decodificada para slugs con caracteres especiales o tildes).
+ */
+export async function findListingBySlug(
+  prisma: PrismaClient,
+  slugOrId: string,
+): Promise<RawListingDetailRow | null> {
+  const listingById = await prisma.listing.findUnique({
+    where: { id: slugOrId },
+    select: { id: true },
+  });
+  if (listingById) {
+    return findListingDetailByLocator(prisma, listingById.id, true);
+  }
+
+  const decodedSlug = decodeRouteValue(slugOrId);
+  const byOriginalSlug = await findListingDetailByLocator(prisma, slugOrId, false);
+  if (byOriginalSlug || decodedSlug === slugOrId) return byOriginalSlug;
+  return findListingDetailByLocator(prisma, decodedSlug, false);
 }
 
 /**

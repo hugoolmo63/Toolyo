@@ -22,7 +22,10 @@ export function ListingPhotoEditor({ photos, setValue, errors }: { photos: Photo
     setNative(isNativeShell());
   }, []);
 
-  const addPhoto = () => setValue("photos", [...photos, { url: "", altText: "", order: photos.length }], { shouldDirty: true });
+  const addPhoto = () => {
+    if (photos.length >= 10) return;
+    setValue("photos", [...photos, { url: "", altText: "", order: photos.length }], { shouldDirty: true });
+  };
   const removePhoto = (index: number) => setValue("photos", photos.filter((_, current) => current !== index).map((photo, order) => ({ ...photo, order })), { shouldDirty: true });
 
   const capturePhoto = async (source: "camera" | "gallery") => {
@@ -30,6 +33,10 @@ export function ListingPhotoEditor({ photos, setValue, errors }: { photos: Photo
     try {
       const picked = await pickPhoto(source);
       if (!picked) return;
+      if (photos.length >= 10) {
+        setCameraError("Cada producto admite un máximo de 10 fotos.");
+        return;
+      }
       if (picked.dataUrl.length > MAX_DATA_URL_BYTES) {
         setCameraError("La imagen es demasiado grande. Prueba con otra o reduce su resolución.");
         return;

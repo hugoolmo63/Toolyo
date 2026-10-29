@@ -377,6 +377,7 @@ export async function findPublishedListingsInBounds(
   const rows = await prisma.$queryRaw<MapPinRow[]>`
     SELECT
       "Listing"."id",
+      "Listing"."slug",
       "Listing"."lat",
       "Listing"."lng",
       "Listing"."title",
@@ -396,6 +397,7 @@ export async function findPublishedListingsInBounds(
 
 export interface MapPinRow {
   id: string;
+  slug: string;
   lat: Prisma.Decimal | null;
   lng: Prisma.Decimal | null;
   title: string;

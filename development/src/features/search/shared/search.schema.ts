@@ -50,6 +50,11 @@ export const SearchQuerySchema = z.object({
   limit: z.number().int().positive().max(48).default(24),
 });
 
+/** Mapa pide todas las coincidencias de una consulta, no solo la página del catálogo. */
+export const SearchMapResultsSchema = SearchQuerySchema.extend({
+  limit: z.number().int().positive().max(1000).default(1000),
+});
+
 export const SearchInitialSchema = z.object({
   seed: z.number().int().optional(),
   page: z.number().int().positive().max(1000).optional(),
@@ -76,6 +81,7 @@ export const MapBoundsQuerySchema = z.object({
 });
 
 export type SearchQueryInput = z.infer<typeof SearchQuerySchema>;
+export type SearchMapResultsInput = z.infer<typeof SearchMapResultsSchema>;
 export type SearchInitialInput = z.infer<typeof SearchInitialSchema>;
 export type SuggestInput = z.infer<typeof SuggestSchema>;
 export type MapBoundsQueryInput = z.infer<typeof MapBoundsQuerySchema>;

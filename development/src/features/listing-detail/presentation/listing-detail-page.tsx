@@ -39,6 +39,14 @@ export function ListingDetailPage({ listing, reputation }: ListingDetailPageProp
         <div className="listing-detail-main">
           <ListingHeader listing={listing} />
           <DescriptionSection listing={listing} />
+          {listing.verificationVideoUrl && (
+            <section className="listing-verification-video" aria-labelledby="listing-video-heading">
+              <h2 id="listing-video-heading">Vídeo de demostración</h2>
+              <video controls preload="metadata" src={listing.verificationVideoUrl} className="listing-demo-video">
+                Tu navegador no admite la reproducción de vídeo.
+              </video>
+            </section>
+          )}
 
           <section className="listing-location-section" aria-labelledby="listing-location-heading">
             <h2 id="listing-location-heading">Ubicación aproximada</h2>

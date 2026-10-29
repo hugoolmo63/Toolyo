@@ -10,6 +10,7 @@ import { RegistrationSchema, type RegistrationInput } from "@/lib/validations/au
 import { api } from "@/lib/trpc-react";
 import type { LegalRegistrationDocument } from "@/types/auth";
 import { SsoButtons } from "./sso-buttons";
+import { BotProtection } from "./bot-protection";
 
 // En checkboxes RHF devuelve el atributo `value` al marcarlos y `false` al
 // no marcarlos (setValueAs no se aplica a checkboxes en esta versión).
@@ -32,6 +33,7 @@ export function RegistrationForm({
 }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [botToken, setBotToken] = useState("");
   const termsDocumentId = legalDocuments.find((document) => document.documentType === "terms")?.id ?? "";
   const privacyDocumentId = legalDocuments.find((document) => document.documentType === "privacy")?.id ?? "";
   const form = useForm<RegistrationInput>({ resolver: zodResolver(RegistrationFormSchema), defaultValues: { email: "", password: "", termsDocumentId: "", privacyDocumentId: "", marketingAccepted: false } });
@@ -50,7 +52,11 @@ export function RegistrationForm({
   });
 
   function submit(values: RegistrationInput) {
-    registerMutation.mutate(values);
+    if (!botToken) {
+      form.setError("root", { message: "Completa la verificación «No soy un robot»." });
+      return;
+    }
+    registerMutation.mutate({ ...values, botToken });
   }
 
   return (
@@ -78,6 +84,7 @@ export function RegistrationForm({
       {form.formState.errors.privacyDocumentId && <p className="field-error" id="privacy-accepted-error" role="alert">{form.formState.errors.privacyDocumentId.message}</p>}
       <label className="check-row optional" htmlFor="marketing-accepted"><input id="marketing-accepted" type="checkbox" {...form.register("marketingAccepted")} /><span>Quiero recibir novedades y oportunidades de Toolyo.</span></label>
       {form.formState.errors.root && <p className="form-error" role="alert">{form.formState.errors.root.message}</p>}
+      <BotProtection value={botToken} onChange={(token) => { setBotToken(token); form.clearErrors("root"); }} />
       <button className="auth-submit" type="submit" disabled={registerMutation.isPending}>{registerMutation.isPending ? "Creando cuenta..." : "Crear cuenta"}</button>
       <p className="auth-switch">
         ¿Ya tienes cuenta?{" "}

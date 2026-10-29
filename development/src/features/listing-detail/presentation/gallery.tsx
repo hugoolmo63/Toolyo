@@ -60,12 +60,12 @@ export function Gallery({ photos, title }: GalleryProps) {
 
   const goNext = useCallback(() => {
     if (!hasPhotos) return;
-    setCurrentIndex((i) => (i + 1) % photos.length);
+    setCurrentIndex((i) => Math.min(photos.length - 1, i + 1));
   }, [hasPhotos, photos.length]);
 
   const goPrev = useCallback(() => {
     if (!hasPhotos) return;
-    setCurrentIndex((i) => (i - 1 + photos.length) % photos.length);
+    setCurrentIndex((i) => Math.max(0, i - 1));
   }, [hasPhotos, photos.length]);
 
   const closeZoom = useCallback(() => {
@@ -97,7 +97,7 @@ export function Gallery({ photos, title }: GalleryProps) {
   return (
     <div className="gallery">
       <div className="gallery-main">
-        {photos.length > 1 && (
+        {photos.length > 1 && currentIndex > 0 && (
           <button
             type="button"
             className="gallery-nav-btn gallery-prev"
@@ -127,7 +127,7 @@ export function Gallery({ photos, title }: GalleryProps) {
           )}
         </button>
 
-        {photos.length > 1 && (
+        {photos.length > 1 && currentIndex < photos.length - 1 && (
           <button
             type="button"
             className="gallery-nav-btn gallery-next"
@@ -205,7 +205,7 @@ export function Gallery({ photos, title }: GalleryProps) {
           </div>
           {photos.length > 1 && (
             <>
-              <button
+              {currentIndex > 0 && <button
                 type="button"
                 className="gallery-nav-btn gallery-prev"
                 onClick={(e) => {
@@ -215,8 +215,8 @@ export function Gallery({ photos, title }: GalleryProps) {
                 aria-label="Imagen anterior"
               >
                 <GalleryArrow direction="previous" />
-              </button>
-              <button
+              </button>}
+              {currentIndex < photos.length - 1 && <button
                 type="button"
                 className="gallery-nav-btn gallery-next"
                 onClick={(e) => {
@@ -226,7 +226,7 @@ export function Gallery({ photos, title }: GalleryProps) {
                 aria-label="Imagen siguiente"
               >
                 <GalleryArrow direction="next" />
-              </button>
+              </button>}
             </>
           )}
         </div>

@@ -53,7 +53,7 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
               submitSearch();
             }
           }}
-          placeholder={compact ? "Buscar productos..." : "Busca por producto, ubicación o categoría..."}
+          placeholder={compact ? "Buscar productos..." : "Busca por producto..."}
           autoComplete="off"
         />
         {inputValue && (

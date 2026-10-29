@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { searchInitial, searchQuery, searchSuggest } from "@/features/search/application/search.service";
+import { searchInitial, searchMapBounds, searchMapResults, searchQuery, searchSuggest } from "@/features/search/application/search.service";
 import type { PrismaClient } from "@prisma/client";
 
 // Mock del repositorio
@@ -25,7 +25,7 @@ vi.mock("@/lib/embeddings/embedding.service", () => ({
   EMBEDDING_MODEL: "Xenova/all-MiniLM-L6-v2",
 }));
 
-import { findPublishedListingsRandom, findPublishedListingsFiltered } from "@/features/search/infrastructure/listing.repository";
+import { findPublishedListingsRandom, findPublishedListingsFiltered, findPublishedListingsInBounds } from "@/features/search/infrastructure/listing.repository";
 import { searchLocationsNominatim } from "@/features/search/infrastructure/geocoding.repository";
 
 const mockPrisma = {} as PrismaClient;
@@ -188,6 +188,59 @@ describe("search.service", () => {
 
       expect(mockFindMany).not.toHaveBeenCalled();
       expect(result.categories).toHaveLength(0);
+    });
+  });
+
+  describe("searchMapBounds", () => {
+    it("maps approximate coordinates and the real listing id for the map popup", async () => {
+      vi.mocked(findPublishedListingsInBounds).mockResolvedValue([{
+        id: "listing-1",
+        slug: "test-listing",
+        lat: { toString: () => "40.4" } as never,
+        lng: { toString: () => "-3.7" } as never,
+        title: "Cámara de prueba",
+        pricePerDay: { toString: () => "50" } as never,
+        ratingAverage: { toString: () => "4.5" } as never,
+        primaryPhotoUrl: "https://example.com/photo.jpg",
+      }]);
+
+      const result = await searchMapBounds(mockPrisma, {
+        bounds: { north: 41, south: 40, east: -3, west: -4 },
+        limit: 20,
+      });
+
+      expect(result[0]).toEqual({
+        id: "listing-1",
+        lat: 40.4,
+        lng: -3.7,
+        title: "Cámara de prueba",
+        pricePerDay: 50,
+        primaryPhotoUrl: "https://example.com/photo.jpg",
+        ratingAverage: 4.5,
+      });
+    });
+  });
+
+  describe("searchMapResults", () => {
+    it("loads all 90 unfiltered home items in one map query for the initial pin set", async () => {
+      const homeRows = Array.from({ length: 90 }, (_, index) => ({ ...mockRow, id: `listing-${index}` }));
+      vi.mocked(findPublishedListingsRandom).mockResolvedValue({ rows: homeRows, total: 90 });
+      const result = await searchMapResults(mockPrisma, { limit: 1000, page: 1, sortBy: "relevance" });
+
+      expect(findPublishedListingsRandom).toHaveBeenCalledWith(mockPrisma, expect.objectContaining({ limit: 1000, page: 1 }));
+      expect(result.total).toBe(90);
+      expect(result.items).toHaveLength(90);
+      expect(result.items.every((item) => item.location !== null)).toBe(true);
+    });
+
+    it("applies the active text filter to the complete map result request", async () => {
+      vi.mocked(findPublishedListingsFiltered).mockResolvedValue({ rows: [mockRow], total: 90 });
+      const result = await searchMapResults(mockPrisma, { query: "cámara", limit: 1000, page: 1, sortBy: "relevance" });
+
+      expect(findPublishedListingsFiltered).toHaveBeenCalledWith(mockPrisma, expect.objectContaining({ query: "cámara", limit: 1000, page: 1 }));
+      expect(result.total).toBe(90);
+      expect(result.hasMore).toBe(false);
+      expect(result.items).toHaveLength(1);
     });
   });
 });

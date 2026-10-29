@@ -56,6 +56,7 @@ describe("auth.router", () => {
     const result = await caller.auth.registerWithPassword({
       email: "router.fake@toolyo.dev",
       password: "Password12345!",
+      botToken: "development-human-check",
       termsDocumentId: terms!.id,
       privacyDocumentId: privacy!.id,
       marketingAccepted: false,

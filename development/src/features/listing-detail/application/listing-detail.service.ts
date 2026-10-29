@@ -61,6 +61,7 @@ function mapDetailToDTO(
     slug: row.slug,
     title: row.title,
     description: row.description,
+    verificationVideoUrl: row.verificationVideoUrl ?? null,
     pricePerDay: Number(row.pricePerDay),
     location:
       row.lat && row.lng

@@ -44,7 +44,7 @@ export function UserMenu() {
     return (
       <>
         <button type="button" className="public-nav-link public-nav-button" onClick={() => open("login")}>
-          Entrar
+          Iniciar sesión
         </button>
         <button type="button" className="public-nav-link public-nav-cta" onClick={() => open("register")}>
           Crear cuenta

@@ -44,20 +44,28 @@ describe("Result links", () => {
     expect(link.hasAttribute("target")).toBe(false);
   });
 
-  it("navigates product photos from the grid and wraps around", () => {
+  it("shows only the available photo directions and hides arrows at the ends", () => {
     render(<ResultsList results={[{ ...result, photoUrls: ["/photo-1.jpg", "/photo-2.jpg"] }]} isLoading={false} hasFilters view="grid" />);
     const image = screen.getByRole("img", { name: "Equipo de escalada" });
 
     expect(image.getAttribute("src")).toBe("/photo-1.jpg");
+    expect(screen.queryByRole("button", { name: "Foto anterior de Equipo de escalada" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Foto siguiente de Equipo de escalada" }));
     expect(screen.getByRole("img", { name: "Equipo de escalada" }).getAttribute("src")).toBe("/photo-2.jpg");
-    fireEvent.click(screen.getByRole("button", { name: "Foto siguiente de Equipo de escalada" }));
-    expect(screen.getByRole("img", { name: "Equipo de escalada" }).getAttribute("src")).toBe("/photo-1.jpg");
+    expect(screen.queryByRole("button", { name: "Foto siguiente de Equipo de escalada" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Foto anterior de Equipo de escalada" })).toBeTruthy();
   });
 
   it("does not show photo navigation for a single photo", () => {
     render(<ResultsList results={[{ ...result, primaryPhotoUrl: "/photo-1.jpg", photoUrls: ["/photo-1.jpg"] }]} isLoading={false} hasFilters view="grid" />);
 
     expect(screen.queryByRole("button", { name: /Foto (anterior|siguiente)/ })).toBeNull();
+  });
+
+  it("does not render a verification badge even for a verified owner", () => {
+    render(<ResultsList results={[{ ...result, owner: { ...result.owner, isVerified: true } }]} isLoading={false} hasFilters view="grid" />);
+
+    expect(screen.queryByText("✓ Verificado")).toBeNull();
+    expect(document.querySelector(".verified-badge")).toBeNull();
   });
 });

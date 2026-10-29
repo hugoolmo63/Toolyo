@@ -22,6 +22,7 @@ import type { SearchResultsPage, SearchResultDTO, MapPin } from "@/types/search"
  */
 interface SearchPageProps {
   initialResults?: SearchResultsPage | null;
+  initialMapResults?: SearchResultsPage | null;
 }
 
 const MOBILE_BREAKPOINT = 768;
@@ -35,13 +36,14 @@ interface AccumulatedResults {
   nextPage: number;
 }
 
-export function SearchPage({ initialResults }: SearchPageProps) {
+export function SearchPage({ initialResults, initialMapResults }: SearchPageProps) {
   const params = useSearchParamsState();
   const utils = api.useUtils();
   const [isMobile, setIsMobile] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [accumulated, setAccumulated] = useState<AccumulatedResults | null>(null);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [mapResults, setMapResults] = useState<{ key: string; items: SearchResultDTO[] }>({ key: "", items: [] });
 
   // Detectar móvil por breakpoint
   useEffect(() => {
@@ -86,7 +88,6 @@ export function SearchPage({ initialResults }: SearchPageProps) {
     }),
     [params],
   );
-
   const initialInput = useMemo(
     () => ({ seed: params.seed ?? undefined, limit: 24 }),
     [params.seed],
@@ -104,33 +105,44 @@ export function SearchPage({ initialResults }: SearchPageProps) {
     staleTime: 30_000,
   });
 
-  // Map bounds query (solo cuando se muestra el mapa)
-  const mapBounds = api.search.mapBounds.useQuery(
-    {
-      bounds: { north: 41, south: 40, east: 2, west: -4 }, // default: España central
-      query: params.query || undefined,
-      categoryId: params.categoryId ?? undefined,
-      dateRange:
-        params.dateStart && params.dateEnd
-          ? { startDate: params.dateStart, endDate: params.dateEnd }
-          : undefined,
-      maxPricePerDay: params.maxPrice ?? undefined,
-      minRating: params.minRating ?? undefined,
-      onlyVerified: params.verified || undefined,
-      limit: 100,
-    },
-    { enabled: showMap, staleTime: 30_000 },
-  );
-
   const results = hasCriteria ? queryResult.data : initialResult.data;
   const isLoading = hasCriteria ? queryResult.isLoading : initialResult.isLoading;
+  const mapQueryInput = useMemo(
+    () => ({ ...queryInput, page: 1, limit: 1000, seed: params.seed ?? results?.seed ?? undefined }),
+    [queryInput, params.seed, results?.seed],
+  );
   const hasActiveFilters = hasCriteria || params.sort !== "relevance";
 
   // Clave de los criterios actuales: al cambiar, el acumulado de scroll se descarta.
   const criteriaKey = useMemo(
-    () => JSON.stringify(hasCriteria ? queryInput : initialInput),
+    () => JSON.stringify(hasCriteria ? { ...queryInput, page: 1 } : initialInput),
     [hasCriteria, queryInput, initialInput],
   );
+
+  // La query específica de mapa carga hasta 1000 coincidencias a la vez,
+  // independientemente de las páginas visibles en el catálogo.
+  useEffect(() => {
+    if (!showMap) return;
+    if (
+      !hasCriteria &&
+      initialMapResults &&
+      (params.seed === null || params.seed === initialMapResults.seed)
+    ) return;
+    let cancelled = false;
+    const currentKey = criteriaKey;
+    setMapResults({ key: currentKey, items: [] });
+
+    void (async () => {
+      const firstPage = await utils.search.mapResults.fetch(mapQueryInput);
+      if (cancelled) return;
+      const all = [...firstPage.items];
+      setMapResults({ key: currentKey, items: all });
+    })().catch(() => {
+      // Conserva la lista visible en catálogo como fallback ante un fallo.
+    });
+
+    return () => { cancelled = true; };
+  }, [showMap, hasCriteria, params.seed, initialMapResults, criteriaKey, mapQueryInput, utils]);
   const extra = accumulated?.key === criteriaKey ? accumulated : null;
 
   const items = useMemo(() => {
@@ -180,7 +192,20 @@ export function SearchPage({ initialResults }: SearchPageProps) {
     return filters;
   }, [params]);
 
-  const pins: MapPin[] = mapBounds.data ?? [];
+  const mapItems = mapResults.key === criteriaKey
+    ? mapResults.items
+    : !hasCriteria && initialMapResults && (params.seed === null || params.seed === initialMapResults.seed)
+      ? initialMapResults.items
+      : results?.items ?? [];
+  const pins: MapPin[] = mapItems.flatMap((item) => item.location ? [{
+    id: item.id,
+    lat: item.location.lat,
+    lng: item.location.lng,
+    title: item.title,
+    pricePerDay: item.pricePerDay,
+    primaryPhotoUrl: item.primaryPhotoUrl,
+    ratingAverage: item.ratingAverage,
+  }] : []);
 
   return (
     <>
@@ -225,7 +250,7 @@ export function SearchPage({ initialResults }: SearchPageProps) {
                   : null
               }
               pins={pins}
-              isLoading={mapBounds.isLoading}
+              isLoading={isLoading && !results}
             />
           </div>
         )}

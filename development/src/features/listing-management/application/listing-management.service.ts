@@ -22,6 +22,7 @@ async function assertCategory(db: ListingDb, categoryId: string) {
 }
 
 function assertPublishable(input: Pick<CreateListingManagementInput, "title" | "categoryId" | "pricePerDay" | "photos">) {
+  if (input.photos.length > 10) throw new ValidationError("Cada producto admite un máximo de 10 fotos");
   if (!input.title.trim() || !input.categoryId || Number(input.pricePerDay) <= 0 || input.photos.length === 0) {
     throw new ValidationError("Para publicar necesitas título, categoría, precio e imagen");
   }
@@ -49,6 +50,7 @@ export async function create(db: PrismaClient, ownerId: string, input: CreateLis
       title: input.title,
       slug,
       description: input.description,
+      verificationVideoUrl: input.verificationVideoUrl,
       pricePerDay: new Prisma.Decimal(input.pricePerDay),
       city: input.city,
       lat: input.lat == null ? undefined : new Prisma.Decimal(input.lat),
@@ -72,6 +74,7 @@ export async function update(db: PrismaClient, ownerId: string, input: UpdateLis
   const data: Prisma.ListingUpdateInput = {};
   if (input.title !== undefined) data.title = input.title;
   if (input.description !== undefined) data.description = input.description;
+  if (input.verificationVideoUrl !== undefined) data.verificationVideoUrl = input.verificationVideoUrl;
   if (input.categoryId !== undefined) data.category = { connect: { id: input.categoryId } };
   if (input.pricePerDay !== undefined) data.pricePerDay = new Prisma.Decimal(input.pricePerDay);
   if (input.city !== undefined) data.city = input.city;

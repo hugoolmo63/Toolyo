@@ -20,6 +20,13 @@ describe("listing-management schemas", () => {
     expect(() => CreateListingManagementSchema.parse({ ...validListing, photos: [], publish: true })).toThrow();
   });
 
+  it("accepts at most 10 photos and an optional verification video URL", () => {
+    const tenPhotos = Array.from({ length: 10 }, (_, order) => ({ url: `https://example.com/${order}.jpg`, order }));
+    expect(CreateListingManagementSchema.parse({ ...validListing, photos: tenPhotos }).photos).toHaveLength(10);
+    expect(() => CreateListingManagementSchema.parse({ ...validListing, photos: [...tenPhotos, { url: "https://example.com/extra.jpg", order: 10 }] })).toThrow();
+    expect(CreateListingManagementSchema.parse({ ...validListing, verificationVideoUrl: "/uploads/listing-videos/demo.mp4" }).verificationVideoUrl).toBe("/uploads/listing-videos/demo.mp4");
+  });
+
   it("bounds pagination and applies defaults", () => {
     expect(ListMineSchema.parse({})).toEqual({ page: 1, pageSize: 20 });
     expect(() => ListMineSchema.parse({ pageSize: 51 })).toThrow();

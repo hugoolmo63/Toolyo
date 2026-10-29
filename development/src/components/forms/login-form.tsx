@@ -9,6 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { LoginSchema, type LoginInput } from "@/lib/validations/auth";
 import { api } from "@/lib/trpc-react";
 import { Button, FormField, Input } from "@/components/ui";
+import { BotProtection } from "./bot-protection";
 
 interface LoginFormProps {
   variant?: "page" | "dialog";
@@ -24,6 +25,7 @@ export function LoginForm({ variant = "page", onSuccess, onNavigateRegister, ini
   const callback = searchParams.get("callback") ?? "/dashboard";
   const isDialog = variant === "dialog";
   const [showPassword, setShowPassword] = useState(false);
+  const [botToken, setBotToken] = useState("");
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [recoveryMessage, setRecoveryMessage] = useState("");
@@ -148,7 +150,13 @@ export function LoginForm({ variant = "page", onSuccess, onNavigateRegister, ini
   }
 
   return (
-    <form className="auth-form" onSubmit={form.handleSubmit((values) => loginMutation.mutate(values))} noValidate>
+    <form className="auth-form" onSubmit={form.handleSubmit((values) => {
+      if (!botToken) {
+        form.setError("root", { message: "Completa la verificación «No soy un robot»." });
+        return;
+      }
+      loginMutation.mutate({ ...values, botToken });
+    })} noValidate>
       <div className="form-intro">
         <p className="form-kicker">Bienvenido de nuevo</p>
         <h1 id={isDialog ? undefined : "login-page-title"}>Inicia sesión.</h1>
@@ -194,6 +202,7 @@ export function LoginForm({ variant = "page", onSuccess, onNavigateRegister, ini
         <input id="remember-me" type="checkbox" {...form.register("rememberMe")} />
         <span>Mantener mi sesión iniciada durante 30 días.</span>
       </label>
+      <BotProtection value={botToken} onChange={(token) => { setBotToken(token); form.clearErrors("root"); }} />
       {form.formState.errors.root && <p className="form-error" role="alert">{form.formState.errors.root.message}</p>}
       <Button className="auth-submit" type="submit" isLoading={loginMutation.isPending} loadingLabel="Iniciando sesión...">
         Iniciar sesión

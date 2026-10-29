@@ -31,11 +31,6 @@ export function ListingHeader({ listing }: ListingHeaderProps) {
             ⚡ Reserva instantánea
           </span>
         )}
-        {listing.owner.isVerified && (
-          <span className="listing-verified-badge" title="Arrendador verificado">
-            ✓ Verificado
-          </span>
-        )}
       </div>
 
       <h1 className="listing-title">{listing.title}</h1>

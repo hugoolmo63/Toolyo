@@ -48,6 +48,10 @@ export interface SearchUrlParams {
   seed: number | null;
 }
 
+export function parseSearchView(value: string | null): SearchUrlParams["view"] {
+  return value === "list" ? "list" : "grid";
+}
+
 function parseNumber(val: string | null): number | null {
   if (val === null || val === "") return null;
   const n = Number(val);
@@ -81,7 +85,7 @@ export function useSearchParamsState(): SearchUrlParams {
       minRating: parseNumber(searchParams.get(SEARCH_PARAMS_KEYS.minRating)),
       verified: parseBoolean(searchParams.get(SEARCH_PARAMS_KEYS.verified)),
       sort: searchParams.get(SEARCH_PARAMS_KEYS.sort) ?? "relevance",
-      view: (searchParams.get(SEARCH_PARAMS_KEYS.view) as "grid" | "list") ?? "grid",
+      view: parseSearchView(searchParams.get(SEARCH_PARAMS_KEYS.view)),
       page: parseNumber(searchParams.get(SEARCH_PARAMS_KEYS.page)) ?? 1,
       seed: parseNumber(searchParams.get(SEARCH_PARAMS_KEYS.seed)),
     }),

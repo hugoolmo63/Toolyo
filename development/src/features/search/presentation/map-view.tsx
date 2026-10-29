@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { MapPin } from "@/types/search";
+import type { LatLngBoundsExpression } from "leaflet";
 
 /**
  * MapView — mapa interactivo con Leaflet y react-leaflet.
@@ -37,6 +39,14 @@ function fixLeafletIcons(L: any) {
   });
 }
 
+export function getMapPinsWithCoordinates(pins: MapPin[]) {
+  return pins.filter((pin) => Number.isFinite(pin.lat) && Number.isFinite(pin.lng));
+}
+
+export function getMapListingHref(listingId: string) {
+  return `/listings/${listingId}`;
+}
+
 export function MapView({
   center,
   pins,
@@ -50,9 +60,10 @@ export function MapView({
     MapContainer: React.ComponentType<any>;
     TileLayer: React.ComponentType<any>;
     Marker: React.ComponentType<any>;
+    Popup: React.ComponentType<any>;
+    FitPins: React.ComponentType<{ pins: MapPin[]; center: [number, number] }>;
   } | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
 
   // Cargar Leaflet + react-leaflet dinámicamente (sin SSR)
   useEffect(() => {
@@ -67,6 +78,22 @@ export function MapView({
           MapContainer: reactLeaflet.MapContainer,
           TileLayer: reactLeaflet.TileLayer,
           Marker: reactLeaflet.Marker,
+          Popup: reactLeaflet.Popup,
+          FitPins: function FitPins({ pins: visiblePins, center: fallbackCenter }) {
+            const map = reactLeaflet.useMap();
+            useEffect(() => {
+              const points = getMapPinsWithCoordinates(visiblePins)
+                .map((pin) => [pin.lat, pin.lng] as [number, number]);
+              if (points.length === 0) {
+                map.setView(fallbackCenter, 12);
+              } else if (points.length === 1) {
+                map.setView(points[0]!, 14);
+              } else {
+                map.fitBounds(points as LatLngBoundsExpression, { padding: [32, 32], maxZoom: 14 });
+              }
+            }, [map, visiblePins, fallbackCenter]);
+            return null;
+          },
         });
       })
       .catch(() => {
@@ -95,7 +122,7 @@ export function MapView({
     );
   }
 
-  const { MapContainer, TileLayer, Marker } = mods;
+  const { MapContainer, TileLayer, Marker, Popup, FitPins } = mods;
 
   // Default center: Madrid si no hay ubicación
   const mapCenter: [number, number] = center
@@ -109,54 +136,39 @@ export function MapView({
         zoom={12}
         style={{ height: "500px", width: "100%" }}
       >
+        <FitPins pins={pins} center={mapCenter} />
         <TileLayer
           url={MAP_TILES_URL}
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
-        {pins.map((pin) => (
+        {getMapPinsWithCoordinates(pins).map((pin) => (
           <Marker
             key={pin.id}
             position={[pin.lat, pin.lng]}
             eventHandlers={{
-              click: () => setSelectedPin(pin),
+              click: (event: { target: { openPopup: () => void } }) => event.target.openPopup(),
+              mouseover: (event: { target: { openPopup: () => void } }) => event.target.openPopup(),
             }}
-          />
+          >
+            <Popup>
+              <Link href={getMapListingHref(pin.id)} className="map-pin-preview" aria-label={`Ver ${pin.title}`}>
+                {pin.primaryPhotoUrl && (
+                  <Image
+                    src={pin.primaryPhotoUrl}
+                    alt=""
+                    width={240}
+                    height={120}
+                    unoptimized
+                    className="map-pin-preview-image"
+                  />
+                )}
+                <span className="map-pin-preview-title">{pin.title}</span>
+                <strong className="map-pin-preview-price">{pin.pricePerDay} €/día</strong>
+              </Link>
+            </Popup>
+          </Marker>
         ))}
       </MapContainer>
-
-      {selectedPin && (
-        <div className="map-preview" role="dialog" aria-label="Vista previa del listing">
-          <button
-            className="map-preview-close"
-            onClick={() => setSelectedPin(null)}
-            aria-label="Cerrar vista previa"
-          >
-            ✕
-          </button>
-          {selectedPin.primaryPhotoUrl && (
-            <Image
-              src={selectedPin.primaryPhotoUrl}
-              alt={selectedPin.title}
-              width={320}
-              height={160}
-              unoptimized
-              className="map-preview-image"
-            />
-          )}
-          <div className="map-preview-body">
-            <h3 className="map-preview-title">{selectedPin.title}</h3>
-            <div className="map-preview-meta">
-              <span className="map-preview-price">
-                {selectedPin.pricePerDay} €/día
-              </span>
-              <span className="map-preview-rating">
-                ★ {selectedPin.ratingAverage.toFixed(1)}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {isLoading && <div className="map-overlay-loading">Cargando pins...</div>}
     </div>
   );

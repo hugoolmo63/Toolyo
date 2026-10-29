@@ -25,7 +25,7 @@ export function ResultCard({ listing, openInNewTab = false }: { listing: SearchR
   function changePhoto(event: MouseEvent<HTMLButtonElement>, direction: -1 | 1) {
     event.preventDefault();
     event.stopPropagation();
-    setPhotoIndex((current) => (current + direction + photos.length) % photos.length);
+    setPhotoIndex((current) => Math.max(0, Math.min(photos.length - 1, current + direction)));
   }
 
   return (
@@ -53,13 +53,9 @@ export function ResultCard({ listing, openInNewTab = false }: { listing: SearchR
             </div>
           )}
         </Link>
-        {listing.owner.isVerified && (
-          <span className="verified-badge" title="Arrendador verificado">
-            ✓ Verificado
-          </span>
-        )}
         {photos.length > 1 && (
           <>
+            {photoIndex > 0 && (
             <button
               type="button"
               className="result-card-photo-nav previous"
@@ -68,6 +64,8 @@ export function ResultCard({ listing, openInNewTab = false }: { listing: SearchR
             >
               <ChevronLeft size={20} aria-hidden="true" />
             </button>
+            )}
+            {photoIndex < photos.length - 1 && (
             <button
               type="button"
               className="result-card-photo-nav next"
@@ -76,6 +74,7 @@ export function ResultCard({ listing, openInNewTab = false }: { listing: SearchR
             >
               <ChevronRight size={20} aria-hidden="true" />
             </button>
+            )}
           </>
         )}
       </div>

@@ -7,9 +7,11 @@ import { deriveCapabilities } from "./capabilities.service";
 import type { OnboardingStatus } from "@/types/auth";
 import { RegistrationPasswordSchema } from "@/lib/validations/auth";
 import { requestOtp } from "./otp-delivery.service";
+import { isAllowedRegistrationEmail, TEMPORARY_EMAIL_ERROR } from "@/lib/email-policy";
 
 export async function registerWithPassword(prisma: PrismaClient, input: { email: string; password: string; termsDocumentId: string; privacyDocumentId: string; marketingAccepted?: boolean }): Promise<{ userId: string; accountStatus: string; challengeId: string; challengeExpiresAt: Date }> {
   const emailNormalized = normalizeEmail(input.email);
+  if (!isAllowedRegistrationEmail(emailNormalized)) throw new ValidationError(TEMPORARY_EMAIL_ERROR);
   const passwordValidation = RegistrationPasswordSchema.safeParse(input.password);
   if (!passwordValidation.success) {
     throw new ValidationError(passwordValidation.error.issues[0]?.message ?? "La contraseña no cumple los requisitos de seguridad");

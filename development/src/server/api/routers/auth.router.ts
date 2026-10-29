@@ -9,12 +9,14 @@ import { revokeSession } from "@/server/auth/session.service";
 import { recordSecurityEvent } from "@/server/services/security-event.service";
 import { serializeSessionCookie, serializeClearSessionCookie, validateCallbackPath as validateCallback } from "@/lib/auth";
 import { mapErrorToTRPC } from "@/server/lib/errors/map-error";
+import { verifyBotProtection } from "@/server/auth/bot-protection.service";
 
 const OTP_SECRET = process.env.OTP_SECRET ?? "development-only-otp-secret";
 
 export const authRouter = createTRPCRouter({
   registerWithPassword: publicProcedure.input(RegistrationSchema).mutation(async ({ ctx, input }) => {
     try {
+      await verifyBotProtection(input.botToken, ctx.clientIp);
       return await registerWithPassword(ctx.prisma, input);
     } catch (error) {
       throw mapErrorToTRPC(error);
@@ -52,6 +54,7 @@ export const authRouter = createTRPCRouter({
 
   loginWithPassword: publicProcedure.input(LoginSchema).mutation(async ({ ctx, input }) => {
     try {
+      await verifyBotProtection(input.botToken, ctx.clientIp);
       const { result, sessionToken, ttlSeconds } = await loginWithPassword(ctx.prisma, {
         email: input.email,
         password: input.password,

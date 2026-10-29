@@ -50,6 +50,13 @@ describe("Listing detail presentation links", () => {
       .toBe("/?loc=Madrid&lat=40.4&lng=-3.7");
   });
 
+  it("does not render a verification badge when the owner is verified", () => {
+    render(<ListingHeader listing={{ ...listing, owner: { isVerified: true } } as ListingDetailDTO} />);
+
+    expect(screen.queryByText(/Verificado/)).toBeNull();
+    expect(document.querySelector(".listing-verified-badge")).toBeNull();
+  });
+
   it("shows owner details without an Arrendador heading and keeps transaction info visible", () => {
     render(<OwnerCard owner={owner} />);
 
@@ -58,5 +65,12 @@ describe("Listing detail presentation links", () => {
     expect(screen.getByText("Transacciones")).toBeTruthy();
     expect(document.querySelector(".owner-stats")?.getAttribute("class")).toContain("owner-stats");
     expect(screen.getByText("1000")).toBeTruthy();
+  });
+
+  it("does not render a verification marker in the owner card", () => {
+    render(<OwnerCard owner={{ ...owner, isVerified: true }} />);
+
+    expect(document.querySelector(".owner-verified-badge")).toBeNull();
+    expect(screen.queryByText("✓")).toBeNull();
   });
 });

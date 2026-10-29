@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
   SearchQuerySchema,
+  SearchMapResultsSchema,
   SearchInitialSchema,
   SuggestSchema,
   MapBoundsQuerySchema,
 } from "@/features/search/shared/search.schema";
 
 describe("search.schema", () => {
+  describe("SearchMapResultsSchema", () => {
+    it("accepts a complete map page with up to 1000 results", () => {
+      expect(SearchMapResultsSchema.parse({ limit: 1000 }).limit).toBe(1000);
+      expect(() => SearchMapResultsSchema.parse({ limit: 1001 })).toThrow();
+    });
+  });
   describe("SearchQuerySchema", () => {
     it("acepta input vacío con defaults", () => {
       const result = SearchQuerySchema.parse({});

@@ -12,6 +12,7 @@ export const RegistrationPasswordSchema = z
 
 export const RegistrationSchema = z.object({
   email: z.string().trim().email("Introduce un email válido").max(254),
+  botToken: z.string().max(2048).optional(),
   password: RegistrationPasswordSchema,
   termsDocumentId: z.string().cuid(),
   privacyDocumentId: z.string().cuid(),
@@ -27,6 +28,7 @@ export const SsoStartSchema = z.object({ provider: SsoProviderSchema, returnPath
 export const IdentityStartSchema = z.object({ termsVersion: z.string().min(1).max(40) });
 export const LoginSchema = z.object({
   email: z.string().trim().min(1, "Correo o contraseña incorrectos").email("Correo o contraseña incorrectos").max(254, "Correo o contraseña incorrectos"),
+  botToken: z.string().max(2048).optional(),
   password: z.string().min(1, "Correo o contraseña incorrectos").max(128, "Correo o contraseña incorrectos"),
   rememberMe: z.boolean().optional().default(false),
   callback: z.string().startsWith("/").max(512).optional(),

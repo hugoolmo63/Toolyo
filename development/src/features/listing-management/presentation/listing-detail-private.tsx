@@ -7,7 +7,7 @@ import { api } from "@/lib/trpc-react";
 import { ListingStatusBadge } from "./listing-status-badge";
 import { ListingDeleteDialog } from "./listing-delete-dialog";
 
-type ListingDetail = { id: string; title: string; description: string | null; pricePerDay: string; status: string; category: { name: string }; location: { city: string | null; addressText: string | null }; photos: Array<{ id: string; url: string; altText: string | null; order: number }>; activeCommitments: { pendingRequests: number; activeRentals: number } };
+type ListingDetail = { id: string; title: string; description: string | null; verificationVideoUrl: string | null; pricePerDay: string; status: string; category: { name: string }; location: { city: string | null; addressText: string | null }; photos: Array<{ id: string; url: string; altText: string | null; order: number }>; activeCommitments: { pendingRequests: number; activeRentals: number } };
 
 export function ListingDetailPrivate({ listing }: { listing: ListingDetail }) {
   const router = useRouter();
@@ -30,6 +30,7 @@ export function ListingDetailPrivate({ listing }: { listing: ListingDetail }) {
           ))}
         </div>
       )}
+      {listing.verificationVideoUrl && <video controls preload="metadata" src={listing.verificationVideoUrl} className="listing-demo-video" />}
       <section>
         <h2>Descripción</h2>
         <p>{listing.description || "Sin descripción todavía."}</p>

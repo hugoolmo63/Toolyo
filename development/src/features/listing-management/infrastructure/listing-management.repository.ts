@@ -96,6 +96,7 @@ export function mapDetail(row: NonNullable<Awaited<ReturnType<typeof findMine>>>
   return {
     ...mapSummary({ ...row, photos: row.photos.slice(0, 1) } as Prisma.ListingGetPayload<{ select: typeof summarySelect }>),
     description: row.description,
+    verificationVideoUrl: row.verificationVideoUrl,
     location: { city: row.city, lat: row.lat ? Number(row.lat) : null, lng: row.lng ? Number(row.lng) : null, addressText: row.addressText },
     photos: row.photos.map((photo): ListingManagementPhoto => ({ id: photo.id, url: photo.url, altText: photo.altText, order: photo.order })),
     availability: row.availability.map((availability) => ({ blockedDate: availability.blockedDate.toISOString().slice(0, 10), reason: availability.reason })),
