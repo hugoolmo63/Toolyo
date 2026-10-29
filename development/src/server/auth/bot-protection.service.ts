@@ -12,7 +12,7 @@ export async function verifyBotProtection(token: string | undefined, remoteIp?: 
 
   const body = new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: token });
   if (remoteIp) body.set("remoteip", remoteIp);
-  const response = await fetch(TURNSTILE_VERIFY_URL, { method: "POST", body, cache: "no-store" });
+  const response = await fetch(TURNSTILE_VERIFY_URL, { method: "POST", body, cache: "no-store", signal: AbortSignal.timeout(5000) });
   if (!response.ok) throw new ValidationError("No se pudo validar la verificación. Inténtalo de nuevo.");
   const result = await response.json() as { success?: boolean };
   if (!result.success) throw new ValidationError("La verificación no es válida. Inténtalo de nuevo.");
