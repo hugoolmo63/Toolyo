@@ -48,6 +48,7 @@ function createCallerWithCookie(cookie?: string) {
 }
 
 const VALID_PASSWORD = "ValidPassword123!";
+const TEST_BOT_TOKEN = "development-human-check";
 
 async function createUser(email: string, status: "pending" | "active" | "suspended" | "deleted", emailVerified = true) {
   return prisma.user.create({
@@ -74,6 +75,7 @@ describe("auth.router login/logout/session", () => {
     const result = await caller.auth.loginWithPassword({
       email: "login-test@toolyo.dev",
       password: VALID_PASSWORD,
+      botToken: TEST_BOT_TOKEN,
     });
 
     expect(result.userId).toBeDefined();
@@ -91,6 +93,7 @@ describe("auth.router login/logout/session", () => {
       caller.auth.loginWithPassword({
         email: "wrong-pw@toolyo.dev",
         password: "WrongPassword123!",
+        botToken: TEST_BOT_TOKEN,
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
@@ -102,6 +105,7 @@ describe("auth.router login/logout/session", () => {
       caller.auth.loginWithPassword({
         email: "nonexistent@toolyo.dev",
         password: VALID_PASSWORD,
+        botToken: TEST_BOT_TOKEN,
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
@@ -115,6 +119,7 @@ describe("auth.router login/logout/session", () => {
       caller.auth.loginWithPassword({
         email: "suspended@toolyo.dev",
         password: VALID_PASSWORD,
+        botToken: TEST_BOT_TOKEN,
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
@@ -127,6 +132,7 @@ describe("auth.router login/logout/session", () => {
     const result = await caller.auth.loginWithPassword({
       email: "unverified@toolyo.dev",
       password: VALID_PASSWORD,
+      botToken: TEST_BOT_TOKEN,
     });
 
     expect(result.redirectTo).toBe("/verify");
@@ -147,6 +153,7 @@ describe("auth.router login/logout/session", () => {
     const loginResult = await caller.auth.loginWithPassword({
       email: "session-test@toolyo.dev",
       password: VALID_PASSWORD,
+      botToken: TEST_BOT_TOKEN,
     });
 
     // Find the session token from DB
@@ -177,6 +184,7 @@ describe("auth.router login/logout/session", () => {
     const loginResult = await caller.auth.loginWithPassword({
       email: "logout-test@toolyo.dev",
       password: VALID_PASSWORD,
+      botToken: TEST_BOT_TOKEN,
     });
 
     const sessions = await prisma.session.findMany({
@@ -203,6 +211,7 @@ describe("auth.router login/logout/session", () => {
         caller.auth.loginWithPassword({
           email: "rate-limit@toolyo.dev",
           password: "WrongPassword123!",
+          botToken: TEST_BOT_TOKEN,
         }),
       ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     }
@@ -211,6 +220,7 @@ describe("auth.router login/logout/session", () => {
       caller.auth.loginWithPassword({
         email: "rate-limit@toolyo.dev",
         password: "WrongPassword123!",
+        botToken: TEST_BOT_TOKEN,
       }),
     ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
   });
